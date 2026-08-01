@@ -1,0 +1,12 @@
+# .NET
+bin/
+obj/
+*.user
+
+# React / Node
+node_modules/
+dist/
+CasaDoTerno.Web/node_modules/
+
+# Configurações locais sensíveis
+appsettings.Development.json
