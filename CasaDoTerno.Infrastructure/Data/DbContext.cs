@@ -20,4 +20,6 @@ public class CasaDoTernoContext : IdentityDbContext<IdentityUser>, ICasaDoTernoC
     public DbSet<Fornecedor> Fornecedores { get; set; }
     public DbSet<Compra> Compras { get; set; }
     public DbSet<ItemCompra> ItensCompra { get; set; }
+    public DbSet<Parcela> Parcelas { get; set; }
+    public DbSet<Despesa> Despesas { get; set; }
 }

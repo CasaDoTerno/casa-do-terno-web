@@ -14,7 +14,10 @@ export function Menu() {
       <Link to="/clientes">Clientes</Link> {" | "}
       <Link to="/cadastro-fornecedor">Fornecedores</Link> {" | "}
       <Link to="/compra">Nova Compra</Link> {" | "}
-      <Link to="/estoque-baixo">Estoque Baixo</Link>
+      <Link to="/estoque-baixo">Estoque Baixo</Link> {" | "}
+      <Link to="/caixa">Fechamento de Caixa</Link>{" | "}
+      <Link to="/parcelas"> Parcelas</Link>{" | "}
+      <Link to="/despesas">Despesas</Link>
     </nav>
   );
 }

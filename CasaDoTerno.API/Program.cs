@@ -20,6 +20,9 @@ builder.Services.AddScoped<LocacaoService>();
 builder.Services.AddScoped<VendaService>();
 builder.Services.AddScoped<LocacaoService>();
 builder.Services.AddScoped<CompraService>();
+builder.Services.AddScoped<RelatorioService>();
+builder.Services.AddScoped<ParcelaService>();
+builder.Services.AddScoped<DespesaService>();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<CasaDoTernoContext>();
 

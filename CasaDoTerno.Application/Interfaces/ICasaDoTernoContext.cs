@@ -14,5 +14,7 @@ public interface ICasaDoTernoContext
     DbSet<Fornecedor> Fornecedores { get; }
     DbSet<Compra> Compras { get; }
     DbSet<ItemCompra> ItensCompra { get; }
+    DbSet<Parcela> Parcelas { get; }
+    DbSet<Despesa> Despesas { get; }
     int SaveChanges();
 }

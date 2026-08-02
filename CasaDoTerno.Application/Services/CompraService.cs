@@ -6,10 +6,12 @@ namespace CasaDoTerno.Application.Services;
 public class CompraService
 {
     private readonly ICasaDoTernoContext _context;
+    private readonly ParcelaService _parcelaService;
 
-    public CompraService(ICasaDoTernoContext context)
+    public CompraService(ICasaDoTernoContext context, ParcelaService parcelaService)
     {
         _context = context;
+        _parcelaService = parcelaService;
     }
 
     public class ItemCompraEntrada
@@ -20,8 +22,8 @@ public class CompraService
     }
 
     public (bool sucesso, string mensagem, Compra? compra) CriarCompra(
-        int fornecedorId, FormaPagamento formaPagamento, string? observacao,
-        List<ItemCompraEntrada> itensEntrada)
+          int fornecedorId, FormaPagamento formaPagamento, string? observacao,
+          int numeroParcelas, List<ItemCompraEntrada> itensEntrada)
     {
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A compra precisa ter pelo menos um item.", null);
@@ -62,6 +64,10 @@ public class CompraService
 
         _context.Compras.Add(compra);
         _context.SaveChanges();
+
+        _parcelaService.GerarParcelas(
+            OrigemPagamento.Compra, compra.Id, compra.ValorTotal,
+            numeroParcelas, formaPagamento, DateTime.Today);
 
         return (true, "Compra registrada com sucesso.", compra);
     }

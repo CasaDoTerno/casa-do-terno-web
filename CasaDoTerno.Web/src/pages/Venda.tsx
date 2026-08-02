@@ -24,10 +24,10 @@ export function Venda() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [consultor, setConsultor] = useState("");
-const [formaPagamento, setFormaPagamento] = useState(0);
+  const [formaPagamento, setFormaPagamento] = useState(0);
   const [clienteId, setClienteId] = useState(0);
   const [desconto, setDesconto] = useState(0);
-
+  const [numeroParcelas, setNumeroParcelas] = useState(1);
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
@@ -76,16 +76,17 @@ const [formaPagamento, setFormaPagamento] = useState(0);
     }
 
     try {
-await api.post("/Vendas", {
-  clienteId,
-  desconto,
-  consultor,
-  formaPagamento,
-  itens: carrinho.map((item) => ({
-    produtoId: item.produtoId,
-    quantidade: item.quantidade,
-  })),
-});
+      await api.post("/Vendas", {
+        clienteId,
+        desconto,
+        consultor,
+        formaPagamento,
+        numeroParcelas,
+        itens: carrinho.map((item) => ({
+          produtoId: item.produtoId,
+          quantidade: item.quantidade,
+        })),
+      });
       setMensagem("Venda registrada com sucesso!");
       setCarrinho([]);
     } catch (erro: any) {
@@ -120,6 +121,16 @@ await api.post("/Vendas", {
     <option value={2}>Pix</option>
     <option value={3}>Boleto</option>
   </select>
+  
+</div>
+<div>
+  <label>Número de parcelas: </label>
+  <input
+    type="number"
+    min={1}
+    value={numeroParcelas}
+    onChange={(e) => setNumeroParcelas(Number(e.target.value))}
+  />
 </div>
       <h2>Adicionar produto</h2>
       <div>

@@ -14,6 +14,9 @@ import { Retiradas } from "./pages/Retiradas";
 import { CadastroFornecedor } from "./pages/CadastroFornecedor";
 import { Compra } from "./pages/Compra";
 import { EstoqueBaixo } from "./pages/EstoqueBaixo";
+import { FechamentoCaixa } from "./pages/FechamentoCaixa";
+import {Parcelas} from "./pages/Parcelas";
+
 
 function App() {
   return (
@@ -37,6 +40,8 @@ function App() {
         <Route path="/cadastro-fornecedor" element={<CadastroFornecedor />} />
         <Route path="/compra" element={<Compra />} />
         <Route path="/estoque-baixo" element={<EstoqueBaixo />} />
+        <Route path="/caixa" element={<FechamentoCaixa />} />
+        <Route path ="/parcelas" element={<Parcelas />} />
       </Routes>
       </div>
     </BrowserRouter>

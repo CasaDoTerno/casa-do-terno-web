@@ -24,7 +24,7 @@ export function Compra() {
   const [fornecedorId, setFornecedorId] = useState(0);
   const [formaPagamento, setFormaPagamento] = useState(0);
   const [observacao, setObservacao] = useState("");
-
+  const [numeroParcelas, setNumeroParcelas] = useState(1);
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
   const [valorUnitario, setValorUnitario] = useState(0);
@@ -70,6 +70,7 @@ export function Compra() {
         fornecedorId,
         formaPagamento,
         observacao,
+        numeroParcelas,
         itens: carrinho.map((item) => ({
           produtoId: item.produtoId,
           quantidade: item.quantidade,

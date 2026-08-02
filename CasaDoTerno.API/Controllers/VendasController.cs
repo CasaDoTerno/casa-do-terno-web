@@ -38,6 +38,7 @@ public class VendasController : ControllerBase
         public decimal Desconto { get; set; }
         public string? Consultor { get; set; }
         public FormaPagamento FormaPagamento { get; set; }
+        public int NumeroParcelas { get; set; } = 1;
         public List<VendaService.ItemVendaEntrada> Itens { get; set; } = new();
     }
 
@@ -46,7 +47,7 @@ public class VendasController : ControllerBase
     {
         var (sucesso, mensagem, venda) = _vendaService.CriarVenda(
             request.ClienteId, request.Desconto, request.Consultor,
-            request.FormaPagamento, request.Itens);
+            request.FormaPagamento, request.NumeroParcelas, request.Itens);
 
         if (!sucesso)
             return BadRequest(mensagem);

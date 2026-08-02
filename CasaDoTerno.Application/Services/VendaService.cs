@@ -7,9 +7,12 @@ public class VendaService
 {
     private readonly ICasaDoTernoContext _context;
 
-    public VendaService(ICasaDoTernoContext context)
+    private readonly ParcelaService _parcelaService;
+
+    public VendaService(ICasaDoTernoContext context, ParcelaService parcelaService)
     {
         _context = context;
+        _parcelaService = parcelaService;
     }
 
     public class ItemVendaEntrada
@@ -19,8 +22,8 @@ public class VendaService
     }
 
     public (bool sucesso, string mensagem, Venda? venda) CriarVenda(
-        int clienteId, decimal desconto, string? consultor,
-        FormaPagamento formaPagamento, List<ItemVendaEntrada> itensEntrada)
+          int clienteId, decimal desconto, string? consultor, FormaPagamento formaPagamento,
+          int numeroParcelas, List<ItemVendaEntrada> itensEntrada)
     {
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A venda precisa ter pelo menos um item.", null);
@@ -68,7 +71,11 @@ public class VendaService
         venda.ValorTotal = valorTotal - desconto;
 
         _context.Vendas.Add(venda);
-        _context.SaveChanges();
+        _context.SaveChanges(); // precisa salvar ANTES, pra gerar o venda.Id
+
+        _parcelaService.GerarParcelas(
+            OrigemPagamento.Venda, venda.Id, venda.ValorTotal,
+            numeroParcelas, formaPagamento, DateTime.Today);
 
         return (true, "Venda criada com sucesso.", venda);
     }

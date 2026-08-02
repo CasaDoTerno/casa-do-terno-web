@@ -38,6 +38,7 @@ public class ComprasController : ControllerBase
         public int FornecedorId { get; set; }
         public FormaPagamento FormaPagamento { get; set; }
         public string? Observacao { get; set; }
+        public int NumeroParcelas { get; set; } = 1;
         public List<CompraService.ItemCompraEntrada> Itens { get; set; } = new();
     }
 
@@ -45,7 +46,8 @@ public class ComprasController : ControllerBase
     public IActionResult Criar([FromBody] NovaCompraRequest request)
     {
         var (sucesso, mensagem, compra) = _compraService.CriarCompra(
-            request.FornecedorId, request.FormaPagamento, request.Observacao, request.Itens);
+            request.FornecedorId, request.FormaPagamento, request.Observacao,
+            request.NumeroParcelas, request.Itens);
 
         if (!sucesso)
             return BadRequest(mensagem);
