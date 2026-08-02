@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../Services/API";
+import { BuscaSelect } from "../components/BuscaSelect";
 
 interface Produto {
   id: number;
@@ -67,7 +68,6 @@ export function Locacao() {
     setPecas(pecas.filter((_, i) => i !== index));
   }
 
-  // total calculado ao vivo: soma das peças, menos o desconto
   const subtotal = pecas.reduce((soma, peca) => soma + peca.valorLocacao, 0);
   const valorTotal = subtotal - desconto;
   const valorRestante = valorTotal - valorEntrada;
@@ -105,101 +105,115 @@ export function Locacao() {
   return (
     <div>
       <h1>Nova Locação</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Cliente: </label>
-          <select value={clienteId} onChange={(e) => setClienteId(Number(e.target.value))} required>
-            <option value={0}>Selecione...</option>
-            {clientes.map((c) => (
-              <option key={c.id} value={c.id}>{c.nome}</option>
-            ))}
-          </select>
+      <form onSubmit={handleSubmit} style={{ maxWidth: 640 }}>
+
+        <h2>Dados gerais</h2>
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div>
+            <label>Cliente</label>
+            <BuscaSelect
+              opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
+              valorSelecionado={clienteId}
+              onSelecionar={setClienteId}
+              placeholder="Buscar cliente..."
+            />
+          </div>
+          <div>
+            <label>Consultor</label>
+            <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            <div>
+              <label>Data do evento</label>
+              <input type="date" value={dataEvento} onChange={(e) => setDataEvento(e.target.value)} required />
+            </div>
+            <div>
+              <label>Retirada</label>
+              <input type="date" value={dataRetirada} onChange={(e) => setDataRetirada(e.target.value)} required />
+            </div>
+            <div>
+              <label>Devolução prevista</label>
+              <input
+                type="date"
+                value={dataDevolucaoPrevista}
+                onChange={(e) => setDataDevolucaoPrevista(e.target.value)}
+                required
+              />
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label>Consultor: </label>
-          <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
-        </div>
+        <h2>Peças</h2>
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div>
+            <label>Produto</label>
+            <BuscaSelect
+              opcoes={produtos.map((p) => ({ id: p.id, label: `${p.modelo} — R$ ${p.valorLocacao}` }))}
+              valorSelecionado={produtoSelecionado}
+              onSelecionar={setProdutoSelecionado}
+              placeholder="Buscar peça..."
+            />
+          </div>
+          <div>
+            <label>Ajustes (opcional)</label>
+            <input
+              value={ajustesPeca}
+              onChange={(e) => setAjustesPeca(e.target.value)}
+              placeholder="ex: Bainha -2cm, Manga -1cm"
+            />
+          </div>
+          <button type="button" onClick={adicionarPeca} disabled={produtoSelecionado === 0}>
+            + Adicionar peça
+          </button>
 
-        <div>
-          <label>Data do evento: </label>
-          <input type="date" value={dataEvento} onChange={(e) => setDataEvento(e.target.value)} required />
+          {pecas.length > 0 && (
+            <ul style={{ marginTop: 16 }}>
+              {pecas.map((peca, index) => (
+                <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>
+                    {peca.modelo} — R$ {peca.valorLocacao} {peca.ajustes && `— ${peca.ajustes}`}
+                  </span>
+                  <button type="button" onClick={() => removerPeca(index)}>Remover</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {pecas.length === 0 && <p style={{ color: "var(--texto-suave)" }}>Nenhuma peça adicionada ainda.</p>}
         </div>
-        <div>
-          <label>Data de retirada: </label>
-          <input type="date" value={dataRetirada} onChange={(e) => setDataRetirada(e.target.value)} required />
-        </div>
-        <div>
-          <label>Data de devolução prevista: </label>
-          <input
-            type="date"
-            value={dataDevolucaoPrevista}
-            onChange={(e) => setDataDevolucaoPrevista(e.target.value)}
-            required
-          />
-        </div>
-
-        <h2>Adicionar peça</h2>
-        <div>
-          <label>Produto: </label>
-          <select value={produtoSelecionado} onChange={(e) => setProdutoSelecionado(Number(e.target.value))}>
-            <option value={0}>Selecione...</option>
-            {produtos.map((p) => (
-              <option key={p.id} value={p.id}>{p.modelo} — R$ {p.valorLocacao}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>Ajustes (opcional): </label>
-          <input
-            value={ajustesPeca}
-            onChange={(e) => setAjustesPeca(e.target.value)}
-            placeholder="ex: Bainha -2cm, Manga -1cm"
-          />
-        </div>
-        <button type="button" onClick={adicionarPeca} disabled={produtoSelecionado === 0}>
-          Adicionar peça
-        </button>
-
-        <h2>Peças da locação</h2>
-        {pecas.length === 0 && <p>Nenhuma peça adicionada ainda.</p>}
-        <ul>
-          {pecas.map((peca, index) => (
-            <li key={index}>
-              {peca.modelo} — R$ {peca.valorLocacao} {peca.ajustes && `— ${peca.ajustes}`}
-              {" "}
-              <button type="button" onClick={() => removerPeca(index)}>Remover</button>
-            </li>
-          ))}
-        </ul>
 
         <h2>Pagamento</h2>
-        <div>
-          <label>Desconto (combo): </label>
-          <input type="number" value={desconto} onChange={(e) => setDesconto(Number(e.target.value))} />
-        </div>
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label>Desconto (combo)</label>
+              <input type="number" value={desconto} onChange={(e) => setDesconto(Number(e.target.value))} />
+            </div>
+            <div>
+              <label>Valor de entrada</label>
+              <input type="number" value={valorEntrada} onChange={(e) => setValorEntrada(Number(e.target.value))} />
+            </div>
+          </div>
+          <div>
+            <label>Forma de pagamento da entrada</label>
+            <select
+              value={formaPagamentoEntrada}
+              onChange={(e) => setFormaPagamentoEntrada(Number(e.target.value))}
+            >
+              <option value={0}>Dinheiro</option>
+              <option value={1}>Cartão</option>
+              <option value={2}>Pix</option>
+              <option value={3}>Boleto</option>
+            </select>
+          </div>
 
-        <p>Subtotal: R$ {subtotal.toFixed(2)}</p>
-        <p><strong>Total (com desconto): R$ {valorTotal.toFixed(2)}</strong></p>
-
-        <div>
-          <label>Valor de entrada: </label>
-          <input type="number" value={valorEntrada} onChange={(e) => setValorEntrada(Number(e.target.value))} />
+          <div style={{ borderTop: "1px solid var(--borda)", marginTop: 16, paddingTop: 16 }}>
+            <p style={{ color: "var(--texto-suave)", margin: "4px 0" }}>Subtotal: R$ {subtotal.toFixed(2)}</p>
+            <p style={{ fontSize: 18, fontWeight: 700, margin: "4px 0" }}>Total: R$ {valorTotal.toFixed(2)}</p>
+            <p style={{ color: "var(--verde)", fontWeight: 600, margin: "4px 0" }}>
+              Restante (na retirada): R$ {valorRestante.toFixed(2)}
+            </p>
+          </div>
         </div>
-        <div>
-          <label>Forma de pagamento da entrada: </label>
-          <select
-            value={formaPagamentoEntrada}
-            onChange={(e) => setFormaPagamentoEntrada(Number(e.target.value))}
-          >
-            <option value={0}>Dinheiro</option>
-            <option value={1}>Cartão</option>
-            <option value={2}>Pix</option>
-            <option value={3}>Boleto</option>
-          </select>
-        </div>
-
-        <p>Restante a pagar (na retirada): R$ {valorRestante.toFixed(2)}</p>
 
         <button type="submit">Confirmar locação</button>
       </form>

@@ -4,6 +4,7 @@ using CasaDoTerno.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CasaDoTerno.Infrastructure.Migrations
 {
     [DbContext(typeof(CasaDoTernoContext))]
-    partial class CasaDoTernoContextModelSnapshot : ModelSnapshot
+    [Migration("20260802213652_AdicionaValorCustoProduto")]
+    partial class AdicionaValorCustoProduto
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../Services/API";
+import { BuscaSelect } from "../components/BuscaSelect";
 
 interface Produto {
   id: number;
@@ -23,8 +24,9 @@ export function Compra() {
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const [fornecedorId, setFornecedorId] = useState(0);
   const [formaPagamento, setFormaPagamento] = useState(0);
-  const [observacao, setObservacao] = useState("");
   const [numeroParcelas, setNumeroParcelas] = useState(1);
+  const [observacao, setObservacao] = useState("");
+
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
   const [valorUnitario, setValorUnitario] = useState(0);
@@ -54,10 +56,12 @@ export function Compra() {
     setCarrinho(carrinho.filter((_, i) => i !== index));
   }
 
-  const totalCarrinho = carrinho.reduce(
-    (soma, item) => soma + item.quantidade * item.valorUnitario,
-    0
-  );
+  const totalCarrinho = carrinho.reduce((soma, item) => soma + item.quantidade * item.valorUnitario, 0);
+
+  function handleSubmit(evento: React.FormEvent) {
+  evento.preventDefault();
+  confirmarCompra();
+  }
 
   async function confirmarCompra() {
     if (carrinho.length === 0) {
@@ -87,67 +91,105 @@ export function Compra() {
 
   return (
     <div>
-      <h1>Nova Compra (entrada de estoque)</h1>
+      <h1>Nova Compra</h1>
 
-      <div>
-        <label>Fornecedor: </label>
-        <select value={fornecedorId} onChange={(e) => setFornecedorId(Number(e.target.value))}>
-          <option value={0}>Selecione...</option>
-          {fornecedores.map((f) => (
-            <option key={f.id} value={f.id}>{f.nome}</option>
-          ))}
-        </select>
-      </div>
+      <form onSubmit={handleSubmit} style={{ maxWidth: 640 }}>
+        <h2>Dados gerais</h2>
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div>
+            <label>Fornecedor</label>
+            <BuscaSelect
+              opcoes={fornecedores.map((f) => ({ id: f.id, label: f.nome }))}
+              valorSelecionado={fornecedorId}
+              onSelecionar={setFornecedorId}
+              placeholder="Buscar fornecedor..."
+            />
+          </div>
+          <div>
+            <label>Observação</label>
+            <input value={observacao} onChange={(e) => setObservacao(e.target.value)} />
+          </div>
+        </div>
 
-      <h2>Adicionar produto</h2>
-      <div>
-        <label>Produto: </label>
-        <select value={produtoSelecionado} onChange={(e) => setProdutoSelecionado(Number(e.target.value))}>
-          <option value={0}>Selecione...</option>
-          {produtos.map((p) => (
-            <option key={p.id} value={p.id}>{p.modelo}</option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label>Quantidade: </label>
-        <input type="number" min={1} value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
-      </div>
-      <div>
-        <label>Valor unitário (custo): </label>
-        <input type="number" value={valorUnitario} onChange={(e) => setValorUnitario(Number(e.target.value))} />
-      </div>
-      <button onClick={adicionarAoCarrinho} disabled={produtoSelecionado === 0}>Adicionar</button>
+        <h2>Produtos</h2>
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div>
+            <label>Produto</label>
+            <BuscaSelect
+              opcoes={produtos.map((p) => ({ id: p.id, label: p.modelo }))}
+              valorSelecionado={produtoSelecionado}
+              onSelecionar={setProdutoSelecionado}
+              placeholder="Buscar produto..."
+            />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label>Quantidade</label>
+              <input
+                type="number"
+                min={1}
+                value={quantidade}
+                onChange={(e) => setQuantidade(Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label>Valor unitário (custo)</label>
+              <input
+                type="number"
+                value={valorUnitario}
+                onChange={(e) => setValorUnitario(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <button type="button" onClick={adicionarAoCarrinho} disabled={produtoSelecionado === 0}>
+            + Adicionar
+          </button>
 
-      <h2>Itens da compra</h2>
-      {carrinho.length === 0 && <p>Nenhum item adicionado ainda.</p>}
-      <ul>
-        {carrinho.map((item, index) => (
-          <li key={index}>
-            {item.quantidade}x {item.modelo} — R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
-            {" "}
-            <button onClick={() => removerDoCarrinho(index)}>Remover</button>
-          </li>
-        ))}
-      </ul>
+          {carrinho.length > 0 && (
+            <ul style={{ marginTop: 16 }}>
+              {carrinho.map((item, index) => (
+                <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>
+                    {item.quantidade}x {item.modelo} — R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
+                  </span>
+                  <button type="button" onClick={() => removerDoCarrinho(index)}>Remover</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {carrinho.length === 0 && <p style={{ color: "var(--texto-suave)" }}>Nenhum item adicionado ainda.</p>}
+        </div>
 
-      <div>
-        <label>Forma de pagamento: </label>
-        <select value={formaPagamento} onChange={(e) => setFormaPagamento(Number(e.target.value))}>
-          <option value={0}>Dinheiro</option>
-          <option value={1}>Cartão</option>
-          <option value={2}>Pix</option>
-          <option value={3}>Boleto</option>
-        </select>
-      </div>
-      <div>
-        <label>Observação: </label>
-        <input value={observacao} onChange={(e) => setObservacao(e.target.value)} />
-      </div>
+        <h2>Pagamento</h2>
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label>Forma de pagamento</label>
+              <select value={formaPagamento} onChange={(e) => setFormaPagamento(Number(e.target.value))}>
+                <option value={0}>Dinheiro</option>
+                <option value={1}>Cartão</option>
+                <option value={2}>Pix</option>
+                <option value={3}>Boleto</option>
+              </select>
+            </div>
+            <div>
+              <label>Número de parcelas</label>
+              <input
+                type="number"
+                min={1}
+                value={numeroParcelas}
+                onChange={(e) => setNumeroParcelas(Number(e.target.value))}
+              />
+            </div>
+          </div>
 
-      <p><strong>Total: R$ {totalCarrinho.toFixed(2)}</strong></p>
+          <div style={{ borderTop: "1px solid var(--borda)", marginTop: 16, paddingTop: 16 }}>
+            <p style={{ fontSize: 18, fontWeight: 700, margin: "4px 0" }}>Total: R$ {totalCarrinho.toFixed(2)}</p>
+          </div>
+        </div>
 
-      <button onClick={confirmarCompra}>Confirmar compra</button>
+        <button type="submit">Confirmar compra</button>
+      </form>
 
       {mensagem && <p>{mensagem}</p>}
     </div>

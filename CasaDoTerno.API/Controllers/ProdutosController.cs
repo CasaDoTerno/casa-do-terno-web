@@ -61,8 +61,14 @@ public class ProdutosController : ControllerBase
         produto.Cor = produtoAtualizado.Cor;
         produto.ValorVenda = produtoAtualizado.ValorVenda;
         produto.ValorLocacao = produtoAtualizado.ValorLocacao;
+        produto.ValorCusto = produtoAtualizado.ValorCusto;
         produto.DisponivelParaVenda = produtoAtualizado.DisponivelParaVenda;
         produto.DisponivelParaLocacao = produtoAtualizado.DisponivelParaLocacao;
+        produto.Referencia = produtoAtualizado.Referencia;
+        produto.ControlaEstoque = produtoAtualizado.ControlaEstoque;
+        produto.Quantidade = produtoAtualizado.Quantidade;
+        produto.EstoqueMinimo = produtoAtualizado.EstoqueMinimo;
+        produto.Observacao = produtoAtualizado.Observacao;
 
         _context.SaveChanges();
         return Ok(produto);

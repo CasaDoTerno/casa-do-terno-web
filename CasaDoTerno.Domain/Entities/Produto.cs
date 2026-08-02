@@ -6,7 +6,7 @@ public enum CategoriaProduto
     Calca,
     Camisa,
     Sapato,
-    acessorio
+    Acessorio
 }
 
 public class Produto
@@ -26,5 +26,6 @@ public class Produto
     public bool ControlaEstoque { get; set; }
     public int Quantidade { get; set; }
     public int EstoqueMinimo { get; set; }
+    public decimal ValorCusto { get; set; }
     public string? Observacao { get; set; }
 }

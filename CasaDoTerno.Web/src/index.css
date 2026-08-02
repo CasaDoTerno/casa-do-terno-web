@@ -1,41 +1,177 @@
+:root {
+  --chumbo: #171b22;
+  --chumbo-conteudo: #232933;
+  --chumbo-card: #2b323d;
+  --chumbo-input: #333c49;
+  --verde: #4ade80;
+  --verde-escuro: #22c55e;
+  --texto: #f1f2f4;
+  --texto-suave: #9ca3af;
+  --borda: #3a4250;
+  --branco: #ffffff;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   font-family: system-ui, sans-serif;
-  background-color: #f4f4f5;
-  color: #1f2937;
+  background-color: var(--chumbo-conteudo);
+  color: var(--texto);
   margin: 0;
   padding: 0;
 }
 
-nav {
-  background-color: #1f2937;
-  padding: 16px 24px;
+/* ---- Layout geral ---- */
+.app-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: 64px 1fr;
+  grid-template-areas:
+    "sidebar topbar"
+    "sidebar conteudo";
+  min-height: 100vh;
 }
 
-nav a {
-  color: white;
+/* ---- Topbar ---- */
+.topbar {
+  grid-area: topbar;
+  background: var(--chumbo-conteudo);
+  border-bottom: 1px solid var(--borda);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.topbar h1 {
+  font-size: 18px;
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.topbar a {
+  color: var(--texto-suave);
   text-decoration: none;
-  margin-right: 16px;
-  font-weight: 500;
+  font-size: 14px;
 }
 
-nav a:hover {
-  text-decoration: underline;
+/* ---- Sidebar ---- */
+.sidebar {
+  grid-area: sidebar;
+  background: var(--chumbo);
+  color: white;
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar a, .sidebar-group-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #b8bfca;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar a:hover, .sidebar-group-title:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+}
+
+.sidebar a.ativo {
+  background: var(--verde);
+  color: var(--chumbo);
+  font-weight: 700;
+}
+
+.sidebar-grupo-itens {
+  display: flex;
+  flex-direction: column;
+  padding-left: 16px;
+  gap: 2px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  margin-left: 20px;
+}
+
+.sidebar-grupo-itens a {
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
+/* ---- Conteúdo ---- */
+.conteudo {
+  grid-area: conteudo;
+  padding: 28px;
 }
 
 h1 {
-  color: #1f2937;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--texto);
+  letter-spacing: 0.2px;
+  margin: 0 0 20px 0;
+  padding-bottom: 14px;
+  border-bottom: 3px solid var(--verde);
+  display: inline-block;
 }
 
+h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 24px 0 12px 0;
+}
+
+/* ---- Dashboard: cards ---- */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.card {
+  background: var(--chumbo-card);
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.card-titulo {
+  color: var(--texto-suave);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.card-valor {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--verde);
+}
+
+.card-alerta .card-valor {
+  color: #f87171;
+}
+
+/* ---- Formulários ---- */
 form {
-  background: white;
+  background: var(--chumbo-card);
   padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  max-width: 400px;
+  border-radius: 12px;
+  border: 1px solid var(--borda);
+  max-width: 420px;
   margin-bottom: 24px;
 }
 
@@ -48,28 +184,37 @@ form div {
 label {
   font-weight: 600;
   margin-bottom: 4px;
-  font-size: 14px;
+  font-size: 13px;
+  color: var(--texto-suave);
 }
 
 input, select {
-  padding: 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
+  background: var(--chumbo-input);
+  color: var(--texto);
+  padding: 9px 10px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
   font-size: 14px;
 }
 
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--verde);
+}
+
 button {
-  background-color: #2563eb;
-  color: white;
+  background-color: var(--verde);
+  color: var(--chumbo);
   border: none;
   padding: 10px 16px;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 button:hover {
-  background-color: #1d4ed8;
+  background-color: var(--verde-escuro);
+  color: white;
 }
 
 ul {
@@ -78,13 +223,79 @@ ul {
 }
 
 li {
-  background: white;
-  padding: 12px 16px;
-  border-radius: 6px;
+  background: var(--chumbo-card);
+  border: 1px solid var(--borda);
+  padding: 14px 16px;
+  border-radius: 10px;
   margin-bottom: 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
-.conteudo {
-  padding: 24px;
+/* ---- Busca com autocomplete ---- */
+.busca-select {
+  position: relative;
+}
+
+.busca-select input {
+  width: 100%;
+}
+
+.busca-select-lista {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--chumbo-card);
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.busca-select-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--texto);
+}
+
+.busca-select-item:hover {
+  background: var(--verde);
+  color: var(--chumbo);
+}
+
+.busca-select-vazio {
+  color: var(--texto-suave);
+  cursor: default;
+}
+
+.busca-select-vazio:hover {
+  background: none;
+  color: var(--texto-suave);
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--chumbo-input);
+  color: var(--texto);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+  padding-right: 32px;
+}
+
+select option {
+  background: var(--chumbo-input);
+  color: var(--texto);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
 }
