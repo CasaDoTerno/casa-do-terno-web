@@ -15,4 +15,9 @@ public class CasaDoTernoContext : IdentityDbContext<IdentityUser>, ICasaDoTernoC
     public DbSet<Cliente> Clientes { get; set; }
     public DbSet<Locacao> Locacoes { get; set; }
     public DbSet<Venda> Vendas { get; set; }
+    public DbSet<ItemVenda> ItensVenda { get; set; }
+    public DbSet<ItemLocacao> ItensLocacao { get; set; }
+    public DbSet<Fornecedor> Fornecedores { get; set; }
+    public DbSet<Compra> Compras { get; set; }
+    public DbSet<ItemCompra> ItensCompra { get; set; }
 }

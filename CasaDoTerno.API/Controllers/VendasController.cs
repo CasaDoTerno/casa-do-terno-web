@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CasaDoTerno.Application.Services;
 using CasaDoTerno.Domain.Entities;
 using CasaDoTerno.Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CasaDoTerno.API.Controllers;
 
@@ -9,48 +10,46 @@ namespace CasaDoTerno.API.Controllers;
 public class VendasController : ControllerBase
 {
     private readonly CasaDoTernoContext _context;
+    private readonly VendaService _vendaService;
 
-    public VendasController(CasaDoTernoContext context)
+    public VendasController(CasaDoTernoContext context, VendaService vendaService)
     {
         _context = context;
+        _vendaService = vendaService;
     }
 
     [HttpGet]
     public IActionResult Listar()
     {
-        return Ok(_context.Vendas.ToList());
+        return Ok(_context.Vendas.Select(v => new
+        {
+            v.Id,
+            v.ClienteId,
+            v.DataVenda,
+            v.Desconto,
+            v.ValorTotal,
+            Itens = v.Itens
+        }).ToList());
     }
 
     public class NovaVendaRequest
     {
-        public int ProdutoId { get; set; }
         public int ClienteId { get; set; }
+        public decimal Desconto { get; set; }
+        public string? Consultor { get; set; }
+        public FormaPagamento FormaPagamento { get; set; }
+        public List<VendaService.ItemVendaEntrada> Itens { get; set; } = new();
     }
 
     [HttpPost]
     public IActionResult Criar([FromBody] NovaVendaRequest request)
     {
-        var produto = _context.Produtos.Find(request.ProdutoId);
-        if (produto == null)
-            return NotFound("Produto não encontrado.");
+        var (sucesso, mensagem, venda) = _vendaService.CriarVenda(
+            request.ClienteId, request.Desconto, request.Consultor,
+            request.FormaPagamento, request.Itens);
 
-        if (!produto.DisponivelParaVenda)
-            return BadRequest("Este produto não está disponível para venda.");
-
-        var venda = new Venda
-        {
-            ProdutoId = request.ProdutoId,
-            ClienteId = request.ClienteId,
-            ValorTotal = produto.ValorVenda
-        };
-
-        _context.Vendas.Add(venda);
-
-        // já que foi vendido, marca o produto como indisponível
-        produto.DisponivelParaVenda = false;
-        produto.DisponivelParaLocacao = false;
-
-        _context.SaveChanges();
+        if (!sucesso)
+            return BadRequest(mensagem);
 
         return Ok(venda);
     }

@@ -38,6 +38,15 @@ public class ProdutosController : ControllerBase
         _context.SaveChanges();
         return Ok(terno);
     }
+    [HttpGet("estoque-baixo")]
+    public IActionResult EstoqueBaixo()
+    {
+        var produtos = _context.Produtos
+            .Where(p => p.ControlaEstoque && p.Quantidade <= p.EstoqueMinimo)
+            .ToList();
+
+        return Ok(produtos);
+    }
 
     [HttpPut("{id}")]
     public IActionResult Atualizar(int id, [FromBody] Produto produtoAtualizado)

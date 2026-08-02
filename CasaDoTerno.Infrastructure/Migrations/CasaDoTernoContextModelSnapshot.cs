@@ -47,6 +47,138 @@ namespace CasaDoTerno.Infrastructure.Migrations
                     b.ToTable("Clientes");
                 });
 
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.Compra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataCompra")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FormaPagamento")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FornecedorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Observacao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ValorTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Compras");
+                });
+
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.Fornecedor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Cnpj")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Telefone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Fornecedores");
+                });
+
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.ItemCompra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CompraId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProdutoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ValorUnitario")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompraId");
+
+                    b.ToTable("ItensCompra");
+                });
+
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.ItemLocacao", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Ajustes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LocacaoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProdutoId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ValorItem")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocacaoId");
+
+                    b.ToTable("ItensLocacao");
+                });
+
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.ItemVenda", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProdutoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ValorUnitario")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("VendaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VendaId");
+
+                    b.ToTable("ItensVenda");
+                });
+
             modelBuilder.Entity("CasaDoTerno.Domain.Entities.Locacao", b =>
                 {
                     b.Property<int>("Id")
@@ -58,17 +190,44 @@ namespace CasaDoTerno.Infrastructure.Migrations
                     b.Property<int>("ClienteId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Consultor")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("DataDevolucaoPrevista")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DataDevolucaoReal")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("DataEvento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataPagamentoEntrada")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataPagamentoRestante")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DataReserva")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("DataRetirada")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("ProdutoId")
+                    b.Property<DateTime?>("DataRetiradaReal")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Desconto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("FormaPagamentoEntrada")
                         .HasColumnType("int");
+
+                    b.Property<int?>("FormaPagamentoRestante")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ValorEntrada")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ValorTotal")
                         .HasColumnType("decimal(18,2)");
@@ -89,6 +248,9 @@ namespace CasaDoTerno.Infrastructure.Migrations
                     b.Property<int>("Categoria")
                         .HasColumnType("int");
 
+                    b.Property<bool>("ControlaEstoque")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Cor")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -99,8 +261,20 @@ namespace CasaDoTerno.Infrastructure.Migrations
                     b.Property<bool>("DisponivelParaVenda")
                         .HasColumnType("bit");
 
+                    b.Property<int>("EstoqueMinimo")
+                        .HasColumnType("int");
+
                     b.Property<string>("Modelo")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Observacao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Referencia")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Tamanho")
@@ -129,10 +303,16 @@ namespace CasaDoTerno.Infrastructure.Migrations
                     b.Property<int>("ClienteId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Consultor")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("DataVenda")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("ProdutoId")
+                    b.Property<decimal>("Desconto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("FormaPagamento")
                         .HasColumnType("int");
 
                     b.Property<decimal>("ValorTotal")
@@ -341,6 +521,33 @@ namespace CasaDoTerno.Infrastructure.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.ItemCompra", b =>
+                {
+                    b.HasOne("CasaDoTerno.Domain.Entities.Compra", null)
+                        .WithMany("Itens")
+                        .HasForeignKey("CompraId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.ItemLocacao", b =>
+                {
+                    b.HasOne("CasaDoTerno.Domain.Entities.Locacao", null)
+                        .WithMany("Itens")
+                        .HasForeignKey("LocacaoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.ItemVenda", b =>
+                {
+                    b.HasOne("CasaDoTerno.Domain.Entities.Venda", null)
+                        .WithMany("Itens")
+                        .HasForeignKey("VendaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -390,6 +597,21 @@ namespace CasaDoTerno.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.Compra", b =>
+                {
+                    b.Navigation("Itens");
+                });
+
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.Locacao", b =>
+                {
+                    b.Navigation("Itens");
+                });
+
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.Venda", b =>
+                {
+                    b.Navigation("Itens");
                 });
 #pragma warning restore 612, 618
         }

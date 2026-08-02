@@ -9,5 +9,10 @@ public interface ICasaDoTernoContext
     DbSet<Cliente> Clientes { get; }
     DbSet<Locacao> Locacoes { get; }
     DbSet<Venda> Vendas { get; }
+    DbSet<ItemVenda> ItensVenda { get; }
+    DbSet<ItemLocacao> ItensLocacao { get; }
+    DbSet<Fornecedor> Fornecedores { get; }
+    DbSet<Compra> Compras { get; }
+    DbSet<ItemCompra> ItensCompra { get; }
     int SaveChanges();
 }

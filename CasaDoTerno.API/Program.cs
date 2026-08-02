@@ -17,6 +17,9 @@ builder.Services.AddDbContext<CasaDoTernoContext>(options =>
 // ensina o .NET: sempre que alguém pedir ICasaDoTernoContext, entregue o CasaDoTernoContext real
 builder.Services.AddScoped<ICasaDoTernoContext>(sp => sp.GetRequiredService<CasaDoTernoContext>());
 builder.Services.AddScoped<LocacaoService>();
+builder.Services.AddScoped<VendaService>();
+builder.Services.AddScoped<LocacaoService>();
+builder.Services.AddScoped<CompraService>();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<CasaDoTernoContext>();
 
