@@ -26,12 +26,16 @@ builder.Services.AddScoped<DespesaService>();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<CasaDoTernoContext>();
 
+
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirReact", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "https://casa-do-terno-web-fawn.vercel.app"
+              )
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
