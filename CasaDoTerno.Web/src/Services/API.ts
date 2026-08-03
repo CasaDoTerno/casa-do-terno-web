@@ -1,7 +1,9 @@
 import axios from "axios";
+import.meta.env.VITE_API_URL
+
 
 const api = axios.create({
-  baseURL: "http://localhost:5120/api", // troque XXXX pela porta real da sua API
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 // injeta automaticamente o token de login em toda chamada, se existir

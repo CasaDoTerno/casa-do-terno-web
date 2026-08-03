@@ -10,10 +10,11 @@ export function Login() {
     evento.preventDefault();
 
     try {
-      const resposta = await axios.post("http://localhost:5120/login", {
-        email,
-        password: senha,
-      });
+      const resposta = await axios.post(`${import.meta.env.VITE_API_URL.replace("/api", "")}/login`, {
+      email,
+      password: senha,
+    });
+
 
       localStorage.setItem("token", resposta.data.accessToken);
       setMensagem("Login realizado com sucesso!");

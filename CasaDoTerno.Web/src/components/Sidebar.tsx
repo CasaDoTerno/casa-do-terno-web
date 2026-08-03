@@ -3,8 +3,7 @@ import { NavLink } from "react-router-dom";
 import { Logo } from "./Logo";
 import {
   LayoutDashboard, Shirt, ShoppingCart, Package, Users, Truck,
-  Wallet, Receipt, CreditCard, ChevronDown, LogIn,
-  PersonStanding,
+  Wallet, ChevronDown, LogIn,
 } from "lucide-react";
 
 function GrupoMenu({ titulo, icone, itens }: { titulo: string; icone: React.ReactNode; itens: { to: string; label: string }[] }) {

@@ -189,8 +189,7 @@
               "RelativeToolTip": "CasaDoTerno.API\\Program.cs",
               "ViewState": "AgIAAAEAAAAAAAAAAADwvw8AAABXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T10:26:10.975Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-30T10:26:10.975Z"
             },
             {
               "$type": "Document",
@@ -238,8 +237,7 @@
               "RelativeToolTip": "CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T09:37:21.776Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-30T09:37:21.776Z"
             },
             {
               "$type": "Document",
@@ -263,8 +261,7 @@
               "RelativeToolTip": "CasaDoTerno.API\\Controllers\\ProdutosController.cs",
               "ViewState": "AgIAACcAAAAAAAAAAADwv0oAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T11:54:25.226Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-30T11:54:25.226Z"
             },
             {
               "$type": "Document",
@@ -274,7 +271,7 @@
               "RelativeDocumentMoniker": "CasaDoTerno.API\\appsettings.json",
               "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\appsettings.json",
               "RelativeToolTip": "CasaDoTerno.API\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAADAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAADFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2026-07-30T10:09:08.472Z",
               "EditorCaption": ""
