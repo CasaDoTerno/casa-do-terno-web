@@ -13,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddDbContext<CasaDoTernoContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 // ensina o .NET: sempre que alguém pedir ICasaDoTernoContext, entregue o CasaDoTernoContext real
 builder.Services.AddScoped<ICasaDoTernoContext>(sp => sp.GetRequiredService<CasaDoTernoContext>());
 builder.Services.AddScoped<LocacaoService>();
