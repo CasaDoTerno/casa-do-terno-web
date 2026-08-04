@@ -37,6 +37,7 @@ public class ClientesController : ControllerBase
         _context.SaveChanges();
         return Ok(cliente);
     }
+
     [HttpPut("{id}")]
     public IActionResult Atualizar(int id, [FromBody] Cliente clienteAtualizado)
     {
@@ -47,6 +48,13 @@ public class ClientesController : ControllerBase
         cliente.Nome = clienteAtualizado.Nome;
         cliente.Cpf = clienteAtualizado.Cpf;
         cliente.Telefone = clienteAtualizado.Telefone;
+        cliente.Endereco = clienteAtualizado.Endereco;
+        cliente.Email = clienteAtualizado.Email;
+        cliente.Ombro = clienteAtualizado.Ombro;
+        cliente.Manga = clienteAtualizado.Manga;
+        cliente.Abdomen = clienteAtualizado.Abdomen;
+        cliente.Bainha = clienteAtualizado.Bainha;
+        cliente.Cintura = clienteAtualizado.Cintura;
 
         _context.SaveChanges();
         return Ok(cliente);

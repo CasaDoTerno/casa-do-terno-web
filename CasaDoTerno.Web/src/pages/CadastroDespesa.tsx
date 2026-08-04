@@ -9,29 +9,36 @@ export function CadastroDespesa() {
   const [formaPagamento, setFormaPagamento] = useState(0);
   const [numeroParcelas, setNumeroParcelas] = useState(1);
   const [mensagem, setMensagem] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
-  async function handleSubmit(evento: React.FormEvent) {
-    evento.preventDefault();
-    try {
-      await api.post("/Despesas", {
-        descricao,
-        categoria,
-        valor,
-        observacao,
-        formaPagamento,
-        numeroParcelas,
-      });
-      setMensagem("Despesa lançada com sucesso!");
-      setDescricao("");
-      setCategoria("");
-      setValor(0);
-      setObservacao("");
-      setNumeroParcelas(1);
-    } catch (erro) {
-      console.error(erro);
-      setMensagem("Erro ao lançar despesa.");
-    }
+ async function handleSubmit(evento: React.FormEvent) {
+  evento.preventDefault();
+
+  if (enviando) return; // já tem uma requisição em andamento, ignora cliques extras
+
+  setEnviando(true);
+  try {
+    await api.post("/Despesas", {
+      descricao,
+      categoria,
+      valor,
+      observacao,
+      formaPagamento,
+      numeroParcelas,
+    });
+    setMensagem("Despesa lançada com sucesso!");
+    setDescricao("");
+    setCategoria("");
+    setValor(0);
+    setObservacao("");
+    setNumeroParcelas(1);
+  } catch (erro) {
+    console.error(erro);
+    setMensagem("Erro ao lançar despesa.");
+  } finally {
+    setEnviando(false);
   }
+}
 
   return (
     <div>
@@ -80,7 +87,9 @@ export function CadastroDespesa() {
           <label>Observação: </label>
           <input value={observacao} onChange={(e) => setObservacao(e.target.value)} />
         </div>
-        <button type="submit">Lançar despesa</button>
+        <button type="submit" disabled={enviando}>
+  {enviando ? "Salvando..." : "Lançar despesa"}
+</button>
       </form>
       {mensagem && <p>{mensagem}</p>}
     </div>

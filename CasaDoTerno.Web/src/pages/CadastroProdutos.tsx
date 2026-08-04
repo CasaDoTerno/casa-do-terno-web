@@ -13,6 +13,8 @@ export function CadastroProduto() {
   const [controlaEstoque, setControlaEstoque] = useState(true);
   const [quantidade, setQuantidade] = useState(0);
   const [estoqueMinimo, setEstoqueMinimo] = useState(0);
+  const [disponivelParaVenda, setDisponivelParaVenda] = useState(true);
+  const [disponivelParaLocacao, setDisponivelParaLocacao] = useState(true);
   const [observacao, setObservacao] = useState("");
   const [mensagem, setMensagem] = useState("");
 
@@ -20,8 +22,6 @@ export function CadastroProduto() {
     evento.preventDefault();
 
     try {
-      // "modelo" é o nome do campo lá no backend — a tela usa "Descrição",
-      // que é a palavra certa pro seu negócio, mas por baixo o valor vai pro mesmo campo
       await api.post("/Produtos", {
         modelo: descricao,
         categoria,
@@ -35,8 +35,8 @@ export function CadastroProduto() {
         quantidade,
         estoqueMinimo,
         observacao,
-        disponivelParaVenda: true,
-        disponivelParaLocacao: true,
+        disponivelParaVenda,
+        disponivelParaLocacao,
       });
       setMensagem("Produto cadastrado com sucesso!");
       setDescricao("");
@@ -74,7 +74,6 @@ export function CadastroProduto() {
                 <option value={1}>Calça</option>
                 <option value={2}>Camisa</option>
                 <option value={3}>Sapato</option>
-                <option value={4}>Acessorio</option>
               </select>
             </div>
             <div>
@@ -116,21 +115,40 @@ export function CadastroProduto() {
           </div>
         </div>
 
-        <h2>Estoque</h2>
+        <h2>Estoque e disponibilidade</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexDirection: "row" }}>
-            <input
-              type="checkbox"
-              checked={controlaEstoque}
-              onChange={(e) => setControlaEstoque(e.target.checked)}
-              style={{ width: "auto" }}
-              id="controla-estoque"
-            />
-            <label htmlFor="controla-estoque" style={{ margin: 0 }}>Controlar estoque desse produto</label>
+          <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
+              <input
+                type="checkbox"
+                checked={controlaEstoque}
+                onChange={(e) => setControlaEstoque(e.target.checked)}
+                style={{ width: "auto" }}
+              />
+              Controlar estoque
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
+              <input
+                type="checkbox"
+                checked={disponivelParaVenda}
+                onChange={(e) => setDisponivelParaVenda(e.target.checked)}
+                style={{ width: "auto" }}
+              />
+              Disponível para venda
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
+              <input
+                type="checkbox"
+                checked={disponivelParaLocacao}
+                onChange={(e) => setDisponivelParaLocacao(e.target.checked)}
+                style={{ width: "auto" }}
+              />
+              Disponível para locação
+            </label>
           </div>
 
           {controlaEstoque && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
               <div>
                 <label>Quantidade em estoque</label>
                 <input type="number" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />

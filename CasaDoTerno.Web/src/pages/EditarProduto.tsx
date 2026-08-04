@@ -131,54 +131,55 @@ export function EditarProduto() {
         </div>
 
         <h2>Estoque e disponibilidade</h2>
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="checkbox"
-              checked={controlaEstoque}
-              onChange={(e) => setControlaEstoque(e.target.checked)}
-              style={{ width: "auto" }}
-              id="controla-estoque"
-            />
-            <label htmlFor="controla-estoque" style={{ margin: 0 }}>Controlar estoque</label>
-          </div>
+<div className="card" style={{ marginBottom: 20 }}>
+  <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <input
+        type="checkbox"
+        checked={controlaEstoque}
+        onChange={(e) => setControlaEstoque(e.target.checked)}
+        style={{ width: "auto" }}
+        id="controla-estoque"
+      />
+      <label htmlFor="controla-estoque" style={{ margin: 0 }}>Controlar estoque</label>
+    </div>
 
-          {controlaEstoque && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
-              <div>
-                <label>Quantidade em estoque</label>
-                <input type="number" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
-              </div>
-              <div>
-                <label>Estoque mínimo</label>
-                <input type="number" value={estoqueMinimo} onChange={(e) => setEstoqueMinimo(Number(e.target.value))} />
-              </div>
-            </div>
-          )}
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <input
+        type="checkbox"
+        checked={disponivelParaVenda}
+        onChange={(e) => setDisponivelParaVenda(e.target.checked)}
+        style={{ width: "auto" }}
+        id="disp-venda"
+      />
+      <label htmlFor="disp-venda" style={{ margin: 0 }}>Disponível para venda</label>
+    </div>
 
-          <div style={{ display: "flex", gap: 20, marginTop: 16, flexDirection: "row" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={disponivelParaVenda}
-                onChange={(e) => setDisponivelParaVenda(e.target.checked)}
-                style={{ width: "auto" }}
-                id="disp-venda"
-              />
-              <label htmlFor="disp-venda" style={{ margin: 0 }}>Disponível para venda</label>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={disponivelParaLocacao}
-                onChange={(e) => setDisponivelParaLocacao(e.target.checked)}
-                style={{ width: "auto" }}
-                id="disp-locacao"
-              />
-              <label htmlFor="disp-locacao" style={{ margin: 0 }}>Disponível para locação</label>
-            </div>
-          </div>
-        </div>
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <input
+        type="checkbox"
+        checked={disponivelParaLocacao}
+        onChange={(e) => setDisponivelParaLocacao(e.target.checked)}
+        style={{ width: "auto" }}
+        id="disp-locacao"
+      />
+      <label htmlFor="disp-locacao" style={{ margin: 0 }}>Disponível para locação</label>
+    </div>
+  </div>
+
+  {controlaEstoque && (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
+      <div>
+        <label>Quantidade em estoque</label>
+        <input type="number" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
+      </div>
+      <div>
+        <label>Estoque mínimo</label>
+        <input type="number" value={estoqueMinimo} onChange={(e) => setEstoqueMinimo(Number(e.target.value))} />
+      </div>
+    </div>
+  )}
+</div>
 
         <button type="submit">Salvar alterações</button>
       </form>

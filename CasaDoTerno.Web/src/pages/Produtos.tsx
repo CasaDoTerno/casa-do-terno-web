@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 interface Produto {
   id: number;
   modelo: string;
+  tamanho: string;
   cor: string;
   valorVenda: number;
   valorLocacao: number;
@@ -78,7 +79,7 @@ export function Produtos() {
             <li key={produto.id}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <strong>{produto.modelo}</strong> — {produto.cor}
+                  <strong>{produto.modelo}</strong> — Tam. {produto.tamanho} — {produto.cor}
                   <div style={{ fontSize: 13, color: "var(--texto-suave)" }}>
                     Venda R$ {produto.valorVenda} · Locação R$ {produto.valorLocacao}
                     {produto.controlaEstoque && (

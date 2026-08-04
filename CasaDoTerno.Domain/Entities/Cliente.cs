@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CasaDoTerno.Domain.Entities;
+﻿namespace CasaDoTerno.Domain.Entities;
 
 public class Cliente
 {
@@ -10,4 +6,13 @@ public class Cliente
     public string Nome { get; set; }
     public string Cpf { get; set; }
     public string Telefone { get; set; }
+    public string? Endereco { get; set; }
+    public string? Email { get; set; }
+
+    // Medidas (em cm) — todas opcionais, preenchidas conforme o cliente vai sendo atendido
+    public decimal? Ombro { get; set; }
+    public decimal? Manga { get; set; }
+    public decimal? Abdomen { get; set; }
+    public decimal? Bainha { get; set; }
+    public decimal? Cintura { get; set; }
 }
