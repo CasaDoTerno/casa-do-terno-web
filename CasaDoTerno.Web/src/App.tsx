@@ -19,6 +19,12 @@ import { EstoqueBaixo } from "./pages/EstoqueBaixo";
 import { CadastroDespesa } from "./pages/CadastroDespesa";
 import { Parcelas } from "./pages/Parcelas";
 import { FechamentoCaixa } from "./pages/FechamentoCaixa";
+import { ImportarProdutos } from "./pages/ImportarProdutos";
+import { ListaDespesas } from "./pages/ListaDespesas";
+import { EditarDespesa } from "./pages/EditarDespesa";
+import { EditarVenda } from "./pages/EditarVenda";
+import { EditarLocacao } from "./pages/EditarLocacao";
+import { Vendas } from "./pages/Vendas";
 
 function App() {
   return (
@@ -46,6 +52,12 @@ function App() {
             <Route path="/despesas" element={<CadastroDespesa />} />
             <Route path="/parcelas" element={<Parcelas />} />
             <Route path="/caixa" element={<FechamentoCaixa />} />
+            <Route path="/importar-produtos" element={<ImportarProdutos />} />
+            <Route path="/despesas/listagem" element={<ListaDespesas />} />
+            <Route path="/despesas/editar/:id" element={<EditarDespesa />} />
+            <Route path="/vendas/editar/:id" element={<EditarVenda />} />
+            <Route path="/locacoes/editar/:id" element={<EditarLocacao />} />
+            <Route path="/vendas/listagem" element={<Vendas />} />
           </Routes>
         </div>
       </div>

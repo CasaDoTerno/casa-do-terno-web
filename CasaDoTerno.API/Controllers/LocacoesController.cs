@@ -70,6 +70,61 @@ public class LocacoesController : ControllerBase
 
         return Ok(locacao);
     }
+    [HttpGet("{id}")]
+    public IActionResult BuscarPorId(int id)
+    {
+        var locacao = _context.Locacoes
+            .Where(l => l.Id == id)
+            .Select(l => new
+            {
+                l.Id,
+                l.ClienteId,
+                l.DataEvento,
+                l.DataRetirada,
+                l.DataDevolucaoPrevista,
+                l.DataRetiradaReal,
+                l.DataDevolucaoReal,
+                l.Consultor,
+                l.Desconto,
+                l.ValorTotal,
+                l.ValorEntrada,
+                l.FormaPagamentoEntrada,
+                Itens = l.Itens
+            })
+            .FirstOrDefault();
+
+        if (locacao == null)
+            return NotFound();
+
+        return Ok(locacao);
+    }
+
+    public class EditarLocacaoRequest
+    {
+        public int ClienteId { get; set; }
+        public DateTime DataEvento { get; set; }
+        public DateTime DataRetirada { get; set; }
+        public DateTime DataDevolucaoPrevista { get; set; }
+        public string? Consultor { get; set; }
+        public decimal Desconto { get; set; }
+        public decimal ValorEntrada { get; set; }
+        public FormaPagamento FormaPagamentoEntrada { get; set; }
+        public List<LocacaoService.ItemLocacaoEntrada> Itens { get; set; } = new();
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult Atualizar(int id, [FromBody] EditarLocacaoRequest request)
+    {
+        var (sucesso, mensagem, locacao) = _locacaoService.AtualizarLocacao(
+            id, request.ClienteId, request.DataEvento, request.DataRetirada, request.DataDevolucaoPrevista,
+            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada,
+            request.Itens);
+
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        return Ok(locacao);
+    }
 
     public class RetiradaRequest
     {

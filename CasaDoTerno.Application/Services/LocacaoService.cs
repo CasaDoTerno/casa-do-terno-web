@@ -1,5 +1,6 @@
-﻿using CasaDoTerno.Domain.Entities;
-using CasaDoTerno.Application.Interfaces;
+﻿using CasaDoTerno.Application.Interfaces;
+using CasaDoTerno.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CasaDoTerno.Application.Services;
 
@@ -32,6 +33,75 @@ public class LocacaoService
         _context.SaveChanges();
 
         return (true, "Pagamento do restante registrado com sucesso.");
+    }
+    public (bool sucesso, string mensagem, Locacao? locacao) AtualizarLocacao(
+    int locacaoId, int clienteId, DateTime dataEvento, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
+    string? consultor, decimal desconto, decimal valorEntrada, FormaPagamento formaPagamentoEntrada,
+    List<ItemLocacaoEntrada> itensEntrada)
+    {
+        var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.", null);
+
+        if (locacao.DataRetiradaReal != null)
+            return (false, "Não é possível editar uma locação que já foi retirada.", null);
+
+        if (itensEntrada == null || itensEntrada.Count == 0)
+            return (false, "A locação precisa ter pelo menos uma peça.", null);
+
+        _context.ItensLocacao.RemoveRange(locacao.Itens);
+        locacao.Itens.Clear();
+
+        decimal valorTotal = 0;
+        foreach (var entrada in itensEntrada)
+        {
+            var produto = _context.Produtos.Find(entrada.ProdutoId);
+            if (produto == null)
+                return (false, $"Produto {entrada.ProdutoId} não encontrado.", null);
+
+            if (!produto.DisponivelParaLocacao)
+                return (false, $"'{produto.Modelo}' não está disponível para locação.", null);
+
+            // mesma trava por peça de sempre, mas ignorando a PRÓPRIA locação
+            // (senão ela sempre "bateria" com ela mesma nos itens que já tinha)
+            bool temConflito = (
+                from itens in _context.ItensLocacao
+                join loc in _context.Locacoes on itens.LocacaoId equals loc.Id
+                where itens.ProdutoId == entrada.ProdutoId
+                      && loc.Id != locacaoId
+                      && loc.DataDevolucaoReal == null
+                      && dataRetirada < loc.DataDevolucaoPrevista
+                      && loc.DataRetirada < dataDevolucaoPrevista
+                select itens
+            ).Any();
+
+            if (temConflito)
+                return (false, $"'{produto.Modelo}' já está reservado nesse período.", null);
+
+            var item = new ItemLocacao
+            {
+                ProdutoId = produto.Id,
+                Ajustes = entrada.Ajustes,
+                ValorItem = produto.ValorLocacao
+            };
+
+            locacao.Itens.Add(item);
+            valorTotal += item.ValorItem;
+        }
+
+        locacao.ClienteId = clienteId;
+        locacao.DataEvento = dataEvento;
+        locacao.DataRetirada = dataRetirada;
+        locacao.DataDevolucaoPrevista = dataDevolucaoPrevista;
+        locacao.Consultor = consultor;
+        locacao.Desconto = desconto;
+        locacao.ValorEntrada = valorEntrada;
+        locacao.FormaPagamentoEntrada = formaPagamentoEntrada;
+        locacao.ValorTotal = valorTotal - desconto;
+
+        _context.SaveChanges();
+
+        return (true, "Locação atualizada com sucesso.", locacao);
     }
 
     public (bool sucesso, string mensagem) RegistrarRetirada(int locacaoId)

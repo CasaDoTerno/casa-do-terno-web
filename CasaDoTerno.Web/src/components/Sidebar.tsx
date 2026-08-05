@@ -52,6 +52,7 @@ export function Sidebar() {
           { to: "/cadastro-produto", label: "Cadastrar Produto" },
           { to: "/compra", label: "Compras" },
           { to: "/estoque-baixo", label: "Estoque Baixo" },
+          { to: "/importar-produtos", label: "Importar Produtos" },
         ]}
       />
 
@@ -68,16 +69,21 @@ export function Sidebar() {
       <GrupoMenu
         titulo="Vendas"
         icone={<ShoppingCart size={18} />}
-        itens={[{ to: "/venda", label: "Nova Venda" }]}
+        itens={[
+          { to: "/venda", label: "Nova Venda" },
+          { to: "/vendas/listagem", label: "Listar Vendas" },
+        ]}
+        
       />
 
       <GrupoMenu
         titulo="Financeiro"
         icone={<Wallet size={18} />}
         itens={[
-          { to: "/despesas", label: "Despesas" },
-          { to: "/parcelas", label: "Parcelas" },
-          { to: "/caixa", label: "Fechamento de Caixa" },
+            { to: "/despesas", label: "Lançar Despesa" },
+            { to: "/despesas/listagem", label: "Despesas do Mês" },
+            { to: "/parcelas", label: "Parcelas" },
+            { to: "/caixa", label: "Fechamento de Caixa" },
         ]}
       />
        <GrupoMenu

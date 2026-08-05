@@ -43,4 +43,57 @@ public class DespesasController : ControllerBase
 
         return Ok(despesa);
     }
+    [HttpGet("{id}")]
+    public IActionResult BuscarPorId(int id)
+    {
+        var despesa = _context.Despesas.Find(id);
+        if (despesa == null)
+            return NotFound();
+
+        return Ok(despesa);
+    }
+
+    public class EditarDespesaRequest
+    {
+        public string Descricao { get; set; }
+        public string? Categoria { get; set; }
+        public decimal Valor { get; set; }
+        public string? Observacao { get; set; }
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult Atualizar(int id, [FromBody] EditarDespesaRequest request)
+    {
+        var despesa = _context.Despesas.Find(id);
+        if (despesa == null)
+            return NotFound();
+
+        despesa.Descricao = request.Descricao;
+        despesa.Categoria = request.Categoria;
+        despesa.Valor = request.Valor;
+        despesa.Observacao = request.Observacao;
+
+        _context.SaveChanges();
+        return Ok(despesa);
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult Excluir(int id)
+    {
+        var despesa = _context.Despesas.Find(id);
+        if (despesa == null)
+            return NotFound();
+
+        // remove também as parcelas geradas por essa despesa, pra não deixar "lixo" no banco
+        var parcelasRelacionadas = _context.Parcelas
+            .Where(p => p.Origem == OrigemPagamento.Despesa && p.OrigemId == id);
+        _context.Parcelas.RemoveRange(parcelasRelacionadas);
+
+        _context.Despesas.Remove(despesa);
+        _context.SaveChanges();
+        return NoContent();
+    }
+
+
+
 }

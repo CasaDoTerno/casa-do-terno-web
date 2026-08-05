@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../Services/API";
 
 interface Locacao {
@@ -200,12 +201,13 @@ export function Retiradas() {
               {locacao.formaPagamentoRestante === null && (
                 <PagamentoInline onConfirmar={(forma) => registrarPagamento(locacao.id, forma)} />
               )}
-
-              {locacao.dataRetiradaReal === null ? (
+                            {locacao.dataRetiradaReal === null ? (
+                
                 <button onClick={() => confirmarRetirada(locacao.id)}>Confirmar retirada</button>
               ) : (
                 <span style={{ color: "var(--verde)", fontSize: 13 }}>✔ Já retirado</span>
               )}
+              <Link to={`/locacoes/editar/${locacao.id}`}>Editar</Link>
             </div>
           </div>
         ))}
