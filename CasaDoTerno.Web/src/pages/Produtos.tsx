@@ -53,25 +53,25 @@ export function Produtos() {
     <div>
       <h1>Produtos</h1>
 
-  <div style={{ position: "relative", maxWidth: 520, marginTop: 4, marginBottom: 24 }}>
-    <Search
-      size={16}
-      style={{
-      position: "absolute",
-      left: 12,
-      top: "50%",
-      transform: "translateY(-50%)",
-      color: "var(--texto-suave)",
-    }}
-  />
-  <input
-    type="text"
-    placeholder="Buscar por descrição..."
-    value={busca}
-    onChange={(e) => setBusca(e.target.value)}
-    style={{ paddingLeft: 36 }}
-  />
-</div>
+      <div style={{ position: "relative", maxWidth: 520, marginTop: 4, marginBottom: 24 }}>
+        <Search
+          size={16}
+          style={{
+          position: "absolute",
+          left: 12,
+          top: "50%",
+          transform: "translateY(-50%)",
+          color: "var(--texto-suave)",
+        }}
+        />
+        <input
+        type="text"
+        placeholder="Buscar por descrição..."
+        value={busca}
+        onChange={(e) => setBusca(e.target.value)}
+        style={{ paddingLeft: 36 }}
+        />
+      </div>
       <ul>
       {produtosFiltrados.map((produto) => {
           const estoqueBaixo = produto.controlaEstoque && produto.quantidade <= produto.estoqueMinimo;

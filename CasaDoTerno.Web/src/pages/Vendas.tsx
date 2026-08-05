@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../Services/API";
+import { Search } from "lucide-react";
 
 interface ItemVenda {
   produtoId: number;
@@ -60,14 +61,26 @@ export function Vendas() {
   return (
     <div>
       <h1>Vendas</h1>
-
+      <div style={{ position: "relative", maxWidth: 520, marginTop: 4, marginBottom: 24 }}>
+        <Search
+          size={16}
+          style={{
+          position: "absolute",
+          left: 12,
+          top: "50%",
+          transform: "translateY(-50%)",
+          color: "var(--texto-suave)",
+        }}
+        />
       <input
         type="text"
         placeholder="Buscar por cliente..."
         value={busca}
         onChange={(e) => setBusca(e.target.value)}
-        style={{ maxWidth: 320, marginBottom: 20 }}
+        style={{ paddingLeft: 36 }}
       />
+      </div>
+
 
       {vendasFiltradas.length === 0 && <p style={{ color: "var(--texto-suave)" }}>Nenhuma venda encontrada.</p>}
 

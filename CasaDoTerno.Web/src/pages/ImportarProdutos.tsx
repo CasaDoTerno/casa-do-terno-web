@@ -81,11 +81,11 @@ export function ImportarProdutos() {
       const linhas = XLSX.utils.sheet_to_json<ProdutoPlanilha>(primeiraAba);
 
       const convertidos: ProdutoPronto[] = linhas.map((linha) => ({
-        modelo: linha["Descrição"] ?? "",
+        modelo: String(linha["Descrição"] ?? ""),
         categoria: converterCategoria(linha["Categoria"]),
-        tamanho: linha["Tamanho"] ?? "",
-        cor: linha["Cor"] ?? "",
-        referencia: linha["Referência"] ?? "",
+        tamanho: String(linha["Tamanho"] ?? ""),
+        cor: String(linha["Cor"] ?? ""),
+        referencia: String(linha["Referência"] ?? ""),
         valorCusto: Number(linha["Custo"] ?? 0),
         valorVenda: Number(linha["Venda"] ?? 0),
         valorLocacao: Number(linha["Locação"] ?? 0),
@@ -94,7 +94,7 @@ export function ImportarProdutos() {
         estoqueMinimo: Number(linha["Estoque Mínimo"] ?? 0),
         disponivelParaVenda: converterBooleano(linha["Disponível Venda"]),
         disponivelParaLocacao: converterBooleano(linha["Disponível Locação"]),
-        observacao: linha["Observação"] ?? "",
+        observacao: String(linha["Observação"] ?? ""),
       }));
 
       setProdutos(convertidos);
