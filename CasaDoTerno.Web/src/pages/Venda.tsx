@@ -101,15 +101,12 @@ function handleSubmit(evento: React.FormEvent) {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Cliente</label>
-              <BuscaSelect
-                opcoes={produtos.map((p) => ({
-                  id: p.id,
-                  label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorVenda}`,
-                }))}
-                valorSelecionado={produtoSelecionado}
-                onSelecionar={setProdutoSelecionado}
-                placeholder="Buscar produto..."
-              />
+            <BuscaSelect
+              opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
+              valorSelecionado={clienteId}
+              onSelecionar={setClienteId}
+              placeholder="Buscar cliente..."
+            />
           </div>
           <div>
             <label>Consultor</label>
@@ -122,7 +119,10 @@ function handleSubmit(evento: React.FormEvent) {
           <div>
             <label>Produto</label>
             <BuscaSelect
-              opcoes={produtos.map((p) => ({ id: p.id, label: `${p.modelo} — R$ ${p.valorVenda}` }))}
+              opcoes={produtos.map((p) => ({
+                id: p.id,
+                label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorVenda}`,
+              }))}
               valorSelecionado={produtoSelecionado}
               onSelecionar={setProdutoSelecionado}
               placeholder="Buscar produto..."

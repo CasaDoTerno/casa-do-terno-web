@@ -113,14 +113,11 @@ export function Locacao() {
           <div>
             <label>Cliente</label>
             <BuscaSelect
-              opcoes={produtos.map((p) => ({
-              id: p.id,
-              label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorLocacao}`,
-            }))}
-            valorSelecionado={produtoSelecionado}
-            onSelecionar={setProdutoSelecionado}
-            placeholder="Buscar peça..."
-          />
+              opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
+              valorSelecionado={clienteId}
+              onSelecionar={setClienteId}
+              placeholder="Buscar cliente..."
+            />
           </div>
           <div>
             <label>Consultor</label>
@@ -152,7 +149,10 @@ export function Locacao() {
           <div>
             <label>Produto</label>
             <BuscaSelect
-              opcoes={produtos.map((p) => ({ id: p.id, label: `${p.modelo} — R$ ${p.valorLocacao}` }))}
+              opcoes={produtos.map((p) => ({
+                id: p.id,
+                label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorLocacao}`,
+              }))}
               valorSelecionado={produtoSelecionado}
               onSelecionar={setProdutoSelecionado}
               placeholder="Buscar peça..."

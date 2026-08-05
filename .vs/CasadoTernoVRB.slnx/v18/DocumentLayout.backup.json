@@ -237,8 +237,7 @@
               "RelativeToolTip": "CasaDoTerno.API\\Controllers\\ClientesController.cs",
               "ViewState": "AgIAAA4AAAAAAAAAAAAIwD0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T14:30:26.902Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-30T14:30:26.902Z"
             },
             {
               "$type": "Document",
@@ -250,8 +249,7 @@
               "RelativeToolTip": "CasaDoTerno.API\\Controllers\\DespesasController.cs",
               "ViewState": "AgIAABAAAAAAAAAAAAAgwB8AAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-02T10:39:33.265Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-02T10:39:33.265Z"
             },
             {
               "$type": "Document",
@@ -263,8 +261,7 @@
               "RelativeToolTip": "CasaDoTerno.Domain\\Entities\\Despesa.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-02T10:26:53.83Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-02T10:26:53.83Z"
             },
             {
               "$type": "Document",
@@ -276,8 +273,7 @@
               "RelativeToolTip": "CasaDoTerno.Domain\\Entities\\Funcionario.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T09:39:00.629Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-30T09:39:00.629Z"
             },
             {
               "$type": "Document",
@@ -287,7 +283,7 @@
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\CompraController.cs",
               "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\CompraController.cs",
               "RelativeToolTip": "CasaDoTerno.API\\Controllers\\CompraController.cs",
-              "ViewState": "AgIAACMAAAAAAAAAAAAmwDcAAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAACMAAAAAAAAAAAA4wDcAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-08-02T02:03:36.942Z",
               "EditorCaption": ""
