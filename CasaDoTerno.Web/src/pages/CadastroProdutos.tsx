@@ -17,44 +17,48 @@ export function CadastroProduto() {
   const [disponivelParaLocacao, setDisponivelParaLocacao] = useState(true);
   const [observacao, setObservacao] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
-  async function handleSubmit(evento: React.FormEvent) {
-    evento.preventDefault();
+ async function handleSubmit(evento: React.FormEvent) {
+  evento.preventDefault();
+  if (enviando) return;
 
-    try {
-      await api.post("/Produtos", {
-        modelo: descricao,
-        categoria,
-        tamanho,
-        cor,
-        referencia,
-        valorCusto,
-        valorVenda,
-        valorLocacao,
-        controlaEstoque,
-        quantidade,
-        estoqueMinimo,
-        observacao,
-        disponivelParaVenda,
-        disponivelParaLocacao,
-      });
-      setMensagem("Produto cadastrado com sucesso!");
-      setDescricao("");
-      setTamanho("");
-      setCor("");
-      setReferencia("");
-      setValorCusto(0);
-      setValorVenda(0);
-      setValorLocacao(0);
-      setQuantidade(0);
-      setEstoqueMinimo(0);
-      setObservacao("");
-    } catch (erro) {
-      console.error(erro);
-      setMensagem("Erro ao cadastrar produto. Veja o console (F12).");
-    }
+  setEnviando(true);
+  try {
+    await api.post("/Produtos", {
+      modelo: descricao,
+      categoria,
+      tamanho,
+      cor,
+      referencia,
+      valorCusto,
+      valorVenda,
+      valorLocacao,
+      controlaEstoque,
+      quantidade,
+      estoqueMinimo,
+      observacao,
+      disponivelParaVenda,
+      disponivelParaLocacao,
+    });
+    setMensagem("Produto cadastrado com sucesso!");
+    setDescricao("");
+    setTamanho("");
+    setCor("");
+    setReferencia("");
+    setValorCusto(0);
+    setValorVenda(0);
+    setValorLocacao(0);
+    setQuantidade(0);
+    setEstoqueMinimo(0);
+    setObservacao("");
+  } catch (erro) {
+    console.error(erro);
+    setMensagem("Erro ao cadastrar produto. Veja o console (F12).");
+  } finally {
+    setEnviando(false);
   }
-
+}
   return (
     <div>
       <h1>Cadastrar Produto</h1>
@@ -165,7 +169,9 @@ export function CadastroProduto() {
           )}
         </div>
 
-        <button type="submit">Cadastrar</button>
+       <button type="submit" disabled={enviando}>
+  {enviando ? "Salvando..." : "Cadastrar"}
+</button>
       </form>
 
       {mensagem && <p>{mensagem}</p>}

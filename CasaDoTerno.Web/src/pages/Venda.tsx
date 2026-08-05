@@ -5,6 +5,9 @@ import { BuscaSelect } from "../components/BuscaSelect";
 interface Produto {
   id: number;
   modelo: string;
+  referencia: string | null;
+  cor: string;
+  tamanho: string;
   valorVenda: number;
   disponivelParaVenda: boolean;
 }
@@ -29,11 +32,9 @@ export function Venda() {
   const [consultor, setConsultor] = useState("");
   const [formaPagamento, setFormaPagamento] = useState(0);
   const [numeroParcelas, setNumeroParcelas] = useState(1);
-
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
-
   const [mensagem, setMensagem] = useState("");
 
   useEffect(() => {
@@ -100,12 +101,15 @@ function handleSubmit(evento: React.FormEvent) {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Cliente</label>
-            <BuscaSelect
-              opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
-              valorSelecionado={clienteId}
-              onSelecionar={setClienteId}
-              placeholder="Buscar cliente..."
-            />
+              <BuscaSelect
+                opcoes={produtos.map((p) => ({
+                  id: p.id,
+                  label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorVenda}`,
+                }))}
+                valorSelecionado={produtoSelecionado}
+                onSelecionar={setProdutoSelecionado}
+                placeholder="Buscar produto..."
+              />
           </div>
           <div>
             <label>Consultor</label>

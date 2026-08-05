@@ -5,6 +5,9 @@ import { BuscaSelect } from "../components/BuscaSelect";
 interface Produto {
   id: number;
   modelo: string;
+  referencia: string | null;
+  cor: string;
+  tamanho: string;
   valorLocacao: number;
   disponivelParaLocacao: boolean;
 }
@@ -24,7 +27,6 @@ interface PecaCarrinho {
 export function Locacao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
-
   const [clienteId, setClienteId] = useState(0);
   const [dataEvento, setDataEvento] = useState("");
   const [dataRetirada, setDataRetirada] = useState("");
@@ -33,12 +35,11 @@ export function Locacao() {
   const [desconto, setDesconto] = useState(0);
   const [valorEntrada, setValorEntrada] = useState(0);
   const [formaPagamentoEntrada, setFormaPagamentoEntrada] = useState(0);
-
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [ajustesPeca, setAjustesPeca] = useState("");
   const [pecas, setPecas] = useState<PecaCarrinho[]>([]);
-
   const [mensagem, setMensagem] = useState("");
+
 
   useEffect(() => {
     api.get<Produto[]>("/Produtos").then((r) =>
@@ -112,11 +113,14 @@ export function Locacao() {
           <div>
             <label>Cliente</label>
             <BuscaSelect
-              opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
-              valorSelecionado={clienteId}
-              onSelecionar={setClienteId}
-              placeholder="Buscar cliente..."
-            />
+              opcoes={produtos.map((p) => ({
+              id: p.id,
+              label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorLocacao}`,
+            }))}
+            valorSelecionado={produtoSelecionado}
+            onSelecionar={setProdutoSelecionado}
+            placeholder="Buscar peça..."
+          />
           </div>
           <div>
             <label>Consultor</label>

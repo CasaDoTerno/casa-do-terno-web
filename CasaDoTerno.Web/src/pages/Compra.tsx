@@ -5,6 +5,9 @@ import { BuscaSelect } from "../components/BuscaSelect";
 interface Produto {
   id: number;
   modelo: string;
+  referencia: string | null;
+  cor: string;
+  tamanho: string;
 }
 
 interface Fornecedor {
@@ -99,10 +102,13 @@ export function Compra() {
           <div>
             <label>Fornecedor</label>
             <BuscaSelect
-              opcoes={fornecedores.map((f) => ({ id: f.id, label: f.nome }))}
-              valorSelecionado={fornecedorId}
-              onSelecionar={setFornecedorId}
-              placeholder="Buscar fornecedor..."
+              opcoes={produtos.map((p) => ({
+                id: p.id,
+                label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho}`,
+              }))}
+              valorSelecionado={produtoSelecionado}
+              onSelecionar={setProdutoSelecionado}
+              placeholder="Buscar produto..."
             />
           </div>
           <div>

@@ -21,6 +21,7 @@ export function EditarProduto() {
   const [disponivelParaVenda, setDisponivelParaVenda] = useState(true);
   const [disponivelParaLocacao, setDisponivelParaLocacao] = useState(true);
   const [mensagem, setMensagem] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
     api.get(`/Produtos/${id}`).then((resposta) => {
@@ -43,31 +44,36 @@ export function EditarProduto() {
   }, [id]);
 
   async function handleSubmit(evento: React.FormEvent) {
-    evento.preventDefault();
-    try {
-      await api.put(`/Produtos/${id}`, {
-        modelo: descricao,
-        categoria,
-        tamanho,
-        cor,
-        referencia,
-        valorCusto,
-        valorVenda,
-        valorLocacao,
-        controlaEstoque,
-        quantidade,
-        estoqueMinimo,
-        observacao,
-        disponivelParaVenda,
-        disponivelParaLocacao,
-      });
-      setMensagem("Produto atualizado com sucesso!");
-      navigate("/produtos");
-    } catch (erro) {
-      console.error(erro);
-      setMensagem("Erro ao atualizar produto.");
-    }
+  evento.preventDefault();
+  if (enviando) return;
+
+  setEnviando(true);
+  try {
+    await api.put(`/Produtos/${id}`, {
+      modelo: descricao,
+      categoria,
+      tamanho,
+      cor,
+      referencia,
+      valorCusto,
+      valorVenda,
+      valorLocacao,
+      controlaEstoque,
+      quantidade,
+      estoqueMinimo,
+      observacao,
+      disponivelParaVenda,
+      disponivelParaLocacao,
+    });
+    setMensagem("Produto atualizado com sucesso!");
+    navigate("/produtos");
+  } catch (erro) {
+    console.error(erro);
+    setMensagem("Erro ao atualizar produto.");
+  } finally {
+    setEnviando(false);
   }
+}
 
   return (
     <div>
@@ -130,41 +136,36 @@ export function EditarProduto() {
           </div>
         </div>
 
-        <h2>Estoque e disponibilidade</h2>
+<h2>Estoque e disponibilidade</h2>
 <div className="card" style={{ marginBottom: 20 }}>
   <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
       <input
         type="checkbox"
         checked={controlaEstoque}
         onChange={(e) => setControlaEstoque(e.target.checked)}
         style={{ width: "auto" }}
-        id="controla-estoque"
       />
-      <label htmlFor="controla-estoque" style={{ margin: 0 }}>Controlar estoque</label>
-    </div>
-
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      Controlar estoque
+    </label>
+    <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
       <input
         type="checkbox"
         checked={disponivelParaVenda}
         onChange={(e) => setDisponivelParaVenda(e.target.checked)}
         style={{ width: "auto" }}
-        id="disp-venda"
       />
-      <label htmlFor="disp-venda" style={{ margin: 0 }}>Disponível para venda</label>
-    </div>
-
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      Disponível para venda
+    </label>
+    <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
       <input
         type="checkbox"
         checked={disponivelParaLocacao}
         onChange={(e) => setDisponivelParaLocacao(e.target.checked)}
         style={{ width: "auto" }}
-        id="disp-locacao"
       />
-      <label htmlFor="disp-locacao" style={{ margin: 0 }}>Disponível para locação</label>
-    </div>
+      Disponível para locação
+    </label>
   </div>
 
   {controlaEstoque && (
@@ -181,7 +182,9 @@ export function EditarProduto() {
   )}
 </div>
 
-        <button type="submit">Salvar alterações</button>
+        <button type="submit" disabled={enviando}>
+  {enviando ? "Salvando..." : "Salvar alterações"}
+</button>
       </form>
 
       {mensagem && <p>{mensagem}</p>}
