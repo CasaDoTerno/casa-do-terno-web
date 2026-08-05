@@ -25,6 +25,7 @@ import { EditarDespesa } from "./pages/EditarDespesa";
 import { EditarVenda } from "./pages/EditarVenda";
 import { EditarLocacao } from "./pages/EditarLocacao";
 import { Vendas } from "./pages/Vendas";
+import { ComissaoConsultor } from "./pages/ComissaoConsultor";
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
             <Route path="/vendas/editar/:id" element={<EditarVenda />} />
             <Route path="/locacoes/editar/:id" element={<EditarLocacao />} />
             <Route path="/vendas/listagem" element={<Vendas />} />
+            <Route path="/comissao-consultor" element={<ComissaoConsultor />} />
           </Routes>
         </div>
       </div>

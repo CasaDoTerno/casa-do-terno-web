@@ -84,6 +84,7 @@ export function Sidebar() {
             { to: "/despesas/listagem", label: "Despesas do Mês" },
             { to: "/parcelas", label: "Parcelas" },
             { to: "/caixa", label: "Fechamento de Caixa" },
+            { to: "/comissao-consultor", label: "Comissão por Consultor" },
         ]}
       />
        <GrupoMenu
