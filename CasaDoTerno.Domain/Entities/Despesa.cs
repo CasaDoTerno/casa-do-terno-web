@@ -8,4 +8,7 @@ public class Despesa
     public decimal Valor { get; set; }
     public DateTime DataLancamento { get; set; } = DateTime.Now;
     public string? Observacao { get; set; }
+    public string? CriadoPor { get; set; }
+    public string? EditadoPor { get; set; }
+    public DateTime? DataEdicao { get; set; }
 }

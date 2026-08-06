@@ -29,6 +29,9 @@ public class ComprasController : ControllerBase
             c.ValorTotal,
             c.FormaPagamento,
             c.Observacao,
+            c.CriadoPor,
+            c.EditadoPor,
+            c.DataEdicao,
             Itens = c.Itens
         }).ToList());
     }
@@ -41,6 +44,55 @@ public class ComprasController : ControllerBase
         public int NumeroParcelas { get; set; } = 1;
         public List<CompraService.ItemCompraEntrada> Itens { get; set; } = new();
     }
+    [HttpGet("{id}")]
+    public IActionResult BuscarPorId(int id)
+    {
+        var compra = _context.Compras
+            .Where(c => c.Id == id)
+            .Select(c => new
+            {
+                c.Id,
+                c.FornecedorId,
+                c.DataCompra,
+                c.ValorTotal,
+                c.FormaPagamento,
+                c.Observacao,
+                c.CriadoPor,
+                c.EditadoPor,
+                c.DataEdicao,
+                Itens = c.Itens
+            })
+            .FirstOrDefault();
+
+        if (compra == null)
+            return NotFound();
+
+        return Ok(compra);
+    }
+
+    public class EditarCompraRequest
+    {
+        public int FornecedorId { get; set; }
+        public FormaPagamento FormaPagamento { get; set; }
+        public string? Observacao { get; set; }
+        public List<CompraService.ItemCompraEntrada> Itens { get; set; } = new();
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult Atualizar(int id, [FromBody] EditarCompraRequest request)
+    {
+        var (sucesso, mensagem, compra) = _compraService.AtualizarCompra(
+            id, request.FornecedorId, request.FormaPagamento, request.Observacao, request.Itens);
+
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        compra!.EditadoPor = User.Identity?.Name;
+        compra.DataEdicao = DateTime.Now;
+        _context.SaveChanges();
+
+        return Ok(compra);
+    }
 
     [HttpPost]
     public IActionResult Criar([FromBody] NovaCompraRequest request)
@@ -51,6 +103,9 @@ public class ComprasController : ControllerBase
 
         if (!sucesso)
             return BadRequest(mensagem);
+
+        compra!.CriadoPor = User.Identity?.Name;
+        _context.SaveChanges();
 
         return Ok(compra);
     }

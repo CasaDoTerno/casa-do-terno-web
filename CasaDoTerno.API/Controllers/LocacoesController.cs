@@ -40,6 +40,9 @@ public class LocacoesController : ControllerBase
             l.FormaPagamentoRestante,
             l.DataPagamentoRestante,
             l.ValorRestante,
+            l.CriadoPor,
+            l.EditadoPor,
+            l.DataEdicao,
             Itens = l.Itens
         }).ToList());
     }
@@ -68,6 +71,9 @@ public class LocacoesController : ControllerBase
         if (!sucesso)
             return BadRequest(mensagem);
 
+        locacao!.CriadoPor = User.Identity?.Name;
+        _context.SaveChanges();
+
         return Ok(locacao);
     }
     [HttpGet("{id}")]
@@ -89,6 +95,9 @@ public class LocacoesController : ControllerBase
                 l.ValorTotal,
                 l.ValorEntrada,
                 l.FormaPagamentoEntrada,
+                l.CriadoPor,
+                l.EditadoPor,
+                l.DataEdicao,
                 Itens = l.Itens
             })
             .FirstOrDefault();
@@ -122,6 +131,9 @@ public class LocacoesController : ControllerBase
 
         if (!sucesso)
             return BadRequest(mensagem);
+        locacao!.EditadoPor = User.Identity?.Name;
+        locacao.DataEdicao = DateTime.Now;
+        _context.SaveChanges();
 
         return Ok(locacao);
     }

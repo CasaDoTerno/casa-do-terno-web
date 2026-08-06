@@ -51,6 +51,7 @@ export function Sidebar() {
           { to: "/produtos", label: "Produtos" },
           { to: "/cadastro-produto", label: "Cadastrar Produto" },
           { to: "/compra", label: "Compras" },
+          { to: "/compras/listagem", label: "Listar Compras" },
           { to: "/estoque-baixo", label: "Estoque Baixo" },
           { to: "/importar-produtos", label: "Importar Produtos" },
         ]}

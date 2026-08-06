@@ -1,5 +1,7 @@
-﻿using CasaDoTerno.Domain.Entities;
-using CasaDoTerno.Application.Interfaces;
+﻿using CasaDoTerno.Application.Interfaces;
+using CasaDoTerno.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using static CasaDoTerno.Application.Services.CompraService;
 
 namespace CasaDoTerno.Application.Services;
 
@@ -21,9 +23,67 @@ public class CompraService
         public decimal ValorUnitario { get; set; }
     }
 
+    public (bool sucesso, string mensagem, Compra? compra) AtualizarCompra(
+        int compraId, int fornecedorId, FormaPagamento formaPagamento, string? observacao,
+        List<ItemCompraEntrada> itensEntrada)
+    {
+        var compra = _context.Compras.Include(c => c.Itens).FirstOrDefault(c => c.Id == compraId);
+        if (compra == null)
+            return (false, "Compra não encontrada.", null);
+
+        if (itensEntrada == null || itensEntrada.Count == 0)
+            return (false, "A compra precisa ter pelo menos um item.", null);
+
+        // desfaz a entrada de estoque dos itens ANTIGOS (subtrai de volta)
+        foreach (var itemAntigo in compra.Itens)
+        {
+            var produtoAntigo = _context.Produtos.Find(itemAntigo.ProdutoId);
+            if (produtoAntigo != null)
+            {
+                produtoAntigo.Quantidade -= itemAntigo.Quantidade;
+            }
+        }
+
+        _context.ItensCompra.RemoveRange(compra.Itens);
+        compra.Itens.Clear();
+
+        // aplica os itens NOVOS, com nova entrada de estoque
+        decimal valorTotal = 0;
+        foreach (var entrada in itensEntrada)
+        {
+            var produto = _context.Produtos.Find(entrada.ProdutoId);
+            if (produto == null)
+                return (false, $"Produto {entrada.ProdutoId} não encontrado.", null);
+
+            var item = new ItemCompra
+            {
+                ProdutoId = produto.Id,
+                Quantidade = entrada.Quantidade,
+                ValorUnitario = entrada.ValorUnitario
+            };
+
+            compra.Itens.Add(item);
+            valorTotal += item.ValorTotal;
+
+            produto.Quantidade += entrada.Quantidade;
+            produto.ControlaEstoque = true;
+            if (produto.Quantidade > 0)
+                produto.DisponivelParaVenda = true;
+        }
+
+        compra.FornecedorId = fornecedorId;
+        compra.FormaPagamento = formaPagamento;
+        compra.Observacao = observacao;
+        compra.ValorTotal = valorTotal;
+
+        _context.SaveChanges();
+
+        return (true, "Compra atualizada com sucesso.", compra);
+    }
+
     public (bool sucesso, string mensagem, Compra? compra) CriarCompra(
-          int fornecedorId, FormaPagamento formaPagamento, string? observacao,
-          int numeroParcelas, List<ItemCompraEntrada> itensEntrada)
+              int fornecedorId, FormaPagamento formaPagamento, string? observacao,
+              int numeroParcelas, List<ItemCompraEntrada> itensEntrada)
     {
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A compra precisa ter pelo menos um item.", null);

@@ -26,6 +26,8 @@ import { EditarVenda } from "./pages/EditarVenda";
 import { EditarLocacao } from "./pages/EditarLocacao";
 import { Vendas } from "./pages/Vendas";
 import { ComissaoConsultor } from "./pages/ComissaoConsultor";
+import { Compras } from "./pages/Compras";
+import { EditarCompra } from "./pages/EditarCompra";
 
 function App() {
   return (
@@ -60,6 +62,8 @@ function App() {
             <Route path="/locacoes/editar/:id" element={<EditarLocacao />} />
             <Route path="/vendas/listagem" element={<Vendas />} />
             <Route path="/comissao-consultor" element={<ComissaoConsultor />} />
+            <Route path="/compras/listagem" element={<Compras />} />
+            <Route path="/compras/editar/:id" element={<EditarCompra />} />
           </Routes>
         </div>
       </div>

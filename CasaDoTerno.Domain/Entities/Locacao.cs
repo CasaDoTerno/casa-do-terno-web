@@ -21,6 +21,9 @@ public class Locacao
     public FormaPagamento? FormaPagamentoRestante { get; set; }
     public DateTime? DataPagamentoRestante { get; set; }
     public DateTime? DataRetiradaReal { get; set; }
+    public string? CriadoPor { get; set; }
+    public string? EditadoPor { get; set; }
+    public DateTime? DataEdicao { get; set; }
 
     public decimal ValorRestante => ValorTotal - ValorEntrada;
 

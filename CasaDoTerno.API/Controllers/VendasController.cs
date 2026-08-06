@@ -28,7 +28,11 @@ public class VendasController : ControllerBase
             v.DataVenda,
             v.Desconto,
             v.ValorTotal,
+            v.CriadoPor,
+            v.EditadoPor,
+            v.DataEdicao,
             Itens = v.Itens
+            
         }).ToList());
     }
 
@@ -43,6 +47,7 @@ public class VendasController : ControllerBase
     }
 
     [HttpPost]
+    [HttpPost]
     public IActionResult Criar([FromBody] NovaVendaRequest request)
     {
         var (sucesso, mensagem, venda) = _vendaService.CriarVenda(
@@ -52,8 +57,12 @@ public class VendasController : ControllerBase
         if (!sucesso)
             return BadRequest(mensagem);
 
+        venda!.CriadoPor = User.Identity?.Name;
+        _context.SaveChanges();
+
         return Ok(venda);
     }
+
     [HttpGet("{id}")]
     public IActionResult BuscarPorId(int id)
     {
@@ -68,6 +77,9 @@ public class VendasController : ControllerBase
                 v.ValorTotal,
                 v.Consultor,
                 v.FormaPagamento,
+                v.CriadoPor,
+                v.EditadoPor,
+                v.DataEdicao,
                 Itens = v.Itens
             })
             .FirstOrDefault();
@@ -85,7 +97,6 @@ public class VendasController : ControllerBase
         public string? Consultor { get; set; }
         public List<VendaService.ItemVendaEntrada> Itens { get; set; } = new();
     }
-
     [HttpPut("{id}")]
     public IActionResult Atualizar(int id, [FromBody] EditarVendaRequest request)
     {
@@ -94,6 +105,10 @@ public class VendasController : ControllerBase
 
         if (!sucesso)
             return BadRequest(mensagem);
+
+        venda!.EditadoPor = User.Identity?.Name;
+        venda.DataEdicao = DateTime.Now;
+        _context.SaveChanges();
 
         return Ok(venda);
     }

@@ -41,6 +41,9 @@ public class DespesasController : ControllerBase
             request.Descricao, request.Categoria, request.Valor, request.Observacao,
             request.FormaPagamento, request.NumeroParcelas);
 
+        despesa!.CriadoPor = User.Identity?.Name;
+        _context.SaveChanges();
+
         return Ok(despesa);
     }
     [HttpGet("{id}")]
@@ -72,6 +75,9 @@ public class DespesasController : ControllerBase
         despesa.Categoria = request.Categoria;
         despesa.Valor = request.Valor;
         despesa.Observacao = request.Observacao;
+
+        despesa!.EditadoPor = User.Identity?.Name;
+        despesa.DataEdicao = DateTime.Now;
 
         _context.SaveChanges();
         return Ok(despesa);

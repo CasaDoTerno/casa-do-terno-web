@@ -9,6 +9,9 @@ public class Venda
     public decimal ValorTotal { get; set; }
     public string? Consultor { get; set; }
     public FormaPagamento FormaPagamento { get; set; }
+    public string? CriadoPor { get; set; }
+    public string? EditadoPor { get; set; }
+    public DateTime? DataEdicao { get; set; }
 
     public List<ItemVenda> Itens { get; set; } = new();
 }   
