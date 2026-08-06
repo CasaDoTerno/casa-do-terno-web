@@ -9,6 +9,9 @@ interface Despesa {
   valor: number;
   dataLancamento: string;
   observacao: string | null;
+  criadoPor: string | null;
+  editadoPor: string | null;
+  dataEdicao: string | null;
 }
 
 export function ListaDespesas() {
@@ -95,6 +98,12 @@ export function ListaDespesas() {
                   {new Date(despesa.dataLancamento).toLocaleDateString("pt-BR")}
                   {despesa.observacao && ` · ${despesa.observacao}`}
                 </div>
+                {despesa.criadoPor && (
+                  <div style={{ color: "var(--texto-suave)", fontSize: 12, marginTop: 4 }}>
+                    Criado por {despesa.criadoPor}
+                    {despesa.editadoPor && ` · Editado por ${despesa.editadoPor} em ${new Date(despesa.dataEdicao!).toLocaleDateString("pt-BR")}`}
+                  </div>
+                )}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 <div style={{ fontWeight: 700, fontSize: 16 }}>R$ {despesa.valor.toFixed(2)}</div>

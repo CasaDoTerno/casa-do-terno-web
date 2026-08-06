@@ -17,6 +17,9 @@ interface Venda {
   valorTotal: number;
   consultor: string | null;
   formaPagamento: number;
+  criadoPor: string | null;
+  editadoPor: string | null;
+  dataEdicao: string | null;
   itens: ItemVenda[];
 }
 
@@ -94,6 +97,12 @@ export function Vendas() {
                   Venda #{venda.id} — {new Date(venda.dataVenda).toLocaleDateString("pt-BR")}
                   {venda.consultor && ` — Consultor: ${venda.consultor}`}
                 </div>
+                {venda.criadoPor && (
+                  <div style={{ color: "var(--texto-suave)", fontSize: 12, marginTop: 4 }}>
+                    Criado por {venda.criadoPor}
+                    {venda.editadoPor && ` · Editado por ${venda.editadoPor} em ${new Date(venda.dataEdicao!).toLocaleDateString("pt-BR")}`}
+                  </div>
+                )}
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 18, fontWeight: 700, color: "var(--verde)" }}>

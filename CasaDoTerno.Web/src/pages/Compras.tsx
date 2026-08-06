@@ -15,7 +15,11 @@ interface Compra {
   valorTotal: number;
   formaPagamento: number;
   observacao: string | null;
+  criadoPor: string | null;
+  editadoPor: string | null;
+  dataEdicao: string | null;
   itens: ItemCompra[];
+  
 }
 
 interface Fornecedor {
@@ -80,6 +84,12 @@ export function Compras() {
                   Compra #{compra.id} — {new Date(compra.dataCompra).toLocaleDateString("pt-BR")}
                   {compra.observacao && ` — ${compra.observacao}`}
                 </div>
+                {compra.criadoPor && (
+                  <div style={{ color: "var(--texto-suave)", fontSize: 12, marginTop: 4 }}>
+                    Criado por {compra.criadoPor}
+                    {compra.editadoPor && ` · Editado por ${compra.editadoPor} em ${new Date(compra.dataEdicao!).toLocaleDateString("pt-BR")}`}
+                  </div>
+                )}
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 18, fontWeight: 700, color: "var(--verde)" }}>
