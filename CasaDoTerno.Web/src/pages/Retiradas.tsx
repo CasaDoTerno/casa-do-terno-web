@@ -142,13 +142,6 @@ export function Retiradas() {
     Semana de {formatarData(inicio)} a {formatarData(fim)} — eventos nesse período
   </p>
 )}
-
-      {!mostrarTodas && (
-        <p style={{ color: "var(--texto-suave)", marginTop: -12 }}>
-          Semana de {formatarData(inicio)} a {formatarData(fim)} — eventos nesse período
-        </p>
-      )}
-
       {mensagem && <p>{mensagem}</p>}
 
       {locacoesOrdenadas.length === 0 && (
