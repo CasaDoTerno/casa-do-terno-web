@@ -1,0 +1,26 @@
+name: Backup do banco (Neon)
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # todo dia às 6h UTC (03h no horário de Brasília)
+  workflow_dispatch:        # permite rodar manualmente também, pelo site do GitHub
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Instalar cliente do PostgreSQL
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Gerar o backup
+        env:
+          DATABASE_URL: ${{ secrets.NEON_CONNECTION_STRING }}
+        run: |
+          pg_dump "$DATABASE_URL" > backup-$(date +'%Y-%m-%d').sql
+
+      - name: Guardar o backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-banco-casadoterno
+          path: backup-*.sql
+          retention-days: 90
