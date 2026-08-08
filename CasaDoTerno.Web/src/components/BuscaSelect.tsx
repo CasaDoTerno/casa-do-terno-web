@@ -30,11 +30,16 @@ export function BuscaSelect({ opcoes, valorSelecionado, onSelecionar, placeholde
     return () => document.removeEventListener("mousedown", aoClicarFora);
   }, []);
 
-  const filtradas =
-    texto.length === 0
-      ? opcoes.slice(0, 8)
-      : opcoes.filter((o) => o.label.toLowerCase().includes(texto.toLowerCase())).slice(0, 8);
-
+ const filtradas =
+  texto.length === 0
+    ? opcoes.slice(0, 8)
+    : opcoes
+        .filter((o) => {
+          const textoOpcao = o.label.toLowerCase();
+          const palavras = texto.toLowerCase().split(" ").filter((p) => p.length > 0);
+          return palavras.every((palavra) => textoOpcao.includes(palavra));
+        })
+        .slice(0, 8);
   return (
     <div className="busca-select" ref={containerRef}>
       <input

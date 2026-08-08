@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
 
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato"];
+
 interface Produto {
   id: number;
   modelo: string;
   referencia: string | null;
+  categoria: number;
   cor: string;
   tamanho: string;
 }
@@ -118,11 +121,11 @@ export function Compra() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Produto</label>
-            <BuscaSelect
-              opcoes={produtos.map((p) => ({
-                id: p.id,
-                label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho}`,
-              }))}
+              <BuscaSelect
+                opcoes={produtos.map((p) => ({
+                  id: p.id,
+                  label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho}`,
+                }))}
               valorSelecionado={produtoSelecionado}
               onSelecionar={setProdutoSelecionado}
               placeholder="Buscar produto..."
