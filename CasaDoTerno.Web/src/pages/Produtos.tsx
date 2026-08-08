@@ -46,9 +46,11 @@ export function Produtos() {
   }
 
   if (carregando) return <p>Carregando produtos...</p>;
-  const produtosFiltrados = produtos.filter((p) =>
-    p.modelo.toLowerCase().includes(busca.toLowerCase())
-  );
+    const produtosFiltrados = produtos.filter((p) => {
+    const textoProduto = `${p.modelo} ${p.tamanho} ${p.cor}`.toLowerCase();
+    const palavras = busca.toLowerCase().split(" ").filter((palavra) => palavra.length > 0);
+    return palavras.every((palavra) => textoProduto.includes(palavra));
+  });
   return (
     <div>
       <h1>Produtos</h1>
