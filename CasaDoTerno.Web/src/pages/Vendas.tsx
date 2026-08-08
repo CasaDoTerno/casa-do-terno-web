@@ -80,7 +80,7 @@ export function Vendas() {
         placeholder="Buscar por cliente..."
         value={busca}
         onChange={(e) => setBusca(e.target.value)}
-        style={{ paddingLeft: 36 }}
+        style={{ maxWidth: 320, marginBottom: 20 }}
       />
       </div>
 
