@@ -78,6 +78,7 @@ export function CadastroProduto() {
                 <option value={1}>Calça</option>
                 <option value={2}>Camisa</option>
                 <option value={3}>Sapato</option>
+                <option value={4}>Acessorio</option>
               </select>
             </div>
             <div>

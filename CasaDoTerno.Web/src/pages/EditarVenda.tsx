@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato"];
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato","Acessorio"];
 
 interface Produto {
   id: number;
