@@ -64,6 +64,7 @@ export function Sidebar() {
           { to: "/locacao", label: "Nova Locação" },
           { to: "/retiradas", label: "Retiradas" },
           { to: "/devolucoes", label: "Devoluções" },
+          { to: "/retiradas/imprimir", label: "Imprimir Retiradas da Semana" },
         ]}
       />
 

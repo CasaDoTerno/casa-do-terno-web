@@ -28,6 +28,8 @@ import { Vendas } from "./pages/Vendas";
 import { ComissaoConsultor } from "./pages/ComissaoConsultor";
 import { Compras } from "./pages/Compras";
 import { EditarCompra } from "./pages/EditarCompra";
+import { ReciboVenda } from "./pages/ReciboVenda";
+import { ReciboLocacao } from "./pages/ReciboLocacao";
 
 function App() {
   return (
@@ -64,6 +66,8 @@ function App() {
             <Route path="/comissao-consultor" element={<ComissaoConsultor />} />
             <Route path="/compras/listagem" element={<Compras />} />
             <Route path="/compras/editar/:id" element={<EditarCompra />} />
+            <Route path="/vendas/imprimir/:id" element={<ReciboVenda />} />
+            <Route path="/locacoes/imprimir/:id" element={<ReciboLocacao />} />
           </Routes>
         </div>
       </div>

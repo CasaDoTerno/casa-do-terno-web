@@ -124,6 +124,8 @@ export function Vendas() {
 
             <div style={{ marginTop: 12 }}>
               <Link to={`/vendas/editar/${venda.id}`}>Editar</Link>
+              {" | "}
+              <Link to={`/vendas/imprimir/${venda.id}`}>Imprimir</Link>
             </div>
           </div>
         ))}

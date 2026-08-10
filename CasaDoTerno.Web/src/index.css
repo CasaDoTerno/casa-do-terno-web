@@ -299,3 +299,45 @@ select option {
   flex-direction: column;
   margin-bottom: 12px;
 }
+
+/* ---- Impressão ---- */
+@media print {
+  .sidebar,
+  .topbar,
+  .no-imprimir {
+    display: none !important;
+  }
+
+  .conteudo {
+    padding: 0 !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .recibo-card {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    color: black !important;
+  }
+}
+
+.recibo-titulo {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.recibo-subtitulo {
+  color: var(--texto-suave);
+  margin-bottom: 24px;
+}
+
+.recibo-linha {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--borda);
+}
