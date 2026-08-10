@@ -122,15 +122,11 @@ useEffect(() => {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Cliente</label>
-           <BuscaSelect
-              opcoes={produtos.map((p) => ({
-                id: p.id,
-                label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorLocacao}`,
-              }))}
-              valorSelecionado={produtoSelecionado}
-              onSelecionar={setProdutoSelecionado}
-              onAbrir={buscarProdutos}
-              placeholder="Buscar peça..."
+            <BuscaSelect
+              opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
+              valorSelecionado={clienteId}
+              onSelecionar={setClienteId}
+              placeholder="Buscar cliente..."
             />
           </div>
           <div>
@@ -165,12 +161,13 @@ useEffect(() => {
               <BuscaSelect
                 opcoes={produtos.map((p) => ({
                   id: p.id,
-                  label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho}`,
+                  label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorLocacao}`,
                 }))}
-              valorSelecionado={produtoSelecionado}
-              onSelecionar={setProdutoSelecionado}
-              placeholder="Buscar peça..."
-            />
+                valorSelecionado={produtoSelecionado}
+                onSelecionar={setProdutoSelecionado}
+                onAbrir={buscarProdutos}
+                placeholder="Buscar peça..."
+              />
           </div>
           <div>
             <label>Ajustes (opcional)</label>
