@@ -24,6 +24,9 @@ interface Cliente {
 interface Produto {
   id: number;
   modelo: string;
+  referencia: string | null;
+  cor: string;
+  tamanho: string;
 }
 
 function inicioDaSemana(data: Date): Date {
@@ -57,8 +60,11 @@ export function ImprimirRetiradasSemana() {
     return clientes.find((c) => c.id === clienteId)?.telefone ?? "";
   }
 
-  function nomeProduto(produtoId: number) {
-    return produtos.find((p) => p.id === produtoId)?.modelo ?? `Produto #${produtoId}`;
+  function descricaoProduto(produtoId: number) {
+    const produto = produtos.find((p) => p.id === produtoId);
+    if (!produto) return `Produto #${produtoId}`;
+    const codigo = produto.referencia ? `${produto.referencia} — ` : "";
+    return `${codigo}${produto.modelo} · ${produto.cor} · Tam. ${produto.tamanho}`;
   }
 
   const inicio = inicioDaSemana(new Date(dataReferencia + "T00:00:00"));
@@ -112,7 +118,7 @@ export function ImprimirRetiradasSemana() {
           <div style={{ marginTop: 8 }}>
             {locacao.itens.map((item, index) => (
               <div key={index}>
-                • {nomeProduto(item.produtoId)}
+                • {descricaoProduto(item.produtoId)}
                 {item.ajustes && ` — ${item.ajustes}`}
               </div>
             ))}
