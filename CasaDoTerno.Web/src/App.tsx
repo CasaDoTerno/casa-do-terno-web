@@ -30,6 +30,8 @@ import { Compras } from "./pages/Compras";
 import { EditarCompra } from "./pages/EditarCompra";
 import { ReciboVenda } from "./pages/ReciboVenda";
 import { ReciboLocacao } from "./pages/ReciboLocacao";
+import { ImprimirRetiradasSemana } from "./pages/ImprimirRetiradasSemana";
+
 
 function App() {
   return (
@@ -68,6 +70,7 @@ function App() {
             <Route path="/compras/editar/:id" element={<EditarCompra />} />
             <Route path="/vendas/imprimir/:id" element={<ReciboVenda />} />
             <Route path="/locacoes/imprimir/:id" element={<ReciboLocacao />} />
+            <Route path="/retiradas/imprimir" element={<ImprimirRetiradasSemana />} />
           </Routes>
         </div>
       </div>
