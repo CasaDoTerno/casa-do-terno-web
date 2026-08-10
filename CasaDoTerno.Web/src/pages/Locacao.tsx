@@ -45,6 +45,7 @@ export function Locacao() {
   const [ajustesPeca, setAjustesPeca] = useState("");
   const [pecas, setPecas] = useState<PecaCarrinho[]>([]);
   const [mensagem, setMensagem] = useState("");
+  const [valorPeca, setValorPeca] = useState(0);
 
 
 function buscarProdutos() {
@@ -54,9 +55,11 @@ function buscarProdutos() {
 }
 
 useEffect(() => {
-  buscarProdutos();
-  api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-}, []);
+  const produto = produtos.find((p) => p.id === produtoSelecionado);
+  if (produto) {
+    setValorPeca(produto.valorLocacao);
+  }
+}, [produtoSelecionado, produtos]);
 
   function adicionarPeca() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
@@ -68,11 +71,12 @@ useEffect(() => {
         produtoId: produto.id,
         modelo: produto.modelo,
         ajustes: ajustesPeca,
-        valorLocacao: produto.valorLocacao,
+        valorLocacao: valorPeca,
       },
     ]);
     setProdutoSelecionado(0);
     setAjustesPeca("");
+    setValorPeca(0);
   }
 
   function removerPeca(index: number) {
@@ -101,8 +105,8 @@ useEffect(() => {
         desconto,
         valorEntrada,
         formaPagamentoEntrada,
-        itens: pecas.map((p) => ({ produtoId: p.produtoId, ajustes: p.ajustes })),
-      });
+        itens: pecas.map((p) => ({ produtoId: p.produtoId, ajustes: p.ajustes, valorItem: p.valorLocacao })),
+});
       setMensagem("Locação criada com sucesso!");
       setPecas([]);
       setDesconto(0);
@@ -177,6 +181,14 @@ useEffect(() => {
               placeholder="ex: Bainha -2cm, Manga -1cm"
             />
           </div>
+          <div>
+          <label>Valor dessa peça</label>
+          <input
+            type="number"
+            value={valorPeca}
+            onChange={(e) => setValorPeca(Number(e.target.value))}
+          />
+        </div>
           <button type="button" onClick={adicionarPeca} disabled={produtoSelecionado === 0}>
             + Adicionar peça
           </button>

@@ -17,6 +17,7 @@ public class LocacaoService
     {
         public int ProdutoId { get; set; }
         public string? Ajustes { get; set; }
+        public decimal? ValorItem { get; set; }
     }
 
     public (bool sucesso, string mensagem) RegistrarPagamentoRestante(int locacaoId, FormaPagamento formaPagamento)
@@ -90,7 +91,7 @@ public class LocacaoService
             {
                 ProdutoId = produto.Id,
                 Ajustes = entrada.Ajustes,
-                ValorItem = produto.ValorLocacao
+                ValorItem = entrada.ValorItem ?? produto.ValorLocacao
             };
 
             locacao.Itens.Add(item);
@@ -226,7 +227,7 @@ public class LocacaoService
             {
                 ProdutoId = produto.Id,
                 Ajustes = entrada.Ajustes,
-                ValorItem = produto.ValorLocacao
+                ValorItem = entrada.ValorItem ?? produto.ValorLocacao
             };
 
             locacao.Itens.Add(item);
