@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\CasadoTernoVRB\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\locacaoservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\locacaoservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|c:\\casadoternovrb\\casadoterno.domain\\entities\\produto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|solutionrelative:casadoterno.domain\\entities\\produto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -53,10 +57,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\compraservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\compraservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\locacaoservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\locacaoservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\vendaservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -170,18 +170,6 @@
             {
               "$type": "Document",
               "DocumentIndex": 11,
-              "Title": "Venda.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Venda.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Venda.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Venda.cs",
-              "RelativeToolTip": "CasaDoTerno.Domain\\Entities\\Venda.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAtAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-01T01:40:22.907Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
               "Title": "Locacao.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Locacao.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Locacao.cs",
@@ -193,7 +181,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "Compra.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Compra.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Compra.cs",
@@ -205,7 +193,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "Despesa.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Despesa.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Despesa.cs",
@@ -217,7 +205,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "DespesasController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\DespesasController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\DespesasController.cs",
@@ -229,7 +217,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "CasaDoTerno.Infrastructure.csproj",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Infrastructure\\CasaDoTerno.Infrastructure.csproj",
               "RelativeDocumentMoniker": "CasaDoTerno.Infrastructure\\CasaDoTerno.Infrastructure.csproj",
@@ -241,7 +229,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "CasaDoTerno.API.csproj",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\CasaDoTerno.API.csproj",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\CasaDoTerno.API.csproj",
@@ -253,7 +241,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Cliente.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Cliente.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Cliente.cs",
@@ -261,12 +249,11 @@
               "RelativeToolTip": "CasaDoTerno.Domain\\Entities\\Cliente.cs",
               "ViewState": "AgIAAAgAAAAAAAAAAAAwwBEAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T01:33:56.941Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-30T01:33:56.941Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "CompraService.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\CompraService.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\CompraService.cs",
@@ -278,7 +265,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Produto.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Produto.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Produto.cs",
@@ -291,7 +278,32 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 0,
+              "Title": "LocacaoService.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\LocacaoService.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\LocacaoService.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\LocacaoService.cs",
+              "RelativeToolTip": "CasaDoTerno.Application\\Services\\LocacaoService.cs",
+              "ViewState": "AgIAADYAAAAAAAAAAAAmwEoAAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-30T15:00:50.388Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Venda.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Venda.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Venda.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Venda.cs",
+              "RelativeToolTip": "CasaDoTerno.Domain\\Entities\\Venda.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-01T01:40:22.907Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
               "Title": "CompraController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\CompraController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\CompraController.cs",
@@ -303,7 +315,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "LocacoesController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\LocacoesController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\LocacoesController.cs",
@@ -315,19 +327,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "LocacaoService.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\LocacaoService.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\LocacaoService.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\LocacaoService.cs",
-              "RelativeToolTip": "CasaDoTerno.Application\\Services\\LocacaoService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEoAAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T15:00:50.388Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "VendasController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\VendasController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\VendasController.cs",

@@ -53,6 +53,8 @@ public class LocacaoService
         locacao.Itens.Clear();
 
         decimal valorTotal = 0;
+        var contagemNoPedido = new Dictionary<int, int>();
+
         foreach (var entrada in itensEntrada)
         {
             var produto = _context.Produtos.Find(entrada.ProdutoId);
@@ -62,9 +64,7 @@ public class LocacaoService
             if (!produto.DisponivelParaLocacao)
                 return (false, $"'{produto.Modelo}' não está disponível para locação.", null);
 
-            // mesma trava por peça de sempre, mas ignorando a PRÓPRIA locação
-            // (senão ela sempre "bateria" com ela mesma nos itens que já tinha)
-            bool temConflito = (
+            int unidadesReservadas = (
                 from itens in _context.ItensLocacao
                 join loc in _context.Locacoes on itens.LocacaoId equals loc.Id
                 where itens.ProdutoId == entrada.ProdutoId
@@ -73,10 +73,18 @@ public class LocacaoService
                       && dataRetirada < loc.DataDevolucaoPrevista
                       && loc.DataRetirada < dataDevolucaoPrevista
                 select itens
-            ).Any();
+            ).Count();
 
-            if (temConflito)
-                return (false, $"'{produto.Modelo}' já está reservado nesse período.", null);
+            contagemNoPedido.TryGetValue(entrada.ProdutoId, out int jaNoPedido);
+            int totalNecessario = unidadesReservadas + jaNoPedido + 1;
+
+            if (totalNecessario > produto.Quantidade)
+            {
+                int disponivel = Math.Max(produto.Quantidade - unidadesReservadas - jaNoPedido, 0);
+                return (false, $"'{produto.Modelo}' não tem unidades suficientes disponíveis nesse período (restam {disponivel}).", null);
+            }
+
+            contagemNoPedido[entrada.ProdutoId] = jaNoPedido + 1;
 
             var item = new ItemLocacao
             {
@@ -126,7 +134,11 @@ public class LocacaoService
         // não pode estar atualmente "na rua" com outra locação
         foreach (var produtoId in produtoIds)
         {
-            bool emPosseDeOutraLocacao = (
+            var produto = _context.Produtos.Find(produtoId);
+            int capacidadeTotal = produto?.Quantidade ?? 1;
+
+            // quantas unidades dessa peça estão fisicamente "na rua" agora, com OUTRAS locações
+            int unidadesForaAgora = (
                 from item in _context.ItensLocacao
                 join loc in _context.Locacoes on item.LocacaoId equals loc.Id
                 where item.ProdutoId == produtoId
@@ -134,12 +146,15 @@ public class LocacaoService
                       && loc.DataRetiradaReal != null
                       && loc.DataDevolucaoReal == null
                 select item
-            ).Any();
+            ).Count();
 
-            if (emPosseDeOutraLocacao)
+            // quantas unidades dessa peça a locação atual está tentando retirar (pode ter mais de uma igual)
+            int unidadesNestaLocacao = _context.ItensLocacao
+                .Count(i => i.LocacaoId == locacaoId && i.ProdutoId == produtoId);
+
+            if (unidadesForaAgora + unidadesNestaLocacao > capacidadeTotal)
             {
-                var produto = _context.Produtos.Find(produtoId);
-                return (false, $"'{produto?.Modelo}' ainda está com outro cliente (aguardando devolução). Não é possível retirar agora.");
+                return (false, $"'{produto?.Modelo}' não tem unidades suficientes disponíveis pra retirada agora.");
             }
         }
 
@@ -172,6 +187,8 @@ public class LocacaoService
 
         decimal valorTotal = 0;
 
+        var contagemNoPedido = new Dictionary<int, int>();
+
         foreach (var entrada in itensEntrada)
         {
             var produto = _context.Produtos.Find(entrada.ProdutoId);
@@ -181,7 +198,8 @@ public class LocacaoService
             if (!produto.DisponivelParaLocacao)
                 return (false, $"'{produto.Modelo}' não está disponível para locação.", null);
 
-            bool temConflito = (
+            // quantas unidades dessa MESMA peça já estão reservadas por OUTRAS locações, no período pedido
+            int unidadesReservadas = (
                 from itens in _context.ItensLocacao
                 join loc in _context.Locacoes on itens.LocacaoId equals loc.Id
                 where itens.ProdutoId == entrada.ProdutoId
@@ -189,10 +207,20 @@ public class LocacaoService
                       && dataRetirada < loc.DataDevolucaoPrevista
                       && loc.DataRetirada < dataDevolucaoPrevista
                 select itens
-            ).Any();
+            ).Count();
 
-            if (temConflito)
-                return (false, $"'{produto.Modelo}' já está reservado nesse período.", null);
+            // quantas unidades dessa MESMA peça já foram colocadas nesse pedido atual (ex: 2 camisas iguais pra padrinhos diferentes)
+            contagemNoPedido.TryGetValue(entrada.ProdutoId, out int jaNoPedido);
+
+            int totalNecessario = unidadesReservadas + jaNoPedido + 1;
+
+            if (totalNecessario > produto.Quantidade)
+            {
+                int disponivel = Math.Max(produto.Quantidade - unidadesReservadas - jaNoPedido, 0);
+                return (false, $"'{produto.Modelo}' não tem unidades suficientes disponíveis nesse período (restam {disponivel}).", null);
+            }
+
+            contagemNoPedido[entrada.ProdutoId] = jaNoPedido + 1;
 
             var item = new ItemLocacao
             {
@@ -203,7 +231,7 @@ public class LocacaoService
 
             locacao.Itens.Add(item);
             valorTotal += item.ValorItem;
-        } // ← o foreach fecha AQUI
+        }
 
         locacao.ValorTotal = valorTotal - desconto;
 
