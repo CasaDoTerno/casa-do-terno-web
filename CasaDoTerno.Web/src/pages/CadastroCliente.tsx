@@ -46,10 +46,10 @@ export function CadastroCliente() {
       setAbdomen("");
       setBainha("");
       setCintura("");
-    } catch (erro) {
-      console.error(erro);
-      setMensagem("Erro ao cadastrar cliente. Veja o console (F12).");
-    } finally {
+      } catch (erro: any) {
+        console.error(erro);
+        setMensagem(erro.response?.data || "Erro ao cadastrar cliente. Veja o console (F12).");
+      } finally {
       setEnviando(false);
     }
   }

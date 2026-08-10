@@ -29,14 +29,6 @@ public class ClientesController : ControllerBase
         if (cliente == null) return NotFound();
         return Ok(cliente);
     }
-    
-    [HttpPost]
-    public IActionResult Criar([FromBody] Cliente cliente)
-    {
-        _context.Clientes.Add(cliente);
-        _context.SaveChanges();
-        return Ok(cliente);
-    }
 
     [HttpPut("{id}")]
     public IActionResult Atualizar(int id, [FromBody] Cliente clienteAtualizado)
@@ -44,6 +36,17 @@ public class ClientesController : ControllerBase
         var cliente = _context.Clientes.Find(id);
         if (cliente == null)
             return NotFound();
+
+        var cpfNovo = ApenasDigitos(clienteAtualizado.Cpf);
+        var telefoneNovo = ApenasDigitos(clienteAtualizado.Telefone);
+
+        var outrosClientes = _context.Clientes.Where(c => c.Id != id).ToList();
+
+        if (cpfNovo != "" && outrosClientes.Any(c => ApenasDigitos(c.Cpf) == cpfNovo))
+            return BadRequest("Já existe outro cliente cadastrado com esse CPF.");
+
+        if (telefoneNovo != "" && outrosClientes.Any(c => ApenasDigitos(c.Telefone) == telefoneNovo))
+            return BadRequest("Já existe outro cliente cadastrado com esse telefone.");
 
         cliente.Nome = clienteAtualizado.Nome;
         cliente.Cpf = clienteAtualizado.Cpf;
@@ -58,6 +61,29 @@ public class ClientesController : ControllerBase
 
         _context.SaveChanges();
         return Ok(cliente);
+    }
+
+    [HttpPost]
+    public IActionResult Criar([FromBody] Cliente cliente)
+    {
+        var cpfNovo = ApenasDigitos(cliente.Cpf);
+        var telefoneNovo = ApenasDigitos(cliente.Telefone);
+
+        var clientesExistentes = _context.Clientes.ToList();
+
+        if (cpfNovo != "" && clientesExistentes.Any(c => ApenasDigitos(c.Cpf) == cpfNovo))
+            return BadRequest("Já existe um cliente cadastrado com esse CPF.");
+
+        if (telefoneNovo != "" && clientesExistentes.Any(c => ApenasDigitos(c.Telefone) == telefoneNovo))
+            return BadRequest("Já existe um cliente cadastrado com esse telefone.");
+
+        _context.Clientes.Add(cliente);
+        _context.SaveChanges();
+        return Ok(cliente);
+    }
+    private static string ApenasDigitos(string? texto)
+    {
+        return new string((texto ?? "").Where(char.IsDigit).ToArray());
     }
 
     [HttpDelete("{id}")]

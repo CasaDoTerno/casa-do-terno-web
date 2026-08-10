@@ -57,10 +57,10 @@ export function EditarCliente() {
       });
       setMensagem("Cliente atualizado com sucesso!");
       navigate("/clientes");
-    } catch (erro) {
-      console.error(erro);
-      setMensagem("Erro ao atualizar cliente.");
-    } finally {
+      } catch (erro: any) {
+        console.error(erro);
+        setMensagem(erro.response?.data || "Erro ao atualizar cliente.");
+      } finally {
       setEnviando(false);
     }
   }

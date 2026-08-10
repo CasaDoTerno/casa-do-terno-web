@@ -54,6 +54,10 @@ function buscarProdutos() {
   );
 }
 
+function buscarClientes() {
+  api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+}
+
 useEffect(() => {
   const produto = produtos.find((p) => p.id === produtoSelecionado);
   if (produto) {
@@ -130,6 +134,7 @@ useEffect(() => {
               opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
               valorSelecionado={clienteId}
               onSelecionar={setClienteId}
+              onAbrir={buscarClientes}
               placeholder="Buscar cliente..."
             />
           </div>
