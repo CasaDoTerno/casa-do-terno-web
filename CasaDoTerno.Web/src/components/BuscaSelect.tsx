@@ -10,9 +10,10 @@ interface BuscaSelectProps {
   valorSelecionado: number;
   onSelecionar: (id: number) => void;
   placeholder?: string;
+  onAbrir?: () => void;
 }
 
-export function BuscaSelect({ opcoes, valorSelecionado, onSelecionar, placeholder }: BuscaSelectProps) {
+export function BuscaSelect({ opcoes, valorSelecionado, onSelecionar, placeholder, onAbrir }: BuscaSelectProps) {
   const [texto, setTexto] = useState("");
   const [aberto, setAberto] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +54,7 @@ export function BuscaSelect({ opcoes, valorSelecionado, onSelecionar, placeholde
         onFocus={() => {
           setTexto("");
           setAberto(true);
+          onAbrir?.();
         }}
       />
       {aberto && (

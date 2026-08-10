@@ -40,12 +40,16 @@ export function Venda() {
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
   const [mensagem, setMensagem] = useState("");
 
-  useEffect(() => {
-    api.get<Produto[]>("/Produtos").then((r) =>
-      setProdutos(r.data.filter((p) => p.disponivelParaVenda))
-    );
-    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-  }, []);
+function buscarProdutos() {
+  api.get<Produto[]>("/Produtos").then((r) =>
+    setProdutos(r.data.filter((p) => p.disponivelParaVenda))
+  );
+}
+
+useEffect(() => {
+  buscarProdutos();
+  api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+}, []);
 
   function adicionarAoCarrinho() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
@@ -124,12 +128,13 @@ function handleSubmit(evento: React.FormEvent) {
               <BuscaSelect
                 opcoes={produtos.map((p) => ({
                   id: p.id,
-                  label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho}`,
+                  label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorVenda}`,
                 }))}
-              valorSelecionado={produtoSelecionado}
-              onSelecionar={setProdutoSelecionado}
-              placeholder="Buscar produto..."
-            />
+                valorSelecionado={produtoSelecionado}
+                onSelecionar={setProdutoSelecionado}
+                onAbrir={buscarProdutos}
+                placeholder="Buscar peça..."
+              />
           </div>
           <div style={{ maxWidth: 140 }}>
             <label>Quantidade</label>

@@ -4,6 +4,8 @@ import { BuscaSelect } from "../components/BuscaSelect";
 
 const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato","Acessorio"];
 
+
+
 interface Produto {
   id: number;
   modelo: string;
@@ -27,6 +29,7 @@ interface PecaCarrinho {
   valorLocacao: number;
 }
 
+
 export function Locacao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -44,12 +47,16 @@ export function Locacao() {
   const [mensagem, setMensagem] = useState("");
 
 
-  useEffect(() => {
-    api.get<Produto[]>("/Produtos").then((r) =>
-      setProdutos(r.data.filter((p) => p.disponivelParaLocacao))
-    );
-    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-  }, []);
+function buscarProdutos() {
+  api.get<Produto[]>("/Produtos").then((r) =>
+    setProdutos(r.data.filter((p) => p.disponivelParaLocacao))
+  );
+}
+
+useEffect(() => {
+  buscarProdutos();
+  api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+}, []);
 
   function adicionarPeca() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
@@ -115,11 +122,15 @@ export function Locacao() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Cliente</label>
-            <BuscaSelect
-              opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
-              valorSelecionado={clienteId}
-              onSelecionar={setClienteId}
-              placeholder="Buscar cliente..."
+           <BuscaSelect
+              opcoes={produtos.map((p) => ({
+                id: p.id,
+                label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorLocacao}`,
+              }))}
+              valorSelecionado={produtoSelecionado}
+              onSelecionar={setProdutoSelecionado}
+              onAbrir={buscarProdutos}
+              placeholder="Buscar peça..."
             />
           </div>
           <div>
