@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../Services/API";
 
 interface ItemLocacao {
@@ -152,6 +153,9 @@ export function Retiradas() {
               ) : (
                 <span style={{ color: "var(--verde)", fontSize: 13 }}>✔ Já retirado</span>
               )}
+
+              <Link to={`/locacoes/editar/${locacao.id}`}>Editar</Link>
+              <Link to={`/locacoes/imprimir/${locacao.id}`}>Imprimir</Link>
             </div>
           </div>
         ))}
