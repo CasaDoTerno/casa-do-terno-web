@@ -76,6 +76,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
         icone={<Shirt size={18} />}
         itens={[
           { to: "/locacao", label: "Nova Locação" },
+          { to: "/locacoes/listagem", label: "Listar Locações" },
           { to: "/retiradas", label: "Retiradas" },
           { to: "/devolucoes", label: "Devoluções" },
           { to: "/retiradas/imprimir", label: "Imprimir Retiradas da Semana" },

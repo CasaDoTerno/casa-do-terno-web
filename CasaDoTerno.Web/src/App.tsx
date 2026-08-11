@@ -32,7 +32,7 @@ import { ReciboVenda } from "./pages/ReciboVenda";
 import { ReciboLocacao } from "./pages/ReciboLocacao";
 import { ImprimirRetiradasSemana } from "./pages/ImprimirRetiradasSemana";
 import { useState } from "react";
-
+import { Locacoes } from "./pages/Locacoes";
 
 
 function App() {
@@ -75,6 +75,7 @@ function App() {
             <Route path="/vendas/imprimir/:id" element={<ReciboVenda />} />
             <Route path="/locacoes/imprimir/:id" element={<ReciboLocacao />} />
             <Route path="/retiradas/imprimir" element={<ImprimirRetiradasSemana />} />
+            <Route path="/locacoes/listagem" element={<Locacoes />} />
           </Routes>
         </div>
       </div>
