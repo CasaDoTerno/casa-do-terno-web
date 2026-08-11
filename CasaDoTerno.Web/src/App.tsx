@@ -31,14 +31,18 @@ import { EditarCompra } from "./pages/EditarCompra";
 import { ReciboVenda } from "./pages/ReciboVenda";
 import { ReciboLocacao } from "./pages/ReciboLocacao";
 import { ImprimirRetiradasSemana } from "./pages/ImprimirRetiradasSemana";
+import { useState } from "react";
+
 
 
 function App() {
+  const [menuAberto, setMenuAberto] = useState(false);
   return (
     <BrowserRouter>
       <div className="app-layout">
-        <Sidebar />
-        <Topbar />
+        <Sidebar aberta={menuAberto} onFechar={() => setMenuAberto(false)} />
+        <div className={`overlay-menu ${menuAberto ? "visivel" : ""}`} onClick={() => setMenuAberto(false)} />
+        <Topbar onAbrirMenu={() => setMenuAberto(true)} />
         <div className="conteudo">
           <Routes>
             <Route path="/" element={<Dashboard />} />

@@ -46,10 +46,10 @@ export function CadastroCliente() {
       setAbdomen("");
       setBainha("");
       setCintura("");
-      } catch (erro: any) {
-        console.error(erro);
-        setMensagem(erro.response?.data || "Erro ao cadastrar cliente. Veja o console (F12).");
-      } finally {
+    } catch (erro: any) {
+      console.error(erro);
+      setMensagem(erro.response?.data || "Erro ao cadastrar cliente. Veja o console (F12).");
+    } finally {
       setEnviando(false);
     }
   }
@@ -65,7 +65,7 @@ export function CadastroCliente() {
             <label>Nome</label>
             <input value={nome} onChange={(e) => setNome(e.target.value)} required />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Telefone</label>
               <input value={telefone} onChange={(e) => setTelefone(e.target.value)} required />
@@ -87,7 +87,7 @@ export function CadastroCliente() {
 
         <h2>Medidas (cm)</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div className="grid-3">
             <div>
               <label>Ombro</label>
               <input
@@ -113,7 +113,7 @@ export function CadastroCliente() {
               />
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+          <div className="grid-2" style={{ marginTop: 12 }}>
             <div>
               <label>Bainha</label>
               <input

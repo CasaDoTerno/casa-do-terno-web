@@ -3,8 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato","Acessorio"];
-
 interface Produto {
   id: number;
   modelo: string;
@@ -27,6 +25,8 @@ interface ItemCarrinho {
   valorUnitario: number;
 }
 
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
+
 export function EditarVenda() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -45,8 +45,12 @@ export function EditarVenda() {
   const [mensagem, setMensagem] = useState("");
   const [carregado, setCarregado] = useState(false);
 
-  useEffect(() => {
+  function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+  }
+
+  useEffect(() => {
+    buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
 
     api.get(`/Vendas/${id}`).then((resposta) => {
@@ -57,7 +61,7 @@ export function EditarVenda() {
       setCarrinho(
         v.itens.map((item: any) => ({
           produtoId: item.produtoId,
-          modelo: "Carregando...", // ajustado no próximo passo, quando produtos já estiverem carregados
+          modelo: "Carregando...",
           quantidade: item.quantidade,
           valorUnitario: item.valorUnitario,
         }))
@@ -66,7 +70,6 @@ export function EditarVenda() {
     });
   }, [id]);
 
-  // depois que os produtos carregarem, preenche o nome certo de cada item do carrinho
   useEffect(() => {
     if (!carregado || produtos.length === 0) return;
     setCarrinho((atual) =>
@@ -114,7 +117,7 @@ export function EditarVenda() {
         itens: carrinho.map((item) => ({ produtoId: item.produtoId, quantidade: item.quantidade })),
       });
       setMensagem("Venda atualizada com sucesso!");
-      navigate("/venda");
+      navigate("/vendas/listagem");
     } catch (erro: any) {
       console.error(erro);
       setMensagem(erro.response?.data || "Erro ao atualizar venda.");
@@ -149,13 +152,14 @@ export function EditarVenda() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Adicionar produto</label>
-              <BuscaSelect
-                opcoes={produtos.map((p) => ({
-                  id: p.id,
-                  label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho}`,
-                }))}
+            <BuscaSelect
+              opcoes={produtos.map((p) => ({
+                id: p.id,
+                label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorVenda}`,
+              }))}
               valorSelecionado={produtoSelecionado}
               onSelecionar={setProdutoSelecionado}
+              onAbrir={buscarProdutos}
               placeholder="Buscar produto..."
             />
           </div>

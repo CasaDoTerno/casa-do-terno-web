@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato","Acessorio"];
-
 interface Produto {
   id: number;
   modelo: string;
-  referencia: string | null;
   categoria: number;
+  referencia: string | null;
   cor: string;
   tamanho: string;
 }
@@ -25,6 +23,8 @@ interface ItemCarrinho {
   valorUnitario: number;
 }
 
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
+
 export function Compra() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
@@ -39,9 +39,14 @@ export function Compra() {
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
 
   const [mensagem, setMensagem] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  function buscarProdutos() {
+    api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+  }
 
   useEffect(() => {
-    api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+    buscarProdutos();
     api.get<Fornecedor[]>("/Fornecedores").then((r) => setFornecedores(r.data));
   }, []);
 
@@ -64,17 +69,16 @@ export function Compra() {
 
   const totalCarrinho = carrinho.reduce((soma, item) => soma + item.quantidade * item.valorUnitario, 0);
 
-  function handleSubmit(evento: React.FormEvent) {
-  evento.preventDefault();
-  confirmarCompra();
-  }
+  async function handleSubmit(evento: React.FormEvent) {
+    evento.preventDefault();
+    if (enviando) return;
 
-  async function confirmarCompra() {
     if (carrinho.length === 0) {
       setMensagem("Adicione pelo menos um produto antes de confirmar.");
       return;
     }
 
+    setEnviando(true);
     try {
       await api.post("/Compras", {
         fornecedorId,
@@ -92,6 +96,8 @@ export function Compra() {
     } catch (erro: any) {
       console.error(erro);
       setMensagem(erro.response?.data || "Erro ao registrar compra.");
+    } finally {
+      setEnviando(false);
     }
   }
 
@@ -104,7 +110,7 @@ export function Compra() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Fornecedor</label>
-           <BuscaSelect
+            <BuscaSelect
               opcoes={fornecedores.map((f) => ({ id: f.id, label: f.nome }))}
               valorSelecionado={fornecedorId}
               onSelecionar={setFornecedorId}
@@ -121,17 +127,18 @@ export function Compra() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Produto</label>
-              <BuscaSelect
-                opcoes={produtos.map((p) => ({
-                  id: p.id,
-                  label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho}`,
-                }))}
+            <BuscaSelect
+              opcoes={produtos.map((p) => ({
+                id: p.id,
+                label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho}`,
+              }))}
               valorSelecionado={produtoSelecionado}
               onSelecionar={setProdutoSelecionado}
+              onAbrir={buscarProdutos}
               placeholder="Buscar produto..."
             />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Quantidade</label>
               <input
@@ -171,7 +178,7 @@ export function Compra() {
 
         <h2>Pagamento</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Forma de pagamento</label>
               <select value={formaPagamento} onChange={(e) => setFormaPagamento(Number(e.target.value))}>
@@ -197,7 +204,9 @@ export function Compra() {
           </div>
         </div>
 
-        <button type="submit">Confirmar compra</button>
+        <button type="submit" disabled={enviando}>
+          {enviando ? "Salvando..." : "Confirmar compra"}
+        </button>
       </form>
 
       {mensagem && <p>{mensagem}</p>}

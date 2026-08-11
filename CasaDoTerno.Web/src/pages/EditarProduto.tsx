@@ -44,36 +44,36 @@ export function EditarProduto() {
   }, [id]);
 
   async function handleSubmit(evento: React.FormEvent) {
-  evento.preventDefault();
-  if (enviando) return;
+    evento.preventDefault();
+    if (enviando) return;
 
-  setEnviando(true);
-  try {
-    await api.put(`/Produtos/${id}`, {
-      modelo: descricao,
-      categoria,
-      tamanho,
-      cor,
-      referencia,
-      valorCusto,
-      valorVenda,
-      valorLocacao,
-      controlaEstoque,
-      quantidade,
-      estoqueMinimo,
-      observacao,
-      disponivelParaVenda,
-      disponivelParaLocacao,
-    });
-    setMensagem("Produto atualizado com sucesso!");
-    navigate("/produtos");
-  } catch (erro) {
-    console.error(erro);
-    setMensagem("Erro ao atualizar produto.");
-  } finally {
-    setEnviando(false);
+    setEnviando(true);
+    try {
+      await api.put(`/Produtos/${id}`, {
+        modelo: descricao,
+        categoria,
+        tamanho,
+        cor,
+        referencia,
+        valorCusto,
+        valorVenda,
+        valorLocacao,
+        controlaEstoque,
+        quantidade,
+        estoqueMinimo,
+        observacao,
+        disponivelParaVenda,
+        disponivelParaLocacao,
+      });
+      setMensagem("Produto atualizado com sucesso!");
+      navigate("/produtos");
+    } catch (erro) {
+      console.error(erro);
+      setMensagem("Erro ao atualizar produto.");
+    } finally {
+      setEnviando(false);
+    }
   }
-}
 
   return (
     <div>
@@ -86,7 +86,7 @@ export function EditarProduto() {
             <label>Descrição</label>
             <input value={descricao} onChange={(e) => setDescricao(e.target.value)} required />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Categoria</label>
               <select value={categoria} onChange={(e) => setCategoria(Number(e.target.value))}>
@@ -102,7 +102,7 @@ export function EditarProduto() {
               <input value={referencia} onChange={(e) => setReferencia(e.target.value)} />
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Tamanho</label>
               <input value={tamanho} onChange={(e) => setTamanho(e.target.value)} required />
@@ -120,7 +120,7 @@ export function EditarProduto() {
 
         <h2>Valores</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div className="grid-3">
             <div>
               <label>Custo</label>
               <input type="number" value={valorCusto} onChange={(e) => setValorCusto(Number(e.target.value))} />
@@ -136,55 +136,55 @@ export function EditarProduto() {
           </div>
         </div>
 
-<h2>Estoque e disponibilidade</h2>
-<div className="card" style={{ marginBottom: 20 }}>
-  <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-    <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
-      <input
-        type="checkbox"
-        checked={controlaEstoque}
-        onChange={(e) => setControlaEstoque(e.target.checked)}
-        style={{ width: "auto" }}
-      />
-      Controlar estoque
-    </label>
-    <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
-      <input
-        type="checkbox"
-        checked={disponivelParaVenda}
-        onChange={(e) => setDisponivelParaVenda(e.target.checked)}
-        style={{ width: "auto" }}
-      />
-      Disponível para venda
-    </label>
-    <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
-      <input
-        type="checkbox"
-        checked={disponivelParaLocacao}
-        onChange={(e) => setDisponivelParaLocacao(e.target.checked)}
-        style={{ width: "auto" }}
-      />
-      Disponível para locação
-    </label>
-  </div>
+        <h2>Estoque e disponibilidade</h2>
+        <div className="card" style={{ marginBottom: 20 }}>
+          <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
+              <input
+                type="checkbox"
+                checked={controlaEstoque}
+                onChange={(e) => setControlaEstoque(e.target.checked)}
+                style={{ width: "auto" }}
+              />
+              Controlar estoque
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
+              <input
+                type="checkbox"
+                checked={disponivelParaVenda}
+                onChange={(e) => setDisponivelParaVenda(e.target.checked)}
+                style={{ width: "auto" }}
+              />
+              Disponível para venda
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, fontWeight: 600 }}>
+              <input
+                type="checkbox"
+                checked={disponivelParaLocacao}
+                onChange={(e) => setDisponivelParaLocacao(e.target.checked)}
+                style={{ width: "auto" }}
+              />
+              Disponível para locação
+            </label>
+          </div>
 
-  {controlaEstoque && (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
-      <div>
-        <label>Quantidade em estoque</label>
-        <input type="number" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
-      </div>
-      <div>
-        <label>Estoque mínimo</label>
-        <input type="number" value={estoqueMinimo} onChange={(e) => setEstoqueMinimo(Number(e.target.value))} />
-      </div>
-    </div>
-  )}
-</div>
+          {controlaEstoque && (
+            <div className="grid-2" style={{ marginTop: 16 }}>
+              <div>
+                <label>Quantidade em estoque</label>
+                <input type="number" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
+              </div>
+              <div>
+                <label>Estoque mínimo</label>
+                <input type="number" value={estoqueMinimo} onChange={(e) => setEstoqueMinimo(Number(e.target.value))} />
+              </div>
+            </div>
+          )}
+        </div>
 
         <button type="submit" disabled={enviando}>
-  {enviando ? "Salvando..." : "Salvar alterações"}
-</button>
+          {enviando ? "Salvando..." : "Salvar alterações"}
+        </button>
       </form>
 
       {mensagem && <p>{mensagem}</p>}

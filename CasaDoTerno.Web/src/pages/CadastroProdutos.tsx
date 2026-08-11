@@ -19,46 +19,47 @@ export function CadastroProduto() {
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
 
- async function handleSubmit(evento: React.FormEvent) {
-  evento.preventDefault();
-  if (enviando) return;
+  async function handleSubmit(evento: React.FormEvent) {
+    evento.preventDefault();
+    if (enviando) return;
 
-  setEnviando(true);
-  try {
-    await api.post("/Produtos", {
-      modelo: descricao,
-      categoria,
-      tamanho,
-      cor,
-      referencia,
-      valorCusto,
-      valorVenda,
-      valorLocacao,
-      controlaEstoque,
-      quantidade,
-      estoqueMinimo,
-      observacao,
-      disponivelParaVenda,
-      disponivelParaLocacao,
-    });
-    setMensagem("Produto cadastrado com sucesso!");
-    setDescricao("");
-    setTamanho("");
-    setCor("");
-    setReferencia("");
-    setValorCusto(0);
-    setValorVenda(0);
-    setValorLocacao(0);
-    setQuantidade(0);
-    setEstoqueMinimo(0);
-    setObservacao("");
-  } catch (erro) {
-    console.error(erro);
-    setMensagem("Erro ao cadastrar produto. Veja o console (F12).");
-  } finally {
-    setEnviando(false);
+    setEnviando(true);
+    try {
+      await api.post("/Produtos", {
+        modelo: descricao,
+        categoria,
+        tamanho,
+        cor,
+        referencia,
+        valorCusto,
+        valorVenda,
+        valorLocacao,
+        controlaEstoque,
+        quantidade,
+        estoqueMinimo,
+        observacao,
+        disponivelParaVenda,
+        disponivelParaLocacao,
+      });
+      setMensagem("Produto cadastrado com sucesso!");
+      setDescricao("");
+      setTamanho("");
+      setCor("");
+      setReferencia("");
+      setValorCusto(0);
+      setValorVenda(0);
+      setValorLocacao(0);
+      setQuantidade(0);
+      setEstoqueMinimo(0);
+      setObservacao("");
+    } catch (erro) {
+      console.error(erro);
+      setMensagem("Erro ao cadastrar produto. Veja o console (F12).");
+    } finally {
+      setEnviando(false);
+    }
   }
-}
+
   return (
     <div>
       <h1>Cadastrar Produto</h1>
@@ -70,7 +71,7 @@ export function CadastroProduto() {
             <label>Descrição</label>
             <input value={descricao} onChange={(e) => setDescricao(e.target.value)} required />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Categoria</label>
               <select value={categoria} onChange={(e) => setCategoria(Number(e.target.value))}>
@@ -86,7 +87,7 @@ export function CadastroProduto() {
               <input value={referencia} onChange={(e) => setReferencia(e.target.value)} placeholder="código interno" />
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Tamanho</label>
               <input value={tamanho} onChange={(e) => setTamanho(e.target.value)} required />
@@ -104,7 +105,7 @@ export function CadastroProduto() {
 
         <h2>Valores</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div className="grid-3">
             <div>
               <label>Custo</label>
               <input type="number" value={valorCusto} onChange={(e) => setValorCusto(Number(e.target.value))} />
@@ -153,7 +154,7 @@ export function CadastroProduto() {
           </div>
 
           {controlaEstoque && (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
+            <div className="grid-2" style={{ marginTop: 16 }}>
               <div>
                 <label>Quantidade em estoque</label>
                 <input type="number" value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
@@ -170,9 +171,9 @@ export function CadastroProduto() {
           )}
         </div>
 
-       <button type="submit" disabled={enviando}>
-  {enviando ? "Salvando..." : "Cadastrar"}
-</button>
+        <button type="submit" disabled={enviando}>
+          {enviando ? "Salvando..." : "Cadastrar"}
+        </button>
       </form>
 
       {mensagem && <p>{mensagem}</p>}

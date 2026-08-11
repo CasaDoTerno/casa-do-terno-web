@@ -6,6 +6,7 @@ import { BuscaSelect } from "../components/BuscaSelect";
 interface Produto {
   id: number;
   modelo: string;
+  categoria: number;
   referencia: string | null;
   cor: string;
   tamanho: string;
@@ -23,6 +24,8 @@ interface PecaCarrinho {
   ajustes: string;
   valorLocacao: number;
 }
+
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
 
 export function EditarLocacao() {
   const { id } = useParams();
@@ -42,6 +45,7 @@ export function EditarLocacao() {
 
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [ajustesPeca, setAjustesPeca] = useState("");
+  const [valorPeca, setValorPeca] = useState(0);
   const [pecas, setPecas] = useState<PecaCarrinho[]>([]);
 
   const [enviando, setEnviando] = useState(false);
@@ -49,8 +53,12 @@ export function EditarLocacao() {
   const [carregado, setCarregado] = useState(false);
   const [jaRetirada, setJaRetirada] = useState(false);
 
-  useEffect(() => {
+  function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+  }
+
+  useEffect(() => {
+    buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
 
     api.get(`/Locacoes/${id}`).then((resposta) => {
@@ -86,16 +94,24 @@ export function EditarLocacao() {
     );
   }, [produtos, carregado]);
 
+  useEffect(() => {
+    const produto = produtos.find((p) => p.id === produtoSelecionado);
+    if (produto) {
+      setValorPeca(produto.valorLocacao);
+    }
+  }, [produtoSelecionado, produtos]);
+
   function adicionarPeca() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
     if (!produto) return;
 
     setPecas([
       ...pecas,
-      { produtoId: produto.id, modelo: produto.modelo, ajustes: ajustesPeca, valorLocacao: produto.valorLocacao },
+      { produtoId: produto.id, modelo: produto.modelo, ajustes: ajustesPeca, valorLocacao: valorPeca },
     ]);
     setProdutoSelecionado(0);
     setAjustesPeca("");
+    setValorPeca(0);
   }
 
   function removerPeca(index: number) {
@@ -126,7 +142,11 @@ export function EditarLocacao() {
         desconto,
         valorEntrada,
         formaPagamentoEntrada,
-        itens: pecas.map((p) => ({ produtoId: p.produtoId, ajustes: p.ajustes })),
+        itens: pecas.map((p) => ({
+          produtoId: p.produtoId,
+          ajustes: p.ajustes,
+          valorItem: p.valorLocacao,
+        })),
       });
       setMensagem("Locação atualizada com sucesso!");
       navigate("/retiradas");
@@ -169,7 +189,7 @@ export function EditarLocacao() {
             <label>Consultor</label>
             <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div className="grid-3">
             <div>
               <label>Data do evento</label>
               <input type="date" value={dataEvento} onChange={(e) => setDataEvento(e.target.value)} required />
@@ -197,16 +217,23 @@ export function EditarLocacao() {
             <BuscaSelect
               opcoes={produtos.map((p) => ({
                 id: p.id,
-                label: `${p.referencia ? p.referencia + " · " : ""}${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorLocacao}`,
+                label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorLocacao}`,
               }))}
               valorSelecionado={produtoSelecionado}
               onSelecionar={setProdutoSelecionado}
+              onAbrir={buscarProdutos}
               placeholder="Buscar peça..."
             />
           </div>
-          <div>
-            <label>Ajustes (opcional)</label>
-            <input value={ajustesPeca} onChange={(e) => setAjustesPeca(e.target.value)} />
+          <div className="grid-2">
+            <div>
+              <label>Ajustes (opcional)</label>
+              <input value={ajustesPeca} onChange={(e) => setAjustesPeca(e.target.value)} />
+            </div>
+            <div>
+              <label>Valor dessa peça</label>
+              <input type="number" value={valorPeca} onChange={(e) => setValorPeca(Number(e.target.value))} />
+            </div>
           </div>
           <button type="button" onClick={adicionarPeca} disabled={produtoSelecionado === 0}>
             + Adicionar peça
@@ -226,7 +253,7 @@ export function EditarLocacao() {
 
         <h2>Pagamento</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Desconto</label>
               <input type="number" value={desconto} onChange={(e) => setDesconto(Number(e.target.value))} />

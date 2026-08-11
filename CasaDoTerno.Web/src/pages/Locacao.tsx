@@ -2,10 +2,6 @@ import { useEffect, useState } from "react";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato","Acessorio"];
-
-
-
 interface Produto {
   id: number;
   modelo: string;
@@ -29,10 +25,12 @@ interface PecaCarrinho {
   valorLocacao: number;
 }
 
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
 
 export function Locacao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+
   const [clienteId, setClienteId] = useState(0);
   const [dataEvento, setDataEvento] = useState("");
   const [dataRetirada, setDataRetirada] = useState("");
@@ -41,29 +39,32 @@ export function Locacao() {
   const [desconto, setDesconto] = useState(0);
   const [valorEntrada, setValorEntrada] = useState(0);
   const [formaPagamentoEntrada, setFormaPagamentoEntrada] = useState(0);
+
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [ajustesPeca, setAjustesPeca] = useState("");
-  const [pecas, setPecas] = useState<PecaCarrinho[]>([]);
-  const [mensagem, setMensagem] = useState("");
   const [valorPeca, setValorPeca] = useState(0);
+  const [pecas, setPecas] = useState<PecaCarrinho[]>([]);
 
+  const [mensagem, setMensagem] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
-function buscarProdutos() {
-  api.get<Produto[]>("/Produtos").then((r) =>
-    setProdutos(r.data.filter((p) => p.disponivelParaLocacao))
-  );
-}
-
-function buscarClientes() {
-  api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-}
-
-useEffect(() => {
-  const produto = produtos.find((p) => p.id === produtoSelecionado);
-  if (produto) {
-    setValorPeca(produto.valorLocacao);
+  function buscarProdutos() {
+    api.get<Produto[]>("/Produtos").then((r) =>
+      setProdutos(r.data.filter((p) => p.disponivelParaLocacao))
+    );
   }
-}, [produtoSelecionado, produtos]);
+
+  useEffect(() => {
+    buscarProdutos();
+    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+  }, []);
+
+  useEffect(() => {
+    const produto = produtos.find((p) => p.id === produtoSelecionado);
+    if (produto) {
+      setValorPeca(produto.valorLocacao);
+    }
+  }, [produtoSelecionado, produtos]);
 
   function adicionarPeca() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
@@ -93,12 +94,14 @@ useEffect(() => {
 
   async function handleSubmit(evento: React.FormEvent) {
     evento.preventDefault();
+    if (enviando) return;
 
     if (pecas.length === 0) {
       setMensagem("Adicione pelo menos uma peça antes de confirmar.");
       return;
     }
 
+    setEnviando(true);
     try {
       await api.post("/Locacoes", {
         clienteId,
@@ -109,8 +112,12 @@ useEffect(() => {
         desconto,
         valorEntrada,
         formaPagamentoEntrada,
-        itens: pecas.map((p) => ({ produtoId: p.produtoId, ajustes: p.ajustes, valorItem: p.valorLocacao })),
-});
+        itens: pecas.map((p) => ({
+          produtoId: p.produtoId,
+          ajustes: p.ajustes,
+          valorItem: p.valorLocacao,
+        })),
+      });
       setMensagem("Locação criada com sucesso!");
       setPecas([]);
       setDesconto(0);
@@ -118,6 +125,8 @@ useEffect(() => {
     } catch (erro: any) {
       console.error(erro);
       setMensagem(erro.response?.data || "Erro ao criar locação.");
+    } finally {
+      setEnviando(false);
     }
   }
 
@@ -134,7 +143,6 @@ useEffect(() => {
               opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
               valorSelecionado={clienteId}
               onSelecionar={setClienteId}
-              onAbrir={buscarClientes}
               placeholder="Buscar cliente..."
             />
           </div>
@@ -142,7 +150,7 @@ useEffect(() => {
             <label>Consultor</label>
             <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div className="grid-3">
             <div>
               <label>Data do evento</label>
               <input type="date" value={dataEvento} onChange={(e) => setDataEvento(e.target.value)} required />
@@ -167,33 +175,35 @@ useEffect(() => {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Produto</label>
-              <BuscaSelect
-                opcoes={produtos.map((p) => ({
-                  id: p.id,
-                  label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorLocacao}`,
-                }))}
-                valorSelecionado={produtoSelecionado}
-                onSelecionar={setProdutoSelecionado}
-                onAbrir={buscarProdutos}
-                placeholder="Buscar peça..."
-              />
-          </div>
-          <div>
-            <label>Ajustes (opcional)</label>
-            <input
-              value={ajustesPeca}
-              onChange={(e) => setAjustesPeca(e.target.value)}
-              placeholder="ex: Bainha -2cm, Manga -1cm"
+            <BuscaSelect
+              opcoes={produtos.map((p) => ({
+                id: p.id,
+                label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorLocacao}`,
+              }))}
+              valorSelecionado={produtoSelecionado}
+              onSelecionar={setProdutoSelecionado}
+              onAbrir={buscarProdutos}
+              placeholder="Buscar peça..."
             />
           </div>
-          <div>
-          <label>Valor dessa peça</label>
-          <input
-            type="number"
-            value={valorPeca}
-            onChange={(e) => setValorPeca(Number(e.target.value))}
-          />
-        </div>
+          <div className="grid-2">
+            <div>
+              <label>Ajustes (opcional)</label>
+              <input
+                value={ajustesPeca}
+                onChange={(e) => setAjustesPeca(e.target.value)}
+                placeholder="ex: Bainha -2cm, Manga -1cm"
+              />
+            </div>
+            <div>
+              <label>Valor dessa peça</label>
+              <input
+                type="number"
+                value={valorPeca}
+                onChange={(e) => setValorPeca(Number(e.target.value))}
+              />
+            </div>
+          </div>
           <button type="button" onClick={adicionarPeca} disabled={produtoSelecionado === 0}>
             + Adicionar peça
           </button>
@@ -215,7 +225,7 @@ useEffect(() => {
 
         <h2>Pagamento</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Desconto (combo)</label>
               <input type="number" value={desconto} onChange={(e) => setDesconto(Number(e.target.value))} />
@@ -247,7 +257,9 @@ useEffect(() => {
           </div>
         </div>
 
-        <button type="submit">Confirmar locação</button>
+        <button type="submit" disabled={enviando}>
+          {enviando ? "Salvando..." : "Confirmar locação"}
+        </button>
       </form>
 
       {mensagem && <p>{mensagem}</p>}

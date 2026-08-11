@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato","Acessorio"];
-
 interface Produto {
   id: number;
   modelo: string;
@@ -27,6 +25,8 @@ interface ItemCarrinho {
   valorUnitario: number;
 }
 
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
+
 export function Venda() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -35,21 +35,24 @@ export function Venda() {
   const [consultor, setConsultor] = useState("");
   const [formaPagamento, setFormaPagamento] = useState(0);
   const [numeroParcelas, setNumeroParcelas] = useState(1);
+
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
+
   const [mensagem, setMensagem] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
-function buscarProdutos() {
-  api.get<Produto[]>("/Produtos").then((r) =>
-    setProdutos(r.data.filter((p) => p.disponivelParaVenda))
-  );
-}
+  function buscarProdutos() {
+    api.get<Produto[]>("/Produtos").then((r) =>
+      setProdutos(r.data.filter((p) => p.disponivelParaVenda))
+    );
+  }
 
-useEffect(() => {
-  buscarProdutos();
-  api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-}, []);
+  useEffect(() => {
+    buscarProdutos();
+    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+  }, []);
 
   function adicionarAoCarrinho() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
@@ -70,17 +73,16 @@ useEffect(() => {
   const totalCarrinho = carrinho.reduce((soma, item) => soma + item.quantidade * item.valorUnitario, 0);
   const totalComDesconto = totalCarrinho - desconto;
 
-function handleSubmit(evento: React.FormEvent) {
-  evento.preventDefault();
-  confirmarVenda();
+  async function handleSubmit(evento: React.FormEvent) {
+    evento.preventDefault();
+    if (enviando) return;
 
-}
-  async function confirmarVenda() {
     if (carrinho.length === 0) {
       setMensagem("Adicione pelo menos um produto antes de confirmar.");
       return;
     }
 
+    setEnviando(true);
     try {
       await api.post("/Vendas", {
         clienteId,
@@ -96,6 +98,8 @@ function handleSubmit(evento: React.FormEvent) {
     } catch (erro: any) {
       console.error(erro);
       setMensagem(erro.response?.data || "Erro ao registrar venda.");
+    } finally {
+      setEnviando(false);
     }
   }
 
@@ -125,16 +129,16 @@ function handleSubmit(evento: React.FormEvent) {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Produto</label>
-              <BuscaSelect
-                opcoes={produtos.map((p) => ({
-                  id: p.id,
-                  label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorVenda}`,
-                }))}
-                valorSelecionado={produtoSelecionado}
-                onSelecionar={setProdutoSelecionado}
-                onAbrir={buscarProdutos}
-                placeholder="Buscar peça..."
-              />
+            <BuscaSelect
+              opcoes={produtos.map((p) => ({
+                id: p.id,
+                label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho} — R$ ${p.valorVenda}`,
+              }))}
+              valorSelecionado={produtoSelecionado}
+              onSelecionar={setProdutoSelecionado}
+              onAbrir={buscarProdutos}
+              placeholder="Buscar produto..."
+            />
           </div>
           <div style={{ maxWidth: 140 }}>
             <label>Quantidade</label>
@@ -166,7 +170,7 @@ function handleSubmit(evento: React.FormEvent) {
 
         <h2>Pagamento</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Desconto</label>
               <input type="number" value={desconto} onChange={(e) => setDesconto(Number(e.target.value))} />
@@ -197,7 +201,9 @@ function handleSubmit(evento: React.FormEvent) {
           </div>
         </div>
 
-        <button type="submit">Confirmar venda</button>
+        <button type="submit" disabled={enviando}>
+          {enviando ? "Salvando..." : "Confirmar venda"}
+        </button>
       </form>
 
       {mensagem && <p>{mensagem}</p>}

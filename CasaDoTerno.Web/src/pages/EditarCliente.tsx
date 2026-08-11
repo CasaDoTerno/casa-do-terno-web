@@ -57,10 +57,10 @@ export function EditarCliente() {
       });
       setMensagem("Cliente atualizado com sucesso!");
       navigate("/clientes");
-      } catch (erro: any) {
-        console.error(erro);
-        setMensagem(erro.response?.data || "Erro ao atualizar cliente.");
-      } finally {
+    } catch (erro: any) {
+      console.error(erro);
+      setMensagem(erro.response?.data || "Erro ao atualizar cliente.");
+    } finally {
       setEnviando(false);
     }
   }
@@ -76,7 +76,7 @@ export function EditarCliente() {
             <label>Nome</label>
             <input value={nome} onChange={(e) => setNome(e.target.value)} required />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Telefone</label>
               <input value={telefone} onChange={(e) => setTelefone(e.target.value)} required />
@@ -98,7 +98,7 @@ export function EditarCliente() {
 
         <h2>Medidas (cm)</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          <div className="grid-3">
             <div>
               <label>Ombro</label>
               <input type="number" value={ombro} onChange={(e) => setOmbro(e.target.value === "" ? "" : Number(e.target.value))} />
@@ -112,7 +112,7 @@ export function EditarCliente() {
               <input type="number" value={abdomen} onChange={(e) => setAbdomen(e.target.value === "" ? "" : Number(e.target.value))} />
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
+          <div className="grid-2" style={{ marginTop: 12 }}>
             <div>
               <label>Bainha</label>
               <input type="number" value={bainha} onChange={(e) => setBainha(e.target.value === "" ? "" : Number(e.target.value))} />

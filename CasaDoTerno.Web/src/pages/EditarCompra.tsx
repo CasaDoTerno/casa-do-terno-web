@@ -3,9 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato","Acessorio"];
-
-
 interface Produto {
   id: number;
   modelo: string;
@@ -27,6 +24,8 @@ interface ItemCarrinho {
   valorUnitario: number;
 }
 
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Acessorio"];
+
 export function EditarCompra() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -46,8 +45,12 @@ export function EditarCompra() {
   const [mensagem, setMensagem] = useState("");
   const [carregado, setCarregado] = useState(false);
 
-  useEffect(() => {
+  function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+  }
+
+  useEffect(() => {
+    buscarProdutos();
     api.get<Fornecedor[]>("/Fornecedores").then((r) => setFornecedores(r.data));
 
     api.get(`/Compras/${id}`).then((resposta) => {
@@ -153,17 +156,18 @@ export function EditarCompra() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Adicionar produto</label>
-              <BuscaSelect
-                opcoes={produtos.map((p) => ({
-                  id: p.id,
-                  label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho}`,
-                }))}
+            <BuscaSelect
+              opcoes={produtos.map((p) => ({
+                id: p.id,
+                label: `${p.referencia ? p.referencia + " · " : ""}${nomesCategoria[p.categoria]} · ${p.modelo} · ${p.cor} · ${p.tamanho}`,
+              }))}
               valorSelecionado={produtoSelecionado}
               onSelecionar={setProdutoSelecionado}
+              onAbrir={buscarProdutos}
               placeholder="Buscar produto..."
             />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="grid-2">
             <div>
               <label>Quantidade</label>
               <input type="number" min={1} value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
