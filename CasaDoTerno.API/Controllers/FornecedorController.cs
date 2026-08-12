@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using CasaDoTerno.Domain.Entities;
+﻿using CasaDoTerno.Domain.Entities;
 using CasaDoTerno.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CasaDoTerno.API.Controllers;
 
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/[controller]")]
 public class FornecedoresController : ControllerBase

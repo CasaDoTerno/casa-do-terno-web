@@ -5,6 +5,7 @@ using CasaDoTerno.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using Microsoft.AspNetCore.Identity;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -26,6 +27,7 @@ builder.Services.AddScoped<RelatorioService>();
 builder.Services.AddScoped<ParcelaService>();
 builder.Services.AddScoped<DespesaService>();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<CasaDoTernoContext>();
 
 
@@ -45,6 +47,17 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    string[] papeis = { "Admin", "Vendedor" };
+    foreach (var papel in papeis)
+    {
+        if (!await roleManager.RoleExistsAsync(papel))
+            await roleManager.CreateAsync(new IdentityRole(papel));
+    }
+}
 
 app.UseCors("PermitirReact");
 app.UseAuthentication();

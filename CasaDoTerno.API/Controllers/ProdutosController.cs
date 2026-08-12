@@ -1,6 +1,7 @@
 ﻿using CasaDoTerno.Domain.Entities;
 using CasaDoTerno.Infrastructure.Data;
 using global::CasaDoTerno.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CasaDoTerno.API.Controllers;
@@ -31,6 +32,7 @@ public class ProdutosController : ControllerBase
 
         return Ok(produto);
     }
+    
     [HttpPost]
     public IActionResult Criar([FromBody] Produto terno)
     {
@@ -69,7 +71,7 @@ public class ProdutosController : ControllerBase
     {
         public List<ProdutoImportado> Produtos { get; set; } = new();
     }
-
+    [Authorize(Roles = "Admin")]
     [HttpPost("importar")]
     public IActionResult Importar([FromBody] ImportarProdutosRequest request)
     {
@@ -99,7 +101,7 @@ public class ProdutosController : ControllerBase
 
         return Ok(new { importados = produtos.Count });
     }
-
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public IActionResult Atualizar(int id, [FromBody] Produto produtoAtualizado)
     {
@@ -125,7 +127,7 @@ public class ProdutosController : ControllerBase
         _context.SaveChanges();
         return Ok(produto);
     }
-
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public IActionResult Excluir(int id)
     {

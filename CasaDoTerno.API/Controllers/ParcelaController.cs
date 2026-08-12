@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CasaDoTerno.Application.Services;
 using CasaDoTerno.Domain.Entities;
-using CasaDoTerno.Application.Services;
 using CasaDoTerno.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CasaDoTerno.API.Controllers;
 
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/[controller]")]
 public class ParcelasController : ControllerBase

@@ -34,6 +34,7 @@ import { ImprimirRetiradasSemana } from "./pages/ImprimirRetiradasSemana";
 import { useState } from "react";
 import { Locacoes } from "./pages/Locacoes";
 import { ProdutosMaisMovimentados } from "./pages/ProdutosMaisMovimentados";
+import { CadastroEvento } from "./pages/CadastroEvento";
 
 
 function App() {
@@ -78,6 +79,7 @@ function App() {
             <Route path="/retiradas/imprimir" element={<ImprimirRetiradasSemana />} />
             <Route path="/locacoes/listagem" element={<Locacoes />} />
             <Route path="/produtos-mais-movimentados" element={<ProdutosMaisMovimentados />} />
+            <Route path="/cadastro-evento" element={<CadastroEvento />} />
           </Routes>
         </div>
       </div>

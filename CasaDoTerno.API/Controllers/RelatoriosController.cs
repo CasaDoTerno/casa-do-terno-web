@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using CasaDoTerno.Application.Services;
+﻿using CasaDoTerno.Application.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CasaDoTerno.API.Controllers;
 
+[Authorize(Roles = "Admin")]
 [ApiController]
 [Route("api/[controller]")]
 public class RelatoriosController : ControllerBase
