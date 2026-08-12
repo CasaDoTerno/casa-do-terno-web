@@ -21,4 +21,10 @@ public class RelatoriosController : ControllerBase
         var resultado = _relatorioService.FechamentoCaixa(dataConsulta);
         return Ok(resultado);
     }
+    [HttpGet("produtos-mais-movimentados")]
+    public IActionResult ProdutosMaisMovimentados([FromQuery] DateTime dataInicio, [FromQuery] DateTime dataFim)
+    {
+        var resultado = _relatorioService.ProdutosMaisMovimentados(dataInicio, dataFim);
+        return Ok(resultado);
+    }
 }

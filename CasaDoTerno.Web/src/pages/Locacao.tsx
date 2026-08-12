@@ -13,6 +13,11 @@ interface Produto {
   disponivelParaLocacao: boolean;
 }
 
+interface Evento {
+  id: number;
+  nome: string;
+}
+
 interface Cliente {
   id: number;
   nome: string;
@@ -48,6 +53,9 @@ export function Locacao() {
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
 
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [eventoId, setEventoId] = useState(0);
+
   function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) =>
       setProdutos(r.data.filter((p) => p.disponivelParaLocacao))
@@ -57,6 +65,7 @@ export function Locacao() {
   useEffect(() => {
     buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+    api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
   }, []);
 
   useEffect(() => {
@@ -89,7 +98,8 @@ export function Locacao() {
   }
 
   const subtotal = pecas.reduce((soma, peca) => soma + peca.valorLocacao, 0);
-  const valorTotal = subtotal - desconto;
+  const descontoEventoPreview = eventoId !== 0 ? 10 : 0;
+  const valorTotal = subtotal - desconto - descontoEventoPreview;
   const valorRestante = valorTotal - valorEntrada;
 
   async function handleSubmit(evento: React.FormEvent) {
@@ -112,6 +122,7 @@ export function Locacao() {
         desconto,
         valorEntrada,
         formaPagamentoEntrada,
+        eventoId: eventoId === 0 ? null : eventoId,
         itens: pecas.map((p) => ({
           produtoId: p.produtoId,
           ajustes: p.ajustes,
@@ -149,6 +160,15 @@ export function Locacao() {
           <div>
             <label>Consultor</label>
             <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
+          </div>
+          <div>
+            <label>Evento (opcional — aplica R$ 10 de desconto automático)</label>
+            <select value={eventoId} onChange={(e) => setEventoId(Number(e.target.value))}>
+              <option value={0}>Nenhum</option>
+              {eventos.map((ev) => (
+                <option key={ev.id} value={ev.id}>{ev.nome}</option>
+              ))}
+            </select>
           </div>
           <div className="grid-3">
             <div>
@@ -250,6 +270,9 @@ export function Locacao() {
 
           <div style={{ borderTop: "1px solid var(--borda)", marginTop: 16, paddingTop: 16 }}>
             <p style={{ color: "var(--texto-suave)", margin: "4px 0" }}>Subtotal: R$ {subtotal.toFixed(2)}</p>
+            {descontoEventoPreview > 0 && (
+              <p style={{ color: "var(--verde)", margin: "4px 0" }}>Desconto do evento: -R$ 10,00</p>
+            )}
             <p style={{ fontSize: 18, fontWeight: 700, margin: "4px 0" }}>Total: R$ {valorTotal.toFixed(2)}</p>
             <p style={{ color: "var(--verde)", fontWeight: 600, margin: "4px 0" }}>
               Restante (na retirada): R$ {valorRestante.toFixed(2)}

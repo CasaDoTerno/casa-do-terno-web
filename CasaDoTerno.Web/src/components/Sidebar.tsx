@@ -67,6 +67,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           { to: "/compras/listagem", label: "Listar Compras" },
           { to: "/estoque-baixo", label: "Estoque Baixo" },
           { to: "/importar-produtos", label: "Importar Produtos" },
+          { to: "/produtos-mais-movimentados", label: "Mais Alugados/Vendidos" },
         ]}
         onFechar={onFechar}
       />
@@ -79,7 +80,9 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           { to: "/locacoes/listagem", label: "Listar Locações" },
           { to: "/retiradas", label: "Retiradas" },
           { to: "/devolucoes", label: "Devoluções" },
+          { to: "/cadastro-evento", label: "Cadastrar Evento" },
           { to: "/retiradas/imprimir", label: "Imprimir Retiradas da Semana" },
+          
         ]}
         onFechar={onFechar}
       />

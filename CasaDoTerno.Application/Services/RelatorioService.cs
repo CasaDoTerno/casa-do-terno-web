@@ -69,5 +69,59 @@ public class RelatorioService
             SaldoLiquido = totalEntradas - totalSaidas
         };
     }
+    public class ProdutoMovimentado
+    {
+        public int ProdutoId { get; set; }
+        public string Modelo { get; set; } = "";
+        public string? Referencia { get; set; }
+        public int QuantidadeLocacoes { get; set; }
+        public int QuantidadeVendida { get; set; }
+        public int TotalMovimentacoes => QuantidadeLocacoes + QuantidadeVendida;
+    }
+    public List<ProdutoMovimentado> ProdutosMaisMovimentados(DateTime dataInicio, DateTime dataFim)
+    {
+        var fimAjustado = dataFim.Date.AddDays(1).AddTicks(-1);
+
+        // quantas vezes cada produto foi alugado (cada linha de ItemLocacao = 1 vez)
+        var locacoesPorProduto = (
+            from item in _context.ItensLocacao
+            join loc in _context.Locacoes on item.LocacaoId equals loc.Id
+            where loc.DataEvento >= dataInicio.Date && loc.DataEvento <= fimAjustado
+            group item by item.ProdutoId into g
+            select new { ProdutoId = g.Key, Quantidade = g.Count() }
+        ).ToList();
+
+        // quantas unidades de cada produto foram vendidas (soma a Quantidade de cada ItemVenda)
+        var vendasPorProduto = (
+            from item in _context.ItensVenda
+            join venda in _context.Vendas on item.VendaId equals venda.Id
+            where venda.DataVenda >= dataInicio.Date && venda.DataVenda <= fimAjustado
+            group item by item.ProdutoId into g
+            select new { ProdutoId = g.Key, Quantidade = g.Sum(i => i.Quantidade) }
+        ).ToList();
+
+        var produtoIds = locacoesPorProduto.Select(l => l.ProdutoId)
+            .Union(vendasPorProduto.Select(v => v.ProdutoId))
+            .Distinct();
+
+        var produtos = _context.Produtos.ToList();
+
+        var resultado = produtoIds.Select(id =>
+        {
+            var produto = produtos.FirstOrDefault(p => p.Id == id);
+            return new ProdutoMovimentado
+            {
+                ProdutoId = id,
+                Modelo = produto?.Modelo ?? $"Produto #{id}",
+                Referencia = produto?.Referencia,
+                QuantidadeLocacoes = locacoesPorProduto.FirstOrDefault(l => l.ProdutoId == id)?.Quantidade ?? 0,
+                QuantidadeVendida = vendasPorProduto.FirstOrDefault(v => v.ProdutoId == id)?.Quantidade ?? 0,
+            };
+        })
+        .OrderByDescending(p => p.TotalMovimentacoes)
+        .ToList();
+
+        return resultado;
+    }
 
 }

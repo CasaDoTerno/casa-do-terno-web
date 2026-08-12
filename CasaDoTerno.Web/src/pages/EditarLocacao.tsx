@@ -13,6 +13,11 @@ interface Produto {
   valorLocacao: number;
 }
 
+interface Evento {
+  id: number;
+  nome: string;
+}
+
 interface Cliente {
   id: number;
   nome: string;
@@ -25,7 +30,7 @@ interface PecaCarrinho {
   valorLocacao: number;
 }
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Acessorio"];
 
 export function EditarLocacao() {
   const { id } = useParams();
@@ -33,6 +38,7 @@ export function EditarLocacao() {
 
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [eventos, setEventos] = useState<Evento[]>([]);
 
   const [clienteId, setClienteId] = useState(0);
   const [dataEvento, setDataEvento] = useState("");
@@ -42,6 +48,7 @@ export function EditarLocacao() {
   const [desconto, setDesconto] = useState(0);
   const [valorEntrada, setValorEntrada] = useState(0);
   const [formaPagamentoEntrada, setFormaPagamentoEntrada] = useState(0);
+  const [eventoId, setEventoId] = useState(0);
 
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [ajustesPeca, setAjustesPeca] = useState("");
@@ -60,6 +67,7 @@ export function EditarLocacao() {
   useEffect(() => {
     buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+    api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
 
     api.get(`/Locacoes/${id}`).then((resposta) => {
       const l = resposta.data;
@@ -71,6 +79,7 @@ export function EditarLocacao() {
       setDesconto(l.desconto);
       setValorEntrada(l.valorEntrada);
       setFormaPagamentoEntrada(l.formaPagamentoEntrada);
+      setEventoId(l.eventoId ?? 0);
       setJaRetirada(l.dataRetiradaReal !== null);
       setPecas(
         l.itens.map((item: any) => ({
@@ -119,7 +128,8 @@ export function EditarLocacao() {
   }
 
   const subtotal = pecas.reduce((soma, peca) => soma + peca.valorLocacao, 0);
-  const valorTotal = subtotal - desconto;
+  const descontoEventoPreview = eventoId !== 0 ? 10 : 0;
+  const valorTotal = subtotal - desconto - descontoEventoPreview;
   const valorRestante = valorTotal - valorEntrada;
 
   async function handleSubmit(evento: React.FormEvent) {
@@ -142,6 +152,7 @@ export function EditarLocacao() {
         desconto,
         valorEntrada,
         formaPagamentoEntrada,
+        eventoId: eventoId === 0 ? null : eventoId,
         itens: pecas.map((p) => ({
           produtoId: p.produtoId,
           ajustes: p.ajustes,
@@ -188,6 +199,15 @@ export function EditarLocacao() {
           <div>
             <label>Consultor</label>
             <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
+          </div>
+          <div>
+            <label>Evento (opcional — aplica R$ 10 de desconto automático)</label>
+            <select value={eventoId} onChange={(e) => setEventoId(Number(e.target.value))}>
+              <option value={0}>Nenhum</option>
+              {eventos.map((ev) => (
+                <option key={ev.id} value={ev.id}>{ev.nome}</option>
+              ))}
+            </select>
           </div>
           <div className="grid-3">
             <div>
@@ -274,6 +294,9 @@ export function EditarLocacao() {
           </div>
           <div style={{ borderTop: "1px solid var(--borda)", marginTop: 16, paddingTop: 16 }}>
             <p style={{ color: "var(--texto-suave)", margin: "4px 0" }}>Subtotal: R$ {subtotal.toFixed(2)}</p>
+            {descontoEventoPreview > 0 && (
+              <p style={{ color: "var(--verde)", margin: "4px 0" }}>Desconto do evento: -R$ 10,00</p>
+            )}
             <p style={{ fontSize: 18, fontWeight: 700, margin: "4px 0" }}>Total: R$ {valorTotal.toFixed(2)}</p>
             <p style={{ color: "var(--verde)", fontWeight: 600, margin: "4px 0" }}>
               Restante: R$ {valorRestante.toFixed(2)}

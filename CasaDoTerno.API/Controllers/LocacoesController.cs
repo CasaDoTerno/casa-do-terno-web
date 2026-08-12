@@ -58,6 +58,7 @@ public class LocacoesController : ControllerBase
         public decimal ValorEntrada { get; set; }
         public FormaPagamento FormaPagamentoEntrada { get; set; }
         public List<LocacaoService.ItemLocacaoEntrada> Itens { get; set; } = new();
+        public int? EventoId { get; set; }
     }
 
     [HttpPost]
@@ -65,7 +66,7 @@ public class LocacoesController : ControllerBase
     {
         var (sucesso, mensagem, locacao) = _locacaoService.CriarLocacao(
             request.ClienteId, request.DataEvento, request.DataRetirada, request.DataDevolucaoPrevista,
-            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada,
+            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada, request.EventoId,
             request.Itens);
 
         if (!sucesso)
@@ -119,6 +120,7 @@ public class LocacoesController : ControllerBase
         public decimal ValorEntrada { get; set; }
         public FormaPagamento FormaPagamentoEntrada { get; set; }
         public List<LocacaoService.ItemLocacaoEntrada> Itens { get; set; } = new();
+        public int? EventoId { get; set; }
     }
 
     [HttpPut("{id}")]
@@ -126,7 +128,7 @@ public class LocacoesController : ControllerBase
     {
         var (sucesso, mensagem, locacao) = _locacaoService.AtualizarLocacao(
             id, request.ClienteId, request.DataEvento, request.DataRetirada, request.DataDevolucaoPrevista,
-            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada,
+            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada, request.EventoId,
             request.Itens);
 
         if (!sucesso)

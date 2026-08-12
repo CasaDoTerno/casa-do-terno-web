@@ -29,6 +29,9 @@ public class Locacao
 
     public List<ItemLocacao> Itens { get; set; } = new();
 
+    public int? EventoId { get; set; }
+    public decimal DescontoEvento { get; set; }
+
     public bool EstaAtrasada()
     {
         return DataDevolucaoReal == null && DateTime.Now > DataDevolucaoPrevista;

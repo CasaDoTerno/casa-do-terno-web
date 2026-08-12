@@ -23,10 +23,12 @@ public class LocacaoService
     public (bool sucesso, string mensagem, Locacao? locacao) CriarLocacao(
         int clienteId, DateTime dataEvento, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
         string? consultor, decimal desconto, decimal valorEntrada, FormaPagamento formaPagamentoEntrada,
-        List<ItemLocacaoEntrada> itensEntrada)
+        int? eventoId, List<ItemLocacaoEntrada> itensEntrada)
     {
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A locação precisa ter pelo menos uma peça.", null);
+
+        decimal descontoEvento = eventoId.HasValue ? 10 : 0;
 
         var locacao = new Locacao
         {
@@ -36,6 +38,8 @@ public class LocacaoService
             DataDevolucaoPrevista = dataDevolucaoPrevista,
             Consultor = consultor,
             Desconto = desconto,
+            EventoId = eventoId,
+            DescontoEvento = descontoEvento,
             ValorEntrada = valorEntrada,
             FormaPagamentoEntrada = formaPagamentoEntrada,
             DataPagamentoEntrada = DateTime.Now
@@ -55,13 +59,13 @@ public class LocacaoService
 
             // quantas unidades dessa MESMA peça já estão reservadas por OUTRAS locações, no período pedido
             int unidadesReservadas = (
-                from itens in _context.ItensLocacao
-                join loc in _context.Locacoes on itens.LocacaoId equals loc.Id
-                where itens.ProdutoId == entrada.ProdutoId
+                from item in _context.ItensLocacao
+                join loc in _context.Locacoes on item.LocacaoId equals loc.Id
+                where item.ProdutoId == entrada.ProdutoId
                       && loc.DataDevolucaoReal == null
                       && dataRetirada < loc.DataDevolucaoPrevista
                       && loc.DataRetirada < dataDevolucaoPrevista
-                select itens
+                select item
             ).Count();
 
             // quantas unidades dessa MESMA peça já foram colocadas nesse pedido atual
@@ -71,10 +75,10 @@ public class LocacaoService
             if (totalNecessario > produto.Quantidade)
             {
                 var conflitantes = (
-                    from itens in _context.ItensLocacao
-                    join loc in _context.Locacoes on itens.LocacaoId equals loc.Id
+                    from item in _context.ItensLocacao
+                    join loc in _context.Locacoes on item.LocacaoId equals loc.Id
                     join cli in _context.Clientes on loc.ClienteId equals cli.Id
-                    where itens.ProdutoId == entrada.ProdutoId
+                    where item.ProdutoId == entrada.ProdutoId
                           && loc.DataDevolucaoReal == null
                           && dataRetirada < loc.DataDevolucaoPrevista
                           && loc.DataRetirada < dataDevolucaoPrevista
@@ -91,18 +95,18 @@ public class LocacaoService
 
             contagemNoPedido[entrada.ProdutoId] = jaNoPedido + 1;
 
-            var item = new ItemLocacao
+            var item2 = new ItemLocacao
             {
                 ProdutoId = produto.Id,
                 Ajustes = entrada.Ajustes,
                 ValorItem = entrada.ValorItem ?? produto.ValorLocacao
             };
 
-            locacao.Itens.Add(item);
-            valorTotal += item.ValorItem;
+            locacao.Itens.Add(item2);
+            valorTotal += item2.ValorItem;
         }
 
-        locacao.ValorTotal = valorTotal - desconto;
+        locacao.ValorTotal = valorTotal - desconto - descontoEvento;
 
         _context.Locacoes.Add(locacao);
         _context.SaveChanges();
@@ -194,7 +198,7 @@ public class LocacaoService
     public (bool sucesso, string mensagem, Locacao? locacao) AtualizarLocacao(
         int locacaoId, int clienteId, DateTime dataEvento, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
         string? consultor, decimal desconto, decimal valorEntrada, FormaPagamento formaPagamentoEntrada,
-        List<ItemLocacaoEntrada> itensEntrada)
+        int? eventoId, List<ItemLocacaoEntrada> itensEntrada)
     {
         var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);
         if (locacao == null)
@@ -205,6 +209,8 @@ public class LocacaoService
 
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A locação precisa ter pelo menos uma peça.", null);
+
+        decimal descontoEvento = eventoId.HasValue ? 10 : 0;
 
         _context.ItensLocacao.RemoveRange(locacao.Itens);
         locacao.Itens.Clear();
@@ -223,14 +229,14 @@ public class LocacaoService
 
             // mesma trava por peça de sempre, mas ignorando a PRÓPRIA locação
             int unidadesReservadas = (
-                from itens in _context.ItensLocacao
-                join loc in _context.Locacoes on itens.LocacaoId equals loc.Id
-                where itens.ProdutoId == entrada.ProdutoId
+                from item in _context.ItensLocacao
+                join loc in _context.Locacoes on item.LocacaoId equals loc.Id
+                where item.ProdutoId == entrada.ProdutoId
                       && loc.Id != locacaoId
                       && loc.DataDevolucaoReal == null
                       && dataRetirada < loc.DataDevolucaoPrevista
                       && loc.DataRetirada < dataDevolucaoPrevista
-                select itens
+                select item
             ).Count();
 
             contagemNoPedido.TryGetValue(entrada.ProdutoId, out int jaNoPedido);
@@ -239,10 +245,10 @@ public class LocacaoService
             if (totalNecessario > produto.Quantidade)
             {
                 var conflitantes = (
-                    from itens in _context.ItensLocacao
-                    join loc in _context.Locacoes on itens.LocacaoId equals loc.Id
+                    from item in _context.ItensLocacao
+                    join loc in _context.Locacoes on item.LocacaoId equals loc.Id
                     join cli in _context.Clientes on loc.ClienteId equals cli.Id
-                    where itens.ProdutoId == entrada.ProdutoId
+                    where item.ProdutoId == entrada.ProdutoId
                           && loc.Id != locacaoId
                           && loc.DataDevolucaoReal == null
                           && dataRetirada < loc.DataDevolucaoPrevista
@@ -260,15 +266,15 @@ public class LocacaoService
 
             contagemNoPedido[entrada.ProdutoId] = jaNoPedido + 1;
 
-            var item = new ItemLocacao
+            var item2 = new ItemLocacao
             {
                 ProdutoId = produto.Id,
                 Ajustes = entrada.Ajustes,
                 ValorItem = entrada.ValorItem ?? produto.ValorLocacao
             };
 
-            locacao.Itens.Add(item);
-            valorTotal += item.ValorItem;
+            locacao.Itens.Add(item2);
+            valorTotal += item2.ValorItem;
         }
 
         locacao.ClienteId = clienteId;
@@ -277,9 +283,11 @@ public class LocacaoService
         locacao.DataDevolucaoPrevista = dataDevolucaoPrevista;
         locacao.Consultor = consultor;
         locacao.Desconto = desconto;
+        locacao.EventoId = eventoId;
+        locacao.DescontoEvento = descontoEvento;
         locacao.ValorEntrada = valorEntrada;
         locacao.FormaPagamentoEntrada = formaPagamentoEntrada;
-        locacao.ValorTotal = valorTotal - desconto;
+        locacao.ValorTotal = valorTotal - desconto - descontoEvento;
 
         _context.SaveChanges();
 
