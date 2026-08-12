@@ -30,11 +30,12 @@ interface PecaCarrinho {
   valorLocacao: number;
 }
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Acessorio"];
 
 export function Locacao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [eventos, setEventos] = useState<Evento[]>([]);
 
   const [clienteId, setClienteId] = useState(0);
   const [dataEvento, setDataEvento] = useState("");
@@ -44,6 +45,8 @@ export function Locacao() {
   const [desconto, setDesconto] = useState(0);
   const [valorEntrada, setValorEntrada] = useState(0);
   const [formaPagamentoEntrada, setFormaPagamentoEntrada] = useState(0);
+  const [eventoId, setEventoId] = useState(0);
+  const [ehPrincipalDoEvento, setEhPrincipalDoEvento] = useState(false);
 
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [ajustesPeca, setAjustesPeca] = useState("");
@@ -52,9 +55,6 @@ export function Locacao() {
 
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
-
-  const [eventos, setEventos] = useState<Evento[]>([]);
-  const [eventoId, setEventoId] = useState(0);
 
   function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) =>
@@ -75,10 +75,38 @@ export function Locacao() {
     }
   }, [produtoSelecionado, produtos]);
 
-  function adicionarPeca() {
+  async function adicionarPeca() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
     if (!produto) return;
 
+    if (!dataRetirada || !dataDevolucaoPrevista) {
+      setMensagem("Preencha as datas de retirada e devolução antes de adicionar peças.");
+      return;
+    }
+
+    const unidadesJaNoCarrinho = pecas.filter((p) => p.produtoId === produto.id).length;
+
+    try {
+      const resposta = await api.get("/Locacoes/verificar-disponibilidade", {
+        params: {
+          produtoId: produto.id,
+          dataRetirada,
+          dataDevolucaoPrevista,
+          unidadesJaNoCarrinho,
+        },
+      });
+
+      if (!resposta.data.disponivel) {
+        setMensagem(resposta.data.mensagem);
+        return;
+      }
+    } catch (erro) {
+      console.error(erro);
+      setMensagem("Erro ao verificar disponibilidade dessa peça.");
+      return;
+    }
+
+    setMensagem("");
     setPecas([
       ...pecas,
       {
@@ -98,8 +126,7 @@ export function Locacao() {
   }
 
   const subtotal = pecas.reduce((soma, peca) => soma + peca.valorLocacao, 0);
-  const descontoEventoPreview = eventoId !== 0 ? 10 : 0;
-  const valorTotal = subtotal - desconto - descontoEventoPreview;
+  const valorTotal = subtotal - desconto;
   const valorRestante = valorTotal - valorEntrada;
 
   async function handleSubmit(evento: React.FormEvent) {
@@ -123,6 +150,7 @@ export function Locacao() {
         valorEntrada,
         formaPagamentoEntrada,
         eventoId: eventoId === 0 ? null : eventoId,
+        ehLocacaoPrincipalDoEvento: ehPrincipalDoEvento,
         itens: pecas.map((p) => ({
           produtoId: p.produtoId,
           ajustes: p.ajustes,
@@ -133,6 +161,8 @@ export function Locacao() {
       setPecas([]);
       setDesconto(0);
       setValorEntrada(0);
+      setEventoId(0);
+      setEhPrincipalDoEvento(false);
     } catch (erro: any) {
       console.error(erro);
       setMensagem(erro.response?.data || "Erro ao criar locação.");
@@ -161,8 +191,9 @@ export function Locacao() {
             <label>Consultor</label>
             <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
           </div>
+
           <div>
-            <label>Evento (opcional — aplica R$ 10 de desconto automático)</label>
+            <label>Evento (opcional)</label>
             <select value={eventoId} onChange={(e) => setEventoId(Number(e.target.value))}>
               <option value={0}>Nenhum</option>
               {eventos.map((ev) => (
@@ -170,7 +201,30 @@ export function Locacao() {
               ))}
             </select>
           </div>
-          <div className="grid-3">
+
+          {eventoId !== 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+              <input
+                type="checkbox"
+                checked={ehPrincipalDoEvento}
+                onChange={(e) => setEhPrincipalDoEvento(e.target.checked)}
+                style={{ width: "auto" }}
+                id="peca-principal"
+              />
+              <label htmlFor="peca-principal" style={{ margin: 0 }}>
+                Essa é a peça principal do evento (recebe o desconto acumulado — ex: o terno do noivo)
+              </label>
+            </div>
+          )}
+
+          {eventoId !== 0 && (
+            <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "8px 0 0 0" }}>
+              Vinculado a um evento — a peça marcada como "principal" ganha R$ 10 de desconto a cada
+              nova locação que se vincular ao mesmo evento. Confira o valor atualizado na listagem de Locações.
+            </p>
+          )}
+
+          <div className="grid-3" style={{ marginTop: 12 }}>
             <div>
               <label>Data do evento</label>
               <input type="date" value={dataEvento} onChange={(e) => setDataEvento(e.target.value)} required />
@@ -270,9 +324,6 @@ export function Locacao() {
 
           <div style={{ borderTop: "1px solid var(--borda)", marginTop: 16, paddingTop: 16 }}>
             <p style={{ color: "var(--texto-suave)", margin: "4px 0" }}>Subtotal: R$ {subtotal.toFixed(2)}</p>
-            {descontoEventoPreview > 0 && (
-              <p style={{ color: "var(--verde)", margin: "4px 0" }}>Desconto do evento: -R$ 10,00</p>
-            )}
             <p style={{ fontSize: 18, fontWeight: 700, margin: "4px 0" }}>Total: R$ {valorTotal.toFixed(2)}</p>
             <p style={{ color: "var(--verde)", fontWeight: 600, margin: "4px 0" }}>
               Restante (na retirada): R$ {valorRestante.toFixed(2)}

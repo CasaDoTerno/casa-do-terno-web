@@ -69,7 +69,7 @@ export function Compras() {
         placeholder="Buscar por fornecedor..."
         value={busca}
         onChange={(e) => setBusca(e.target.value)}
-        style={{ maxWidth: 320, marginBottom: 20 }}
+        style={{ paddingLeft: 36 }}
       />
 
       {comprasFiltradas.length === 0 && <p style={{ color: "var(--texto-suave)" }}>Nenhuma compra encontrada.</p>}

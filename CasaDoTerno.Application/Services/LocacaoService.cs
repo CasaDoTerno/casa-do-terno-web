@@ -23,12 +23,18 @@ public class LocacaoService
     public (bool sucesso, string mensagem, Locacao? locacao) CriarLocacao(
         int clienteId, DateTime dataEvento, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
         string? consultor, decimal desconto, decimal valorEntrada, FormaPagamento formaPagamentoEntrada,
-        int? eventoId, List<ItemLocacaoEntrada> itensEntrada)
+        int? eventoId, bool ehLocacaoPrincipalDoEvento, List<ItemLocacaoEntrada> itensEntrada)
     {
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A locação precisa ter pelo menos uma peça.", null);
 
-        decimal descontoEvento = eventoId.HasValue ? 10 : 0;
+        Evento? evento = null;
+        if (eventoId.HasValue)
+        {
+            evento = _context.Eventos.Find(eventoId.Value);
+            if (evento == null)
+                return (false, "Evento não encontrado.", null);
+        }
 
         var locacao = new Locacao
         {
@@ -39,7 +45,7 @@ public class LocacaoService
             Consultor = consultor,
             Desconto = desconto,
             EventoId = eventoId,
-            DescontoEvento = descontoEvento,
+            DescontoEvento = 0,
             ValorEntrada = valorEntrada,
             FormaPagamentoEntrada = formaPagamentoEntrada,
             DataPagamentoEntrada = DateTime.Now
@@ -57,7 +63,6 @@ public class LocacaoService
             if (!produto.DisponivelParaLocacao)
                 return (false, $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não está disponível para locação.", null);
 
-            // quantas unidades dessa MESMA peça já estão reservadas por OUTRAS locações, no período pedido
             int unidadesReservadas = (
                 from item in _context.ItensLocacao
                 join loc in _context.Locacoes on item.LocacaoId equals loc.Id
@@ -68,7 +73,6 @@ public class LocacaoService
                 select item
             ).Count();
 
-            // quantas unidades dessa MESMA peça já foram colocadas nesse pedido atual
             contagemNoPedido.TryGetValue(entrada.ProdutoId, out int jaNoPedido);
             int totalNecessario = unidadesReservadas + jaNoPedido + 1;
 
@@ -106,10 +110,24 @@ public class LocacaoService
             valorTotal += item2.ValorItem;
         }
 
-        locacao.ValorTotal = valorTotal - desconto - descontoEvento;
+        locacao.ValorTotal = valorTotal - desconto;
 
         _context.Locacoes.Add(locacao);
         _context.SaveChanges();
+
+        if (evento != null)
+        {
+            if (ehLocacaoPrincipalDoEvento)
+            {
+                DefinirLocacaoPrincipal(evento.Id, locacao.Id);
+            }
+            else if (evento.LocacaoPrincipalId.HasValue)
+            {
+                AtualizarDescontoDoEvento(evento.Id);
+            }
+            // se ainda não tem principal, e essa locação também não é a principal,
+            // não faz nada agora — o desconto será calculado quando a principal for definida (mesmo que depois)
+        }
 
         return (true, "Locação criada com sucesso.", locacao);
     }
@@ -153,7 +171,6 @@ public class LocacaoService
             var produto = _context.Produtos.Find(produtoId);
             int capacidadeTotal = produto?.Quantidade ?? 1;
 
-            // quantas unidades dessa peça estão fisicamente "na rua" agora, com OUTRAS locações
             int unidadesForaAgora = (
                 from item in _context.ItensLocacao
                 join loc in _context.Locacoes on item.LocacaoId equals loc.Id
@@ -164,7 +181,6 @@ public class LocacaoService
                 select item
             ).Count();
 
-            // quantas unidades dessa peça a locação atual está tentando retirar
             int unidadesNestaLocacao = _context.ItensLocacao
                 .Count(i => i.LocacaoId == locacaoId && i.ProdutoId == produtoId);
 
@@ -198,7 +214,7 @@ public class LocacaoService
     public (bool sucesso, string mensagem, Locacao? locacao) AtualizarLocacao(
         int locacaoId, int clienteId, DateTime dataEvento, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
         string? consultor, decimal desconto, decimal valorEntrada, FormaPagamento formaPagamentoEntrada,
-        int? eventoId, List<ItemLocacaoEntrada> itensEntrada)
+        int? eventoId, bool ehLocacaoPrincipalDoEvento, List<ItemLocacaoEntrada> itensEntrada)
     {
         var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);
         if (locacao == null)
@@ -209,8 +225,6 @@ public class LocacaoService
 
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A locação precisa ter pelo menos uma peça.", null);
-
-        decimal descontoEvento = eventoId.HasValue ? 10 : 0;
 
         _context.ItensLocacao.RemoveRange(locacao.Itens);
         locacao.Itens.Clear();
@@ -227,7 +241,6 @@ public class LocacaoService
             if (!produto.DisponivelParaLocacao)
                 return (false, $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não está disponível para locação.", null);
 
-            // mesma trava por peça de sempre, mas ignorando a PRÓPRIA locação
             int unidadesReservadas = (
                 from item in _context.ItensLocacao
                 join loc in _context.Locacoes on item.LocacaoId equals loc.Id
@@ -284,13 +297,113 @@ public class LocacaoService
         locacao.Consultor = consultor;
         locacao.Desconto = desconto;
         locacao.EventoId = eventoId;
-        locacao.DescontoEvento = descontoEvento;
         locacao.ValorEntrada = valorEntrada;
         locacao.FormaPagamentoEntrada = formaPagamentoEntrada;
-        locacao.ValorTotal = valorTotal - desconto - descontoEvento;
+        locacao.ValorTotal = valorTotal - desconto;
 
         _context.SaveChanges();
 
+        if (eventoId.HasValue)
+        {
+            var evento = _context.Eventos.Find(eventoId.Value);
+            if (evento != null)
+            {
+                if (ehLocacaoPrincipalDoEvento)
+                {
+                    DefinirLocacaoPrincipal(evento.Id, locacao.Id);
+                }
+                else if (evento.LocacaoPrincipalId.HasValue)
+                {
+                    AtualizarDescontoDoEvento(evento.Id);
+                }
+            }
+        }
+
         return (true, "Locação atualizada com sucesso.", locacao);
+    }
+
+    public (bool disponivel, string mensagem, int unidadesDisponiveis) VerificarDisponibilidade(
+    int produtoId, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
+    int? locacaoIdExcluir, int unidadesJaNoCarrinho)
+    {
+        var produto = _context.Produtos.Find(produtoId);
+        if (produto == null)
+            return (false, "Produto não encontrado.", 0);
+
+        if (!produto.DisponivelParaLocacao)
+            return (false, $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não está disponível para locação.", 0);
+
+        var conflitantes = (
+            from item in _context.ItensLocacao
+            join loc in _context.Locacoes on item.LocacaoId equals loc.Id
+            join cli in _context.Clientes on loc.ClienteId equals cli.Id
+            where item.ProdutoId == produtoId
+                  && loc.DataDevolucaoReal == null
+                  && dataRetirada < loc.DataDevolucaoPrevista
+                  && loc.DataRetirada < dataDevolucaoPrevista
+                  && (!locacaoIdExcluir.HasValue || loc.Id != locacaoIdExcluir.Value)
+            select new { cli.Nome, loc.DataRetirada, loc.DataDevolucaoPrevista }
+        ).ToList();
+
+        int unidadesReservadas = conflitantes.Count;
+        int unidadesDisponiveis = produto.Quantidade - unidadesReservadas - unidadesJaNoCarrinho;
+
+        if (unidadesDisponiveis <= 0)
+        {
+            var detalhes = string.Join("; ", conflitantes.Select(c =>
+                $"{c.Nome} (retirada {c.DataRetirada:dd/MM}, devolução prevista {c.DataDevolucaoPrevista:dd/MM})"));
+
+            return (false,
+                $"'{produto.Modelo}' (Tam. {produto.Tamanho}) sem unidades disponíveis nesse período. Reservado com: {detalhes}",
+                0);
+        }
+
+        return (true, "Disponível.", unidadesDisponiveis);
+    }
+    // marca uma locação como a "principal" de um evento — se já existia outra principal, ela é desmarcada
+    private void DefinirLocacaoPrincipal(int eventoId, int novaLocacaoPrincipalId)
+    {
+        var evento = _context.Eventos.Find(eventoId);
+        if (evento == null) return;
+
+        if (evento.LocacaoPrincipalId.HasValue && evento.LocacaoPrincipalId.Value != novaLocacaoPrincipalId)
+        {
+            var principalAntiga = _context.Locacoes.Include(l => l.Itens)
+                .FirstOrDefault(l => l.Id == evento.LocacaoPrincipalId.Value);
+
+            if (principalAntiga != null)
+            {
+                decimal subtotalAntiga = principalAntiga.Itens.Sum(i => i.ValorItem);
+                principalAntiga.DescontoEvento = 0;
+                principalAntiga.ValorTotal = subtotalAntiga - principalAntiga.Desconto;
+            }
+        }
+
+        evento.LocacaoPrincipalId = novaLocacaoPrincipalId;
+        _context.SaveChanges();
+
+        AtualizarDescontoDoEvento(eventoId);
+    }
+
+    // recalcula o desconto da locação principal, contando quantas OUTRAS locações
+    // (padrinhos) estão vinculadas ao mesmo evento — não importa a ordem em que foram criadas
+    private void AtualizarDescontoDoEvento(int eventoId)
+    {
+        var evento = _context.Eventos.Find(eventoId);
+        if (evento == null || !evento.LocacaoPrincipalId.HasValue)
+            return;
+
+        var principal = _context.Locacoes.Include(l => l.Itens)
+            .FirstOrDefault(l => l.Id == evento.LocacaoPrincipalId.Value);
+        if (principal == null)
+            return;
+
+        int quantidadeVinculadas = _context.Locacoes.Count(l => l.EventoId == eventoId && l.Id != principal.Id);
+
+        decimal subtotalPrincipal = principal.Itens.Sum(i => i.ValorItem);
+        principal.DescontoEvento = quantidadeVinculadas * 10;
+        principal.ValorTotal = subtotalPrincipal - principal.Desconto - principal.DescontoEvento;
+
+        _context.SaveChanges();
     }
 }

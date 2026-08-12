@@ -16,6 +16,7 @@ interface Produto {
 interface Evento {
   id: number;
   nome: string;
+  locacaoPrincipalId: number | null;
 }
 
 interface Cliente {
@@ -49,6 +50,7 @@ export function EditarLocacao() {
   const [valorEntrada, setValorEntrada] = useState(0);
   const [formaPagamentoEntrada, setFormaPagamentoEntrada] = useState(0);
   const [eventoId, setEventoId] = useState(0);
+  const [ehPrincipalDoEvento, setEhPrincipalDoEvento] = useState(false);
 
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [ajustesPeca, setAjustesPeca] = useState("");
@@ -89,6 +91,13 @@ export function EditarLocacao() {
           valorLocacao: item.valorItem,
         }))
       );
+
+      if (l.eventoId) {
+        api.get(`/Eventos/${l.eventoId}`).then((eventoResposta) => {
+          setEhPrincipalDoEvento(eventoResposta.data.locacaoPrincipalId === l.id);
+        });
+      }
+
       setCarregado(true);
     });
   }, [id]);
@@ -110,10 +119,39 @@ export function EditarLocacao() {
     }
   }, [produtoSelecionado, produtos]);
 
-  function adicionarPeca() {
+  async function adicionarPeca() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
     if (!produto) return;
 
+    if (!dataRetirada || !dataDevolucaoPrevista) {
+      setMensagem("Preencha as datas de retirada e devolução antes de adicionar peças.");
+      return;
+    }
+
+    const unidadesJaNoCarrinho = pecas.filter((p) => p.produtoId === produto.id).length;
+
+    try {
+      const resposta = await api.get("/Locacoes/verificar-disponibilidade", {
+        params: {
+          produtoId: produto.id,
+          dataRetirada,
+          dataDevolucaoPrevista,
+          locacaoIdExcluir: id,
+          unidadesJaNoCarrinho,
+        },
+      });
+
+      if (!resposta.data.disponivel) {
+        setMensagem(resposta.data.mensagem);
+        return;
+      }
+    } catch (erro) {
+      console.error(erro);
+      setMensagem("Erro ao verificar disponibilidade dessa peça.");
+      return;
+    }
+
+    setMensagem("");
     setPecas([
       ...pecas,
       { produtoId: produto.id, modelo: produto.modelo, ajustes: ajustesPeca, valorLocacao: valorPeca },
@@ -128,8 +166,7 @@ export function EditarLocacao() {
   }
 
   const subtotal = pecas.reduce((soma, peca) => soma + peca.valorLocacao, 0);
-  const descontoEventoPreview = eventoId !== 0 ? 10 : 0;
-  const valorTotal = subtotal - desconto - descontoEventoPreview;
+  const valorTotal = subtotal - desconto;
   const valorRestante = valorTotal - valorEntrada;
 
   async function handleSubmit(evento: React.FormEvent) {
@@ -153,6 +190,7 @@ export function EditarLocacao() {
         valorEntrada,
         formaPagamentoEntrada,
         eventoId: eventoId === 0 ? null : eventoId,
+        ehLocacaoPrincipalDoEvento: ehPrincipalDoEvento,
         itens: pecas.map((p) => ({
           produtoId: p.produtoId,
           ajustes: p.ajustes,
@@ -200,8 +238,9 @@ export function EditarLocacao() {
             <label>Consultor</label>
             <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
           </div>
+
           <div>
-            <label>Evento (opcional — aplica R$ 10 de desconto automático)</label>
+            <label>Evento (opcional)</label>
             <select value={eventoId} onChange={(e) => setEventoId(Number(e.target.value))}>
               <option value={0}>Nenhum</option>
               {eventos.map((ev) => (
@@ -209,7 +248,30 @@ export function EditarLocacao() {
               ))}
             </select>
           </div>
-          <div className="grid-3">
+
+          {eventoId !== 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+              <input
+                type="checkbox"
+                checked={ehPrincipalDoEvento}
+                onChange={(e) => setEhPrincipalDoEvento(e.target.checked)}
+                style={{ width: "auto" }}
+                id="peca-principal"
+              />
+              <label htmlFor="peca-principal" style={{ margin: 0 }}>
+                Essa é a peça principal do evento (recebe o desconto acumulado — ex: o terno do noivo)
+              </label>
+            </div>
+          )}
+
+          {eventoId !== 0 && (
+            <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "8px 0 0 0" }}>
+              Vinculado a um evento — a peça marcada como "principal" ganha R$ 10 de desconto a cada
+              nova locação que se vincular ao mesmo evento. Confira o valor atualizado na listagem de Locações.
+            </p>
+          )}
+
+          <div className="grid-3" style={{ marginTop: 12 }}>
             <div>
               <label>Data do evento</label>
               <input type="date" value={dataEvento} onChange={(e) => setDataEvento(e.target.value)} required />
@@ -294,9 +356,6 @@ export function EditarLocacao() {
           </div>
           <div style={{ borderTop: "1px solid var(--borda)", marginTop: 16, paddingTop: 16 }}>
             <p style={{ color: "var(--texto-suave)", margin: "4px 0" }}>Subtotal: R$ {subtotal.toFixed(2)}</p>
-            {descontoEventoPreview > 0 && (
-              <p style={{ color: "var(--verde)", margin: "4px 0" }}>Desconto do evento: -R$ 10,00</p>
-            )}
             <p style={{ fontSize: 18, fontWeight: 700, margin: "4px 0" }}>Total: R$ {valorTotal.toFixed(2)}</p>
             <p style={{ color: "var(--verde)", fontWeight: 600, margin: "4px 0" }}>
               Restante: R$ {valorRestante.toFixed(2)}

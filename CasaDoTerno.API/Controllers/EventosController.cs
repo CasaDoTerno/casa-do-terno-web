@@ -30,4 +30,13 @@ public class EventosController : ControllerBase
         _context.SaveChanges();
         return Ok(evento);
     }
+    [HttpGet("{id}")]
+    public IActionResult BuscarPorId(int id)
+    {
+        var evento = _context.Eventos.Find(id);
+        if (evento == null)
+            return NotFound();
+
+        return Ok(evento);
+    }
 }

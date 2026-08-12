@@ -14,4 +14,6 @@ public class Evento
     public string Nome { get; set; } = "";
     public DateTime Data { get; set; }
     public string? Observacao { get; set; }
+    public int? LocacaoPrincipalId { get; set; }
+
 }

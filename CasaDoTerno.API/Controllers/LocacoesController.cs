@@ -59,6 +59,7 @@ public class LocacoesController : ControllerBase
         public FormaPagamento FormaPagamentoEntrada { get; set; }
         public List<LocacaoService.ItemLocacaoEntrada> Itens { get; set; } = new();
         public int? EventoId { get; set; }
+        public bool EhLocacaoPrincipalDoEvento { get; set; }
     }
 
     [HttpPost]
@@ -66,7 +67,7 @@ public class LocacoesController : ControllerBase
     {
         var (sucesso, mensagem, locacao) = _locacaoService.CriarLocacao(
             request.ClienteId, request.DataEvento, request.DataRetirada, request.DataDevolucaoPrevista,
-            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada, request.EventoId,
+            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada, request.EventoId, request.EhLocacaoPrincipalDoEvento,
             request.Itens);
 
         if (!sucesso)
@@ -77,6 +78,23 @@ public class LocacoesController : ControllerBase
 
         return Ok(locacao);
     }
+
+
+    [HttpGet("verificar-disponibilidade")]
+    public IActionResult VerificarDisponibilidade(
+    [FromQuery] int produtoId,
+    [FromQuery] DateTime dataRetirada,
+    [FromQuery] DateTime dataDevolucaoPrevista,
+    [FromQuery] int? locacaoIdExcluir,
+    [FromQuery] int unidadesJaNoCarrinho = 0)
+    {
+        var (disponivel, mensagem, unidadesDisponiveis) = _locacaoService.VerificarDisponibilidade(
+            produtoId, dataRetirada, dataDevolucaoPrevista, locacaoIdExcluir, unidadesJaNoCarrinho);
+
+        return Ok(new { disponivel, mensagem, unidadesDisponiveis });
+    }
+
+
     [HttpGet("{id}")]
     public IActionResult BuscarPorId(int id)
     {
@@ -121,6 +139,7 @@ public class LocacoesController : ControllerBase
         public FormaPagamento FormaPagamentoEntrada { get; set; }
         public List<LocacaoService.ItemLocacaoEntrada> Itens { get; set; } = new();
         public int? EventoId { get; set; }
+        public bool EhLocacaoPrincipalDoEvento { get; set; }
     }
 
     [HttpPut("{id}")]
@@ -128,7 +147,7 @@ public class LocacoesController : ControllerBase
     {
         var (sucesso, mensagem, locacao) = _locacaoService.AtualizarLocacao(
             id, request.ClienteId, request.DataEvento, request.DataRetirada, request.DataDevolucaoPrevista,
-            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada, request.EventoId,
+            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada, request.EventoId, request.EhLocacaoPrincipalDoEvento,
             request.Itens);
 
         if (!sucesso)
