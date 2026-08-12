@@ -76,12 +76,12 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
         titulo="Locações"
         icone={<Shirt size={18} />}
         itens={[
-          { to: "/locacao", label: "Nova Locação" },
-          { to: "/locacoes/listagem", label: "Listar Locações" },
+          { to: "/locacao", label: "Nova Locação" },          
           { to: "/retiradas", label: "Retiradas" },
           { to: "/devolucoes", label: "Devoluções" },
           { to: "/cadastro-evento", label: "Cadastrar Evento" },
           { to: "/retiradas/imprimir", label: "Imprimir Retiradas da Semana" },
+          { to: "/locacoes/listagem", label: "Listar Locações" },
           
         ]}
         onFechar={onFechar}
