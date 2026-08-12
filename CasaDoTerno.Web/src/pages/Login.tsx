@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import api from "../Services/API";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,9 @@ export function Login() {
 
 
       localStorage.setItem("token", resposta.data.accessToken);
+
+      const perfilResposta = await api.get("/Usuarios/perfil");
+      localStorage.setItem("papel", perfilResposta.data.papel);
       setMensagem("Login realizado com sucesso!");
     } catch (erro) {
       console.error(erro);

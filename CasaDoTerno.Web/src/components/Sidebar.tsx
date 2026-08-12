@@ -1,3 +1,4 @@
+import { ehAdmin } from "../Services/permissoes";
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Logo } from "./Logo";
@@ -15,7 +16,7 @@ interface GrupoMenuProps {
 
 function GrupoMenu({ titulo, icone, itens, onFechar }: GrupoMenuProps) {
   const [aberto, setAberto] = useState(true);
-
+  
   return (
     <div>
       <div className="sidebar-group-title" onClick={() => setAberto(!aberto)}>
@@ -47,6 +48,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ aberta, onFechar }: SidebarProps) {
+  const admin = ehAdmin();
   return (
     <aside className={`sidebar ${aberta ? "aberta" : ""}`}>
       <div style={{ padding: "0 12px 24px 12px" }}>
@@ -96,20 +98,20 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
         ]}
         onFechar={onFechar}
       />
-
-      <GrupoMenu
-        titulo="Financeiro"
-        icone={<Wallet size={18} />}
-        itens={[
-          { to: "/despesas", label: "Lançar Despesa" },
-          { to: "/despesas/listagem", label: "Despesas do Mês" },
-          { to: "/parcelas", label: "Parcelas" },
-          { to: "/caixa", label: "Fechamento de Caixa" },
-          { to: "/comissao-consultor", label: "Comissão por Consultor" },
-        ]}
-        onFechar={onFechar}
-      />
-
+      {admin && (
+        <GrupoMenu
+          titulo="Financeiro"
+          icone={<Wallet size={18} />}
+          itens={[
+            { to: "/despesas", label: "Lançar Despesa" },
+            { to: "/despesas/listagem", label: "Despesas do Mês" },
+            { to: "/parcelas", label: "Parcelas" },
+            { to: "/caixa", label: "Fechamento de Caixa" },
+            { to: "/comissao-consultor", label: "Comissão por Consultor" },
+          ]}
+          onFechar={onFechar}
+        />
+      )}
       <GrupoMenu
         titulo="Cliente"
         icone={<Users size={18} />}
@@ -126,6 +128,12 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
 
       <NavLink to="/login" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
         <LogIn size={18} /> Login
+      </NavLink>
+      <NavLink to="/usuarios" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
+        <Users size={18} /> Usuários
+      </NavLink>
+      <NavLink to="/minha-conta" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
+        <Users size={18} /> Minha Conta
       </NavLink>
     </aside>
   );

@@ -35,7 +35,8 @@ import { useState } from "react";
 import { Locacoes } from "./pages/Locacoes";
 import { ProdutosMaisMovimentados } from "./pages/ProdutosMaisMovimentados";
 import { CadastroEvento } from "./pages/CadastroEvento";
-
+import { Usuarios } from "./pages/Usuarios";
+import { MinhaConta } from "./pages/MinhaConta";
 
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -80,6 +81,8 @@ function App() {
             <Route path="/locacoes/listagem" element={<Locacoes />} />
             <Route path="/produtos-mais-movimentados" element={<ProdutosMaisMovimentados />} />
             <Route path="/cadastro-evento" element={<CadastroEvento />} />
+            <Route path="/usuarios" element={<Usuarios />} />
+            <Route path="/minha-conta" element={<MinhaConta />} />
           </Routes>
         </div>
       </div>
