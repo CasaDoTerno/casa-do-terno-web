@@ -49,13 +49,13 @@ interface SidebarProps {
 
 export function Sidebar({ aberta, onFechar }: SidebarProps) {
   const admin = ehAdmin();
-  const podeEstoque = temModulo("estoque") || admin;
-  const podeLocacoes = temModulo("locacoes") || admin;
-  const podeVendas = temModulo("vendas") || admin;
-  const podeClientes = temModulo("clientes") || admin;
-  const podeFornecedores = temModulo("fornecedores") || admin;
-  const podeFinanceiro = temModulo("financeiro") || admin;
-  const podeUsuarios = temModulo("usuarios") || admin;
+  //const podeEstoque = temModulo("estoque") || admin;
+  //const podeLocacoes = temModulo("locacoes") || admin;
+  //const podeVendas = temModulo("vendas") || admin;
+  //const podeClientes = temModulo("clientes") || admin;
+  //const podeFornecedores = temModulo("fornecedores") || admin;
+  //const podeFinanceiro = temModulo("financeiro") || admin;
+  //const podeUsuarios = temModulo("usuarios") || admin;
 
   return (
     <aside className={`sidebar ${aberta ? "aberta" : ""}`}>
