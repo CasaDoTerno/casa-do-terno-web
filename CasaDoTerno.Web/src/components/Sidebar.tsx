@@ -53,9 +53,9 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
   //const podeLocacoes = temModulo("locacoes") || admin;
   //const podeVendas = temModulo("vendas") || admin;
   //const podeClientes = temModulo("clientes") || admin;
-  //const podeFornecedores = temModulo("fornecedores") || admin;
+  const podeFornecedores = temModulo("fornecedores") || admin;
   //const podeFinanceiro = temModulo("financeiro") || admin;
-  //const podeUsuarios = temModulo("usuarios") || admin;
+  const podeUsuarios = temModulo("usuarios") || admin;
 
   return (
     <aside className={`sidebar ${aberta ? "aberta" : ""}`}>
