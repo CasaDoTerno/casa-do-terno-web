@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
-import api from "../Services/API";
 import { useNavigate } from "react-router-dom";
+import api from "../Services/API";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -13,11 +13,10 @@ export function Login() {
     evento.preventDefault();
 
     try {
-      const resposta = await axios.post(`${import.meta.env.VITE_API_URL.replace("/api", "")}/login`, {
-      email,
-      password: senha,
-    });
-
+      const resposta = await axios.post(
+        `${import.meta.env.VITE_API_URL.replace("/api", "")}/login`,
+        { email, password: senha }
+      );
 
       localStorage.setItem("token", resposta.data.accessToken);
 
@@ -25,34 +24,35 @@ export function Login() {
       localStorage.setItem("papel", perfilResposta.data.papel);
       localStorage.setItem("modulosPermitidos", perfilResposta.data.modulosPermitidos ?? "");
 
-      setMensagem("Login realizado com sucesso!");
+      navigate("/");
     } catch (erro) {
       console.error(erro);
       setMensagem("E-mail ou senha inválidos.");
     }
-    navigate("/");
   }
 
   return (
-    <div>
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>E-mail: </label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-        <div>
-          <label>Senha: </label>
-          <input
-            type="password"
-            value={senha}
-            onChange={(e) => setSenha(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Entrar</button>
-      </form>
-      {mensagem && <p>{mensagem}</p>}
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+      <div>
+        <h1>Login</h1>
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>E-mail: </label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <div>
+            <label>Senha: </label>
+            <input
+              type="password"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit">Entrar</button>
+        </form>
+        {mensagem && <p>{mensagem}</p>}
+      </div>
     </div>
   );
 }
