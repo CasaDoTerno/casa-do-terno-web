@@ -54,6 +54,7 @@ import { Usuarios } from "./pages/Usuarios";
 import { MinhaConta } from "./pages/MinhaConta";
 import { Perfis } from "./pages/Perfis";
 import { CadastroPerfil } from "./pages/CadastroPerfil";
+import { EditarUsuario } from "./pages/EditarUsuario";
 
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -127,6 +128,8 @@ function App() {
                     <Route path="/perfis" element={<Perfis />} />
                     <Route path="/perfis/novo" element={<CadastroPerfil />} />
                     <Route path="/perfis/editar/:id" element={<CadastroPerfil />} />
+                    <Route path="/usuarios/editar/:id" element={<EditarUsuario />} />
+                    
                   </Routes>
                 </div>
               </div>

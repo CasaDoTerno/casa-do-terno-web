@@ -104,6 +104,25 @@ public class UsuariosController : ControllerBase
 
         return Ok(resultado);
     }
+    [Authorize(Roles = "Admin")]
+    [HttpGet("{id}")]
+    public async Task<IActionResult> BuscarPorId(string id)
+    {
+        var usuario = await _userManager.FindByIdAsync(id);
+        if (usuario == null)
+            return NotFound();
+
+        var papeis = await _userManager.GetRolesAsync(usuario);
+        var vinculo = _dbContext.UsuarioPerfis.FirstOrDefault(up => up.UsuarioId == id);
+
+        return Ok(new
+        {
+            id = usuario.Id,
+            email = usuario.Email,
+            papel = papeis.FirstOrDefault() ?? "Vendedor",
+            perfilId = vinculo?.PerfilId
+        });
+    }
     public class CriarUsuarioRequest
     {
         public string Email { get; set; } = "";

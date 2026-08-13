@@ -48,14 +48,14 @@ interface SidebarProps {
 }
 
 export function Sidebar({ aberta, onFechar }: SidebarProps) {
-  const admin = ehAdmin();
+  //const admin = ehAdmin();
   //const podeEstoque = temModulo("estoque") || admin;
-  //const podeLocacoes = temModulo("locacoes") || admin;
+ // const podeLocacoes = temModulo("locacoes") || admin;
   //const podeVendas = temModulo("vendas") || admin;
-  //const podeClientes = temModulo("clientes") || admin;
-  const podeFornecedores = temModulo("fornecedores") || admin;
-  //const podeFinanceiro = temModulo("financeiro") || admin;
-  const podeUsuarios = temModulo("usuarios") || admin;
+ // const podeClientes = temModulo("clientes") || admin;
+ // const podeFornecedores = temModulo("fornecedores") || admin;
+ // const podeFinanceiro = temModulo("financeiro") || admin;
+ // const podeUsuarios = temModulo("usuarios") || admin;
 
   return (
     <aside className={`sidebar ${aberta ? "aberta" : ""}`}>
@@ -140,23 +140,23 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           onFechar={onFechar}
         />
      
-      {podeFornecedores && (
+      
         <NavLink to="/cadastro-fornecedor" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
           <Truck size={18} /> Fornecedores
         </NavLink>
-      )}
+      
 
-      {podeUsuarios && (
+      
         <NavLink to="/perfis" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
           <Users size={18} /> Perfis de Acesso
         </NavLink>
 
-      )}
-      {podeUsuarios && (
+      
+      
         <NavLink to="/usuarios" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
           <Users size={18} /> Usuários
         </NavLink>
-      )}
+      
 
       <NavLink to="/login" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
         <LogIn size={18} /> Login
