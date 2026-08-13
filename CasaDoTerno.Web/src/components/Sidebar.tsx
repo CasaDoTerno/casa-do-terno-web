@@ -48,7 +48,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ aberta, onFechar }: SidebarProps) {
-  //const admin = ehAdmin();
+  const admin = ehAdmin();
   //const podeEstoque = temModulo("estoque") || admin;
  // const podeLocacoes = temModulo("locacoes") || admin;
   //const podeVendas = temModulo("vendas") || admin;
