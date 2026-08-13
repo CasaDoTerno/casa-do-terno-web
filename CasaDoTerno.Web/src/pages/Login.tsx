@@ -1,11 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
 import api from "../Services/API";
+import { useNavigate } from "react-router-dom";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const navigate = useNavigate();
 
   async function handleSubmit(evento: React.FormEvent) {
     evento.preventDefault();
@@ -21,11 +23,14 @@ export function Login() {
 
       const perfilResposta = await api.get("/Usuarios/perfil");
       localStorage.setItem("papel", perfilResposta.data.papel);
+      localStorage.setItem("modulosPermitidos", perfilResposta.data.modulosPermitidos ?? "");
+
       setMensagem("Login realizado com sucesso!");
     } catch (erro) {
       console.error(erro);
       setMensagem("E-mail ou senha inválidos.");
     }
+    navigate("/");
   }
 
   return (

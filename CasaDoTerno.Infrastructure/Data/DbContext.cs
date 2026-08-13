@@ -23,5 +23,7 @@ public class CasaDoTernoContext : IdentityDbContext<IdentityUser>, ICasaDoTernoC
     public DbSet<Parcela> Parcelas { get; set; }
     public DbSet<Despesa> Despesas { get; set; }
     public DbSet<Evento> Eventos { get; set; }
+    public DbSet<Perfil> Perfis { get; set; }
+    public DbSet<UsuarioPerfil> UsuarioPerfis { get; set; }
 
 }

@@ -17,5 +17,7 @@ public interface ICasaDoTernoContext
     DbSet<Parcela> Parcelas { get; }
     DbSet<Despesa> Despesas { get; }
     DbSet<Evento> Eventos { get; }
+    DbSet<Perfil> Perfis { get; }
+    DbSet<UsuarioPerfil> UsuarioPerfis { get; }
     int SaveChanges();
 }

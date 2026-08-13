@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../Services/API";
+import { Search } from "lucide-react";
 
 interface ItemCompra {
   produtoId: number;
@@ -63,14 +64,25 @@ export function Compras() {
   return (
     <div>
       <h1>Compras</h1>
-
-      <input
-        type="text"
-        placeholder="Buscar por fornecedor..."
-        value={busca}
-        onChange={(e) => setBusca(e.target.value)}
-        style={{ paddingLeft: 36 }}
-      />
+        <div style={{ position: "relative", maxWidth: 520, marginTop: 4, marginBottom: 24 }}>
+          <Search
+            size={16}
+            style={{
+            position: "absolute",
+            left: 12,
+            top: "50%",
+            transform: "translateY(-50%)",
+            color: "var(--texto-suave)",
+          }}
+          />
+          <input
+          type="text"
+          placeholder="Buscar por fornecedor..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          style={{ paddingLeft: 36 }}
+          />
+      </div>
 
       {comprasFiltradas.length === 0 && <p style={{ color: "var(--texto-suave)" }}>Nenhuma compra encontrada.</p>}
 

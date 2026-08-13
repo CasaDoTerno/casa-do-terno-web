@@ -39,4 +39,20 @@ public class EventosController : ControllerBase
 
         return Ok(evento);
     }
+    [HttpPut("{id}")]
+    public IActionResult Atualizar(int id, [FromBody] Evento eventoAtualizado)
+    {
+        var evento = _context.Eventos.Find(id);
+        if (evento == null)
+            return NotFound();
+
+        evento.Tipo = eventoAtualizado.Tipo;
+        evento.Nome = eventoAtualizado.Nome;
+        evento.Data = eventoAtualizado.Data;
+        evento.Observacao = eventoAtualizado.Observacao;
+
+        _context.SaveChanges();
+        return Ok(evento);
+    }
+
 }
