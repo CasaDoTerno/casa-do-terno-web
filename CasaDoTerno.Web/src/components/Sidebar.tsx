@@ -66,7 +66,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
       <NavLink to="/" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar} end>
         <LayoutDashboard size={18} /> Dashboard
       </NavLink>
-      {podeEstoque && (
+      
         <GrupoMenu
           titulo="Estoque"
           icone={<Package size={18} />}
@@ -82,9 +82,9 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           ]}
           onFechar={onFechar}
         />
-      )}
+     
 
-      {podeLocacoes && (
+      
         <GrupoMenu
           titulo="Locações"
           icone={<Shirt size={18} />}
@@ -100,9 +100,9 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           ]}
           onFechar={onFechar}
         />
-      )}
+      
 
-      {podeVendas && (
+      
         <GrupoMenu
           titulo="Vendas"
           icone={<ShoppingCart size={18} />}
@@ -112,9 +112,9 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           ]}
           onFechar={onFechar}
         />
-      )}
+      
 
-      {podeFinanceiro && (
+      
         <GrupoMenu
           titulo="Financeiro"
           icone={<Wallet size={18} />}
@@ -127,9 +127,9 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           ]}
           onFechar={onFechar}
         />
-      )}
+      
 
-      {podeClientes && (
+      
         <GrupoMenu
           titulo="Cliente"
           icone={<Users size={18} />}
@@ -139,7 +139,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           ]}
           onFechar={onFechar}
         />
-      )}
+     
       {podeFornecedores && (
         <NavLink to="/cadastro-fornecedor" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
           <Truck size={18} /> Fornecedores
