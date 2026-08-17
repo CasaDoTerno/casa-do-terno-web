@@ -475,3 +475,13 @@ select option {
     text-align: justify;
   }
 }
+
+a {
+  color: var(--verde);
+  text-decoration: none;
+}
+
+a:hover {
+  color: #22c55e;
+  text-decoration: underline;
+}

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../Services/API";
 import { useNavigate } from "react-router-dom";
-import { FileText } from "lucide-react";
+import { FileText, Pencil, Printer } from "lucide-react";
 
 interface ItemLocacao {
   produtoId: number;
@@ -232,9 +232,21 @@ export function Retiradas() {
               ) : (
                 <span style={{ color: "var(--verde)", fontSize: 13 }}>✔ Já retirado</span>
               )}
+              <button
+                type="button"
+                onClick={() => navigate(`/locacoes/editar/${locacao.id}`)}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                <Pencil size={16} /> Editar
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate(`/locacoes/imprimir/${locacao.id}`)}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                <Printer size={16} /> Imprimir
+              </button>
 
-              <Link to={`/locacoes/editar/${locacao.id}`}>Editar</Link>
-              <Link to={`/locacoes/imprimir/${locacao.id}`}>Imprimir</Link>
               <button
                 type="button"
                 onClick={() => navigate(`/locacoes/contrato/${locacao.id}`)}
