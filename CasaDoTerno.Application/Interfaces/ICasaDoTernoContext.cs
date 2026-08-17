@@ -19,5 +19,6 @@ public interface ICasaDoTernoContext
     DbSet<Evento> Eventos { get; }
     DbSet<Perfil> Perfis { get; }
     DbSet<UsuarioPerfil> UsuarioPerfis { get; }
+    DbSet<MetaMensal> MetasMensais { get; }
     int SaveChanges();
 }

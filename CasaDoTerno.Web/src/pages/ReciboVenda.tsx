@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/API";
+import { Logo } from "../components/Logo";
 
 interface ItemVenda {
   produtoId: number;
@@ -64,6 +65,9 @@ export function ReciboVenda() {
       </button>
 
       <div className="recibo-card card">
+        <div style={{ marginBottom: 16 }}>
+          <Logo tamanho="grande" />
+        </div>
         <div className="recibo-titulo">Casa do Terno</div>
         <div className="recibo-subtitulo">Recibo de Venda #{venda.id}</div>
 
@@ -87,12 +91,26 @@ export function ReciboVenda() {
         )}
 
         <h2 style={{ marginTop: 24 }}>Itens</h2>
-        {venda.itens.map((item, index) => (
-          <div className="recibo-linha" key={index}>
-            <span>{item.quantidade}x {nomeProduto(item.produtoId)}</span>
-            <span>R$ {(item.quantidade * item.valorUnitario).toFixed(2)}</span>
-          </div>
-        ))}
+          <table className="recibo-tabela" style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid var(--borda)" }}>Produto</th>
+                <th style={{ textAlign: "center", padding: 8, borderBottom: "1px solid var(--borda)" }}>Qtd.</th>
+                <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid var(--borda)" }}>Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {venda.itens.map((item, index) => (
+                <tr key={index}>
+                  <td style={{ padding: 8, borderBottom: "1px solid var(--borda)" }}>{nomeProduto(item.produtoId)}</td>
+                  <td style={{ padding: 8, textAlign: "center", borderBottom: "1px solid var(--borda)" }}>{item.quantidade}</td>
+                  <td style={{ padding: 8, textAlign: "right", borderBottom: "1px solid var(--borda)" }}>
+                    R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
         <div className="recibo-linha" style={{ marginTop: 16 }}>
           <span>Subtotal</span>
@@ -109,6 +127,9 @@ export function ReciboVenda() {
         <div className="recibo-linha" style={{ border: "none" }}>
           <span>Forma de pagamento</span>
           <span>{nomesFormaPagamento[venda.formaPagamento]}</span>
+        </div>
+        <div className="assinatura-linha" style={{ marginTop: 60, paddingTop: 8, textAlign: "center", borderTop: "1px solid var(--borda)", maxWidth: 320, marginLeft: "auto", marginRight: "auto" }}>
+          Assinatura do Cliente
         </div>
       </div>
     </div>

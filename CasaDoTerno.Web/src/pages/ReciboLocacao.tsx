@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/API";
+import { Logo } from "../components/Logo";
 
 interface ItemLocacao {
   produtoId: number;
@@ -67,6 +68,9 @@ export function ReciboLocacao() {
       </button>
 
       <div className="recibo-card card">
+        <div style={{ marginBottom: 16 }}>
+          <Logo tamanho="grande" />
+        </div>
         <div className="recibo-titulo">Casa do Terno</div>
         <div className="recibo-subtitulo">Recibo de Locação #{locacao.id}</div>
 
@@ -98,16 +102,26 @@ export function ReciboLocacao() {
         )}
 
         <h2 style={{ marginTop: 24 }}>Peças</h2>
-        {locacao.itens.map((item, index) => (
-          <div className="recibo-linha" key={index}>
-            <span>
-              {nomeProduto(item.produtoId)}
-              {item.ajustes && ` — Ajustes: ${item.ajustes}`}
-            </span>
-            <span>R$ {item.valorItem.toFixed(2)}</span>
-          </div>
-        ))}
-
+        <table className="recibo-tabela" style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid var(--borda)" }}>Peça</th>
+              <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid var(--borda)" }}>Ajustes</th>
+              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid var(--borda)" }}>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {locacao.itens.map((item, index) => (
+              <tr key={index}>
+                <td style={{ padding: 8, borderBottom: "1px solid var(--borda)" }}>{nomeProduto(item.produtoId)}</td>
+                <td style={{ padding: 8, borderBottom: "1px solid var(--borda)" }}>{item.ajustes || "—"}</td>
+                <td style={{ padding: 8, textAlign: "right", borderBottom: "1px solid var(--borda)" }}>
+                  R$ {item.valorItem.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
         <div className="recibo-linha" style={{ marginTop: 16 }}>
           <span>Desconto</span>
           <span>R$ {locacao.desconto.toFixed(2)}</span>
@@ -123,6 +137,13 @@ export function ReciboLocacao() {
         <div className="recibo-linha" style={{ border: "none", fontWeight: 700, color: "var(--verde)" }}>
           <span>Restante (na retirada)</span>
           <span>R$ {restante.toFixed(2)}</span>
+        </div>
+        <p style={{ fontSize: 11, color: "var(--texto-suave)", marginTop: 24 }}>
+          O cliente declara estar ciente de que a(s) peça(s) deve(m) ser devolvida(s) até a data prevista,
+          em bom estado, sendo responsável por qualquer dano, extravio ou atraso na devolução.
+        </p>
+        <div className="assinatura-linha" style={{ marginTop: 40, paddingTop: 8, textAlign: "center", borderTop: "1px solid var(--borda)", maxWidth: 320, marginLeft: "auto", marginRight: "auto" }}>
+          Assinatura do Cliente
         </div>
       </div>
     </div>

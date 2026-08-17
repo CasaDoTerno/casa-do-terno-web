@@ -25,5 +25,6 @@ public class CasaDoTernoContext : IdentityDbContext<IdentityUser>, ICasaDoTernoC
     public DbSet<Evento> Eventos { get; set; }
     public DbSet<Perfil> Perfis { get; set; }
     public DbSet<UsuarioPerfil> UsuarioPerfis { get; set; }
+    public DbSet<MetaMensal> MetasMensais { get; set; }
 
 }

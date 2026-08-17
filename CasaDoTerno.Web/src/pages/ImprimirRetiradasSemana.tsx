@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../Services/API";
+import { Logo } from "../components/Logo";
 
 interface ItemLocacao {
   produtoId: number;
@@ -97,7 +98,9 @@ export function ImprimirRetiradasSemana() {
         </div>
         <button onClick={() => window.print()}>Imprimir</button>
       </div>
-
+      <div style={{ marginBottom: 16 }}>
+        <Logo tamanho="grande" />
+      </div>
       <div className="recibo-titulo">Casa do Terno — Retiradas da Semana</div>
       <div className="recibo-subtitulo">
         {inicio.toLocaleDateString("pt-BR")} a {fim.toLocaleDateString("pt-BR")}

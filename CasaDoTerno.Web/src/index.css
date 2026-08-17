@@ -314,13 +314,35 @@ select option {
 
   body {
     background: white !important;
-    color: black !important;
+    color: #000 !important;
+  }
+
+  /* força todo texto dentro do recibo a imprimir em preto sólido,
+     mesmo que na tela ele use verde/vermelho/cinza do tema escuro */
+  .recibo-card, .recibo-card * {
+    color: #000 !important;
+    background: white !important;
   }
 
   .recibo-card {
-    border: 1px solid #ccc !important;
-    background: white !important;
-    color: black !important;
+    border: 1px solid #999 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .recibo-tabela th {
+    background: #eee !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .recibo-linha-total {
+    border-top: 2px solid #000 !important;
+    font-weight: 800 !important;
+  }
+
+  .assinatura-linha {
+    border-top: 1px solid #000 !important;
   }
 }
 
@@ -425,5 +447,31 @@ select option {
 @media (max-width: 700px) {
   .grid-2, .grid-3 {
     grid-template-columns: 1fr;
+  }
+}
+@media print {
+  body.papel-termico {
+    width: 80mm;
+  }
+  body.papel-termico .conteudo {
+    padding: 2mm !important;
+  }
+  body.papel-termico .contrato-termico {
+    font-size: 11px;
+    line-height: 1.45;
+  }
+  body.papel-termico h1 {
+    font-size: 14px !important;
+    border-bottom: 1px solid #000 !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 8px !important;
+  }
+  body.papel-termico h2 {
+    font-size: 12px !important;
+    margin-top: 10px !important;
+  }
+  body.papel-termico .clausula {
+    margin-bottom: 8px;
+    text-align: justify;
   }
 }

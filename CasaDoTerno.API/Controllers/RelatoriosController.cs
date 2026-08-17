@@ -29,4 +29,10 @@ public class RelatoriosController : ControllerBase
         var resultado = _relatorioService.ProdutosMaisMovimentados(dataInicio, dataFim);
         return Ok(resultado);
     }
+    [HttpGet("entradas-por-dia")]
+    public IActionResult EntradasPorDia([FromQuery] DateTime dataInicio, [FromQuery] DateTime dataFim)
+    {
+        var resultado = _relatorioService.EntradasPorDia(dataInicio, dataFim);
+        return Ok(resultado);
+    }
 }

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../Services/API";
+import { useNavigate } from "react-router-dom";
+import { FileText } from "lucide-react";
 
 interface ItemLocacao {
   produtoId: number;
@@ -126,7 +128,7 @@ export function Retiradas() {
     const retiradaB = new Date(b.dataRetirada).getTime();
     return retiradaA - retiradaB;
   });
-
+  const navigate = useNavigate();
   return (
     <div>
       <h1>Retiradas e Pagamentos Pendentes</h1>
@@ -233,6 +235,13 @@ export function Retiradas() {
 
               <Link to={`/locacoes/editar/${locacao.id}`}>Editar</Link>
               <Link to={`/locacoes/imprimir/${locacao.id}`}>Imprimir</Link>
+              <button
+                type="button"
+                onClick={() => navigate(`/locacoes/contrato/${locacao.id}`)}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                <FileText size={16} /> Contrato
+              </button>
             </div>
           </div>
         ))}
@@ -243,7 +252,7 @@ export function Retiradas() {
 
 function PagamentoInline({ onConfirmar }: { onConfirmar: (forma: number) => void }) {
   const [forma, setForma] = useState(0);
-
+  
   return (
     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
       <select value={forma} onChange={(e) => setForma(Number(e.target.value))} style={{ width: "auto" }}>

@@ -79,6 +79,16 @@ public class LocacoesController : ControllerBase
         return Ok(locacao);
     }
 
+    [HttpPut("{id}/pronta")]
+    public IActionResult MarcarPronta(int id, [FromBody] bool pronta)
+    {
+        var locacao = _context.Locacoes.Find(id);
+        if (locacao == null) return NotFound();
+
+        locacao.Pronta = pronta;
+        _context.SaveChanges();
+        return Ok(locacao);
+    }
 
     [HttpGet("verificar-disponibilidade")]
     public IActionResult VerificarDisponibilidade(

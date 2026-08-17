@@ -5,6 +5,48 @@ namespace CasaDoTerno.Application.Services;
 
 public class RelatorioService
 {
+    public class EntradaDiaria
+    {
+        public DateTime Data { get; set; }
+        public decimal Total { get; set; }
+    }
+    public List<EntradaDiaria> EntradasPorDia(DateTime dataInicio, DateTime dataFim)
+    {
+        var fimAjustado = dataFim.Date.AddDays(1).AddTicks(-1);
+
+        var vendasPorDia = _context.Parcelas
+            .Where(p => p.Origem == OrigemPagamento.Venda && p.DataPagamento != null
+                        && p.DataPagamento >= dataInicio.Date && p.DataPagamento <= fimAjustado)
+            .GroupBy(p => p.DataPagamento!.Value.Date)
+            .Select(g => new { Data = g.Key, Total = g.Sum(p => p.ValorParcela) })
+            .ToList();
+
+        var entradaLocacaoPorDia = _context.Locacoes
+            .Where(l => l.DataPagamentoEntrada != null
+                        && l.DataPagamentoEntrada >= dataInicio.Date && l.DataPagamentoEntrada <= fimAjustado)
+            .GroupBy(l => l.DataPagamentoEntrada!.Value.Date)
+            .Select(g => new { Data = g.Key, Total = g.Sum(l => l.ValorEntrada) })
+            .ToList();
+
+        var restantePorDia = _context.Locacoes
+            .Where(l => l.DataPagamentoRestante != null
+                        && l.DataPagamentoRestante >= dataInicio.Date && l.DataPagamentoRestante <= fimAjustado)
+            .GroupBy(l => l.DataPagamentoRestante!.Value.Date)
+            .Select(g => new { Data = g.Key, Total = g.Sum(l => l.ValorRestante) })
+            .ToList();
+
+        var todosDias = new List<DateTime>();
+        for (var dia = dataInicio.Date; dia <= dataFim.Date; dia = dia.AddDays(1))
+            todosDias.Add(dia);
+
+        return todosDias.Select(dia => new EntradaDiaria
+        {
+            Data = dia,
+            Total = (vendasPorDia.FirstOrDefault(v => v.Data == dia)?.Total ?? 0)
+                  + (entradaLocacaoPorDia.FirstOrDefault(e => e.Data == dia)?.Total ?? 0)
+                  + (restantePorDia.FirstOrDefault(r => r.Data == dia)?.Total ?? 0)
+        }).ToList();
+    }
     private readonly ICasaDoTernoContext _context;
 
     public RelatorioService(ICasaDoTernoContext context)
@@ -58,6 +100,8 @@ public class RelatorioService
 
         var totalEntradas = entradasAgrupadas.Sum(e => e.Valor);
         var totalSaidas = saidasAgrupadas.Sum(s => s.Valor);
+
+
 
         return new FechamentoCaixaResultado
         {

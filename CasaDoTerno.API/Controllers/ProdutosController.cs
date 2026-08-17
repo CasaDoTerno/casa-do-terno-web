@@ -101,6 +101,40 @@ public class ProdutosController : ControllerBase
 
         return Ok(new { importados = produtos.Count });
     }
+    [HttpGet("resumo-estoque")]
+    public IActionResult ResumoEstoque()
+    {
+        var produtos = _context.Produtos.ToList();
+
+        var itensEmLocacaoAberta = (
+            from item in _context.ItensLocacao
+            join loc in _context.Locacoes on item.LocacaoId equals loc.Id
+            where loc.DataDevolucaoReal == null
+            select new { item.ProdutoId, loc.DataRetiradaReal }
+        ).ToList();
+
+        int emLocacao = itensEmLocacaoAberta.Count(i => i.DataRetiradaReal != null);
+        int reservadosAguardandoRetirada = itensEmLocacaoAberta.Count(i => i.DataRetiradaReal == null);
+
+        int disponiveis = 0;
+        foreach (var produto in produtos)
+        {
+            if (!produto.ControlaEstoque) continue;
+            int emUsoDesseProduto = itensEmLocacaoAberta.Count(i => i.ProdutoId == produto.Id);
+            disponiveis += Math.Max(produto.Quantidade - emUsoDesseProduto, 0);
+        }
+
+        int estoqueBaixo = produtos.Count(p => p.ControlaEstoque && p.Quantidade <= p.EstoqueMinimo);
+
+        return Ok(new
+        {
+            disponiveis,
+            emLocacao,
+            reservadosAguardandoRetirada,
+            estoqueBaixo
+        });
+    }
+
     [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public IActionResult Atualizar(int id, [FromBody] Produto produtoAtualizado)

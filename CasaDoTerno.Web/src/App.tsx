@@ -55,6 +55,7 @@ import { MinhaConta } from "./pages/MinhaConta";
 import { Perfis } from "./pages/Perfis";
 import { CadastroPerfil } from "./pages/CadastroPerfil";
 import { EditarUsuario } from "./pages/EditarUsuario";
+import { ContratoLocacao } from "./pages/ContratoLocacao";
 
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -130,6 +131,8 @@ function App() {
                     <Route path="/perfis/editar/:id" element={<CadastroPerfil />} />
                     <Route path="/usuarios/editar/:id" element={<EditarUsuario />} />
                     
+                    <Route path="/locacoes/contrato/:id" element={<ContratoLocacao />} />
+
                   </Routes>
                 </div>
               </div>
