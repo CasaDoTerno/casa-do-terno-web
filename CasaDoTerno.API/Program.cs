@@ -59,6 +59,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.MapGet("/health", () => Results.Ok("OK"));
 app.UseCors("PermitirReact");
 app.UseAuthentication();
 app.UseAuthorization();
