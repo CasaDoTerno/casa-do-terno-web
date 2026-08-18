@@ -1,0 +1,29 @@
+name: Lembretes diários (retirada e devolução)
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  enviar-lembretes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fazer login e pegar o token
+        id: login
+        run: |
+          RESPOSTA=$(curl -s -X POST https://casa-do-terno-api.onrender.com/login \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"${{ secrets.SISTEMA_EMAIL_ADMIN }}\",\"password\":\"${{ secrets.SISTEMA_SENHA_ADMIN }}\"}")
+          TOKEN=$(echo $RESPOSTA | grep -o '"accessToken":"[^"]*' | sed 's/"accessToken":"//')
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Enviar lembretes de retirada
+        run: |
+          curl -X POST https://casa-do-terno-api.onrender.com/api/Notificacoes/lembrete-retirada \
+            -H "Authorization: Bearer ${{ steps.login.outputs.token }}"
+
+      - name: Enviar lembretes de devolução
+        run: |
+          curl -X POST https://casa-do-terno-api.onrender.com/api/Notificacoes/lembrete-devolucao \
+            -H "Authorization: Bearer ${{ steps.login.outputs.token }}"

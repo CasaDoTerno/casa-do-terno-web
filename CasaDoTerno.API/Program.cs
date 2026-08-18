@@ -29,6 +29,13 @@ builder.Services.AddScoped<DespesaService>();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<CasaDoTernoContext>();
+builder.Services.AddSingleton(new EmailService(
+    builder.Configuration["Email:Host"]!,
+    int.Parse(builder.Configuration["Email:Porta"]!),
+    builder.Configuration["Email:Usuario"]!,
+    builder.Configuration["Email:Senha"]!,
+    builder.Configuration["Email:NomeExibicao"]!
+));
 
 
 builder.Services.AddAuthorization();
