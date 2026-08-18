@@ -110,7 +110,7 @@ export function ContratoLocacao() {
         <p>
           Total: R$ {locacao.valorTotal.toFixed(2)}<br />
           Entrada paga: R$ {locacao.valorEntrada.toFixed(2)}<br />
-          Restante: R$ {locacao.valorRestante.toFixed(2)}
+          Restante: R$ {(locacao.valorTotal - locacao.valorEntrada).toFixed(2)}
         </p>
 
         <h2>Cláusulas</h2>
