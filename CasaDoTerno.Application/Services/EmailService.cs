@@ -29,7 +29,7 @@ public class EmailService
         mensagem.Subject = assunto;
         mensagem.Body = new TextPart("html") { Text = corpoHtml };
 
-        using var cliente = new SmtpClient();
+        using var cliente = new MailKit.Net.Smtp.SmtpClient();
         cliente.Connect(_host, _porta, MailKit.Security.SecureSocketOptions.StartTls);
         cliente.Authenticate(_usuario, _senha);
         cliente.Send(mensagem);
