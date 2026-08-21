@@ -115,10 +115,36 @@ export function Dashboard() {
     setEditandoMeta(false);
   }
 
+  async function confirmarRetiradaAtrasada(id: number) {
+    const confirmar = window.confirm("Confirmar a RETIRADA dessa locação atrasada agora?");
+    if (!confirmar) return;
+    try {
+      await api.put(`/Locacoes/${id}/retirada`);
+      carregarLocacoes();
+    } catch (erro: any) {
+      console.error(erro);
+      alert(erro.response?.data || "Erro ao registrar retirada.");
+    }
+  }
+
+  async function confirmarDevolucaoAtrasada(id: number) {
+    const confirmar = window.confirm("Confirmar a DEVOLUÇÃO dessa locação atrasada agora?");
+    if (!confirmar) return;
+    try {
+      await api.put(`/Locacoes/${id}/devolucao`);
+      carregarLocacoes();
+    } catch (erro: any) {
+      console.error(erro);
+      alert(erro.response?.data || "Erro ao registrar devolução.");
+    }
+  }
+
   async function marcarPronta(id: number, pronta: boolean) {
     await api.put(`/Locacoes/${id}/pronta`, pronta);
     carregarLocacoes();
   }
+
+
 
   // ---- cálculos derivados ----
 
@@ -299,17 +325,34 @@ export function Dashboard() {
             <AlertTriangle size={18} color="#f87171" />
             <strong>Atrasados ({atrasadas.length})</strong>
           </div>
-          {atrasadas.map((l) => (
-            <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--borda)" }}>
-              <div>
-                <Link to={`/locacoes/editar/${l.id}`}>{nomeCliente(l.clienteId)}</Link>
-                <span style={{ color: "var(--texto-suave)", fontSize: 13 }}> — {l.itens.length} peça(s) — {l.diasAtraso} dia(s) de atraso</span>
-              </div>
-              <span style={{ color: "#f87171", fontWeight: 700, fontSize: 13 }}>
-                Multa estimada: R$ {l.multaEstimada.toFixed(2)}
-              </span>
-            </div>
-          ))}
+         {atrasadas.map((l) => {
+  const naoRetirada = l.dataRetiradaReal === null;
+  return (
+    <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--borda)", flexWrap: "wrap", gap: 8 }}>
+      <div>
+        <Link to={`/locacoes/editar/${l.id}`}>{nomeCliente(l.clienteId)}</Link>
+        <span style={{ color: "var(--texto-suave)", fontSize: 13 }}>
+          {" "}— {l.itens.length} peça(s) — {l.diasAtraso} dia(s) de atraso
+          {naoRetirada && " — nunca retirada"}
+        </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ color: "#f87171", fontWeight: 700, fontSize: 13 }}>
+          Multa estimada: R$ {l.multaEstimada.toFixed(2)}
+        </span>
+        {naoRetirada ? (
+          <button type="button" onClick={() => confirmarRetiradaAtrasada(l.id)} style={{ fontSize: 12 }}>
+            Confirmar retirada
+          </button>
+        ) : (
+          <button type="button" onClick={() => confirmarDevolucaoAtrasada(l.id)} style={{ fontSize: 12 }}>
+            Confirmar devolução
+          </button>
+        )}
+      </div>
+    </div>
+  );
+})}
         </div>
       )}
 
