@@ -83,14 +83,17 @@ export function EditarLocacao() {
       setFormaPagamentoEntrada(l.formaPagamentoEntrada);
       setEventoId(l.eventoId ?? 0);
       setJaRetirada(l.dataRetiradaReal !== null);
-      setPecas(
-        l.itens.map((item: any) => ({
-          produtoId: item.produtoId,
-          modelo: "Carregando...",
-          ajustes: item.ajustes ?? "",
-          valorLocacao: item.valorItem,
-        }))
-      );
+        setPecas(
+          l.itens.map((item: any) => ({
+            produtoId: item.produtoId,
+            modelo: "Carregando...",
+            referencia: null,
+            cor: "",
+            tamanho: "",
+            ajustes: item.ajustes ?? "",
+            valorLocacao: item.valorItem,
+          }))
+        );
 
       if (l.eventoId) {
         api.get(`/Eventos/${l.eventoId}`).then((eventoResposta) => {
@@ -102,15 +105,17 @@ export function EditarLocacao() {
     });
   }, [id]);
 
-  useEffect(() => {
-    if (!carregado || produtos.length === 0) return;
-    setPecas((atual) =>
-      atual.map((peca) => {
-        const produto = produtos.find((p) => p.id === peca.produtoId);
-        return produto ? { ...peca, modelo: produto.modelo } : peca;
-      })
-    );
-  }, [produtos, carregado]);
+useEffect(() => {
+  if (!carregado || produtos.length === 0) return;
+  setPecas((atual) =>
+    atual.map((peca) => {
+      const produto = produtos.find((p) => p.id === peca.produtoId);
+      return produto
+        ? { ...peca, modelo: produto.modelo, referencia: produto.referencia, cor: produto.cor, tamanho: produto.tamanho }
+        : peca;
+    })
+  );
+}, [produtos, carregado]);
 
   useEffect(() => {
     const produto = produtos.find((p) => p.id === produtoSelecionado);

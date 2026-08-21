@@ -72,12 +72,37 @@ useEffect(() => {
     return `${codigo}${produto.modelo} · ${produto.cor} · Tam. ${produto.tamanho}`;
   }
 
-  async function confirmarDevolucao(id: number) {
+async function confirmarDevolucao(id: number) {
     const confirmar = window.confirm("Confirmar a DEVOLUÇÃO dessa locação?");
     if (!confirmar) return;
+
     try {
-      await api.put(`/Locacoes/${id}/devolucao`);
-      setMensagem(`Devolução da locação #${id} registrada com sucesso!`);
+      const resposta = await api.put(`/Locacoes/${id}/devolucao`);
+      const multa = resposta.data.multa as number;
+
+      if (multa > 0) {
+        const formaTexto = window.prompt(
+          `Essa devolução está atrasada — multa calculada: R$ ${multa.toFixed(2)}.\n\n` +
+          `Digite a forma de pagamento:\n0 = Dinheiro\n1 = Cartão\n2 = Pix\n3 = Boleto\n\n` +
+          `Ou digite ISENTAR pra não cobrar essa multa dessa vez.\n\n` +
+          `(deixe em branco e clique OK se ainda não foi pago, mas continua cobrando depois)`
+        );
+
+        if (formaTexto !== null && formaTexto.trim() !== "") {
+          const textoLimpo = formaTexto.trim().toUpperCase();
+
+          if (textoLimpo === "ISENTAR") {
+            await api.put(`/Locacoes/${id}/isentar-multa`);
+          } else {
+            await api.put(`/Locacoes/${id}/pagamento-multa`, { formaPagamento: Number(textoLimpo) });
+          }
+        }
+      }
+
+      setMensagem(
+        `Devolução da locação #${id} registrada com sucesso!` +
+        (multa > 0 ? ` Multa por atraso: R$ ${multa.toFixed(2)}.` : "")
+      );
       carregarLocacoes();
     } catch (erro: any) {
       console.error(erro);

@@ -360,6 +360,74 @@ public class LocacaoService
 
         return (true, "Disponível.", unidadesDisponiveis);
     }
+    public (bool sucesso, string mensagem) RegistrarPagamentoMulta(int locacaoId, FormaPagamento formaPagamento)
+    {
+        var locacao = _context.Locacoes.Find(locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.");
+
+        if (locacao.MultaAtraso <= 0)
+            return (false, "Essa locação não tem multa de atraso pendente.");
+
+        if (locacao.FormaPagamentoMulta != null)
+            return (false, "O pagamento da multa já foi registrado.");
+
+        locacao.FormaPagamentoMulta = formaPagamento;
+        locacao.DataPagamentoMulta = DateTime.Now;
+        _context.SaveChanges();
+
+        return (true, "Pagamento da multa registrado com sucesso.");
+    }
+    public (bool sucesso, string mensagem) IsentarMulta(int locacaoId)
+    {
+        var locacao = _context.Locacoes.Find(locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.");
+
+        if (locacao.MultaAtraso <= 0)
+            return (false, "Essa locação não tem multa de atraso pra isentar.");
+
+        if (locacao.FormaPagamentoMulta != null)
+            return (false, "Essa multa já foi paga — não é possível isentar depois de paga.");
+
+        locacao.MultaAtraso = 0;
+        _context.SaveChanges();
+
+        return (true, "Multa isentada com sucesso.");
+    }
+
+    public (bool sucesso, string mensagem, decimal multa) RegistrarDevolucao(int locacaoId)
+    {
+        var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.", 0);
+
+        if (locacao.DataRetiradaReal == null)
+            return (false, "Essa locação ainda não foi retirada — não é possível registrar devolução.", 0);
+
+        if (locacao.DataDevolucaoReal != null)
+            return (false, "A devolução dessa locação já foi registrada.", 0);
+
+        var hoje = DateTime.Now.Date;
+        decimal multa = 0;
+
+        if (hoje > locacao.DataDevolucaoPrevista.Date)
+        {
+            int diasAtraso = (hoje - locacao.DataDevolucaoPrevista.Date).Days;
+            multa = diasAtraso * 50 * locacao.Itens.Count;
+        }
+
+        locacao.DataDevolucaoReal = DateTime.Now;
+        locacao.MultaAtraso = multa;
+
+        _context.SaveChanges();
+
+        var mensagem = multa > 0
+            ? $"Devolução registrada. Multa por atraso: R$ {multa:F2}."
+            : "Devolução registrada com sucesso.";
+
+        return (true, mensagem, multa);
+    }
     // marca uma locação como a "principal" de um evento — se já existia outra principal, ela é desmarcada
     private void DefinirLocacaoPrincipal(int eventoId, int novaLocacaoPrincipalId)
     {

@@ -27,6 +27,12 @@ public class RelatorioService
             .GroupBy(l => l.DataPagamentoEntrada!.Value.Date)
             .Select(g => new { Data = g.Key, Total = g.Sum(l => l.ValorEntrada) })
             .ToList();
+        var multaPorDia = _context.Locacoes
+            .Where(l => l.DataPagamentoMulta != null
+                        && l.DataPagamentoMulta >= dataInicio.Date && l.DataPagamentoMulta <= fimAjustado)
+            .GroupBy(l => l.DataPagamentoMulta!.Value.Date)
+            .Select(g => new { Data = g.Key, Total = g.Sum(l => l.MultaAtraso) })
+            .ToList();
 
         var restantePorDia = _context.Locacoes
             .Where(l => l.DataPagamentoRestante != null
@@ -79,6 +85,14 @@ public class RelatorioService
             .Select(l => new { l.FormaPagamentoRestante, Valor = l.ValorRestante })
             .ToList();
 
+        var multaPorFormaPagamento = _context.Locacoes
+            .Where(l => l.DataPagamentoMulta != null
+                        && l.DataPagamentoMulta.Value.Date == data.Date
+                        && l.FormaPagamentoMulta != null)
+            .GroupBy(l => l.FormaPagamentoMulta!.Value)
+            .Select(g => new { FormaPagamento = g.Key, Total = g.Sum(l => l.MultaAtraso) })
+            .ToList();
+
         var todasEntradas = new List<TotalPorFormaPagamento>();
         todasEntradas.AddRange(entradasVenda.Select(e => new TotalPorFormaPagamento { FormaPagamento = e.FormaPagamento, Valor = e.Valor }));
         todasEntradas.AddRange(entradasLocacao.Select(e => new TotalPorFormaPagamento { FormaPagamento = e.FormaPagamentoEntrada, Valor = e.Valor }));
@@ -100,7 +114,6 @@ public class RelatorioService
 
         var totalEntradas = entradasAgrupadas.Sum(e => e.Valor);
         var totalSaidas = saidasAgrupadas.Sum(s => s.Valor);
-
 
 
         return new FechamentoCaixaResultado

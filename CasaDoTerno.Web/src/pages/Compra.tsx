@@ -19,6 +19,9 @@ interface Fornecedor {
 interface ItemCarrinho {
   produtoId: number;
   modelo: string;
+  referencia: string | null;
+  cor: string;
+  tamanho: string;
   quantidade: number;
   valorUnitario: number;
 }
@@ -54,10 +57,18 @@ export function Compra() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
     if (!produto) return;
 
-    setCarrinho([
-      ...carrinho,
-      { produtoId: produto.id, modelo: produto.modelo, quantidade, valorUnitario },
-    ]);
+setCarrinho([
+  ...carrinho,
+  {
+    produtoId: produto.id,
+    modelo: produto.modelo,
+    referencia: produto.referencia,
+    cor: produto.cor,
+    tamanho: produto.tamanho,
+    quantidade,
+    valorUnitario,
+  },
+]);
     setProdutoSelecionado(0);
     setQuantidade(1);
     setValorUnitario(0);
@@ -166,7 +177,7 @@ export function Compra() {
               {carrinho.map((item, index) => (
                 <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>
-                    {item.quantidade}x {item.modelo} — R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
+                    {item.quantidade}x {item.referencia ? `${item.referencia} — ` : ""}{item.modelo} · {item.cor} · Tam. {item.tamanho} — R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
                   </span>
                   <button type="button" onClick={() => removerDoCarrinho(index)}>Remover</button>
                 </li>

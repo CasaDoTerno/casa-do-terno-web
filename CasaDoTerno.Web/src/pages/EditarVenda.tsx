@@ -21,6 +21,9 @@ interface Cliente {
 interface ItemCarrinho {
   produtoId: number;
   modelo: string;
+  referencia: string | null;
+  cor: string;
+  tamanho: string;
   quantidade: number;
   valorUnitario: number;
 }
@@ -62,6 +65,9 @@ export function EditarVenda() {
         v.itens.map((item: any) => ({
           produtoId: item.produtoId,
           modelo: "Carregando...",
+          referencia: null,
+          cor: "",
+          tamanho: "",
           quantidade: item.quantidade,
           valorUnitario: item.valorUnitario,
         }))
@@ -75,7 +81,9 @@ export function EditarVenda() {
     setCarrinho((atual) =>
       atual.map((item) => {
         const produto = produtos.find((p) => p.id === item.produtoId);
-        return produto ? { ...item, modelo: produto.modelo } : item;
+        return produto
+          ? { ...item, modelo: produto.modelo, referencia: produto.referencia, cor: produto.cor, tamanho: produto.tamanho }
+          : item;
       })
     );
   }, [produtos, carregado]);
@@ -86,7 +94,15 @@ export function EditarVenda() {
 
     setCarrinho([
       ...carrinho,
-      { produtoId: produto.id, modelo: produto.modelo, quantidade, valorUnitario: produto.valorVenda },
+      {
+        produtoId: produto.id,
+        modelo: produto.modelo,
+        referencia: produto.referencia,
+        cor: produto.cor,
+        tamanho: produto.tamanho,
+        quantidade,
+        valorUnitario: produto.valorVenda,
+      },
     ]);
     setProdutoSelecionado(0);
     setQuantidade(1);
@@ -175,7 +191,7 @@ export function EditarVenda() {
             {carrinho.map((item, index) => (
               <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>
-                  {item.quantidade}x {item.modelo} — R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
+                  {item.quantidade}x {item.referencia ? `${item.referencia} — ` : ""}{item.modelo} · {item.cor} · Tam. {item.tamanho} — R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
                 </span>
                 <button type="button" onClick={() => removerDoCarrinho(index)}>Remover</button>
               </li>

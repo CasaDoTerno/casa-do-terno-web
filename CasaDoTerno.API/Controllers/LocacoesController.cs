@@ -200,25 +200,41 @@ public class LocacoesController : ControllerBase
 
         return Ok(mensagem);
     }
+    [HttpPut("{id}/isentar-multa")]
+    public IActionResult IsentarMulta(int id)
+    {
+        var (sucesso, mensagem) = _locacaoService.IsentarMulta(id);
 
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        return Ok(new { mensagem });
+    }
 
 
     [HttpPut("{id}/devolucao")]
     public IActionResult RegistrarDevolucao(int id)
     {
-        var locacao = _context.Locacoes.Find(id);
-        if (locacao == null)
-            return NotFound("Locação não encontrada.");
+        var (sucesso, mensagem, multa) = _locacaoService.RegistrarDevolucao(id);
 
-        if (locacao.DataRetiradaReal == null)
-            return BadRequest("Não é possível devolver uma locação que ainda não foi retirada.");
+        if (!sucesso)
+            return BadRequest(mensagem);
 
-        if (locacao.DataDevolucaoReal != null)
-            return BadRequest("A devolução dessa locação já foi registrada.");
+        return Ok(new { mensagem, multa });
+    }
+    public class PagamentoMultaRequest
+    {
+        public FormaPagamento FormaPagamento { get; set; }
+    }
 
-        locacao.DataDevolucaoReal = DateTime.Now;
-        _context.SaveChanges();
+    [HttpPut("{id}/pagamento-multa")]
+    public IActionResult RegistrarPagamentoMulta(int id, [FromBody] PagamentoMultaRequest request)
+    {
+        var (sucesso, mensagem) = _locacaoService.RegistrarPagamentoMulta(id, request.FormaPagamento);
 
-        return Ok(locacao);
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        return Ok(new { mensagem });
     }
 }

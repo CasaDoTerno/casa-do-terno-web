@@ -26,6 +26,9 @@ interface Cliente {
 interface PecaCarrinho {
   produtoId: number;
   modelo: string;
+  referencia: string | null;
+  cor: string;
+  tamanho: string;
   ajustes: string;
   valorLocacao: number;
 }
@@ -107,15 +110,18 @@ export function Locacao() {
     }
 
     setMensagem("");
-    setPecas([
-      ...pecas,
-      {
-        produtoId: produto.id,
-        modelo: produto.modelo,
-        ajustes: ajustesPeca,
-        valorLocacao: valorPeca,
-      },
-    ]);
+  setPecas([
+    ...pecas,
+    {
+      produtoId: produto.id,
+      modelo: produto.modelo,
+      referencia: produto.referencia,
+      cor: produto.cor,
+      tamanho: produto.tamanho,
+      ajustes: ajustesPeca,
+      valorLocacao: valorPeca,
+    },
+  ]);
     setProdutoSelecionado(0);
     setAjustesPeca("");
     setValorPeca(0);
@@ -287,7 +293,8 @@ export function Locacao() {
               {pecas.map((peca, index) => (
                 <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span>
-                    {peca.modelo} — R$ {peca.valorLocacao} {peca.ajustes && `— ${peca.ajustes}`}
+                    {peca.referencia ? `${peca.referencia} — ` : ""}{peca.modelo} · {peca.cor} · Tam. {peca.tamanho} — R$ {peca.valorLocacao}
+                    {peca.ajustes && ` — ${peca.ajustes}`}
                   </span>
                   <button type="button" onClick={() => removerPeca(index)}>Remover</button>
                 </li>

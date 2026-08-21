@@ -32,6 +32,10 @@ public class Locacao
     public int? EventoId { get; set; }
     public decimal DescontoEvento { get; set; }
     public bool Pronta { get; set; }
+
+    public decimal MultaAtraso { get; set; }
+    public FormaPagamento? FormaPagamentoMulta { get; set; }
+    public DateTime? DataPagamentoMulta { get; set; }
     public bool EstaAtrasada()
     {
         return DataDevolucaoReal == null && DateTime.Now > DataDevolucaoPrevista;
