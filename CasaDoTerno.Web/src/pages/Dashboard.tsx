@@ -139,11 +139,10 @@ export function Dashboard() {
     }
   }
 
-  async function marcarPronta(id: number, pronta: boolean) {
-    await api.put(`/Locacoes/${id}/pronta`, pronta);
-    carregarLocacoes();
-  }
-
+async function marcarPronta(id: number, pronta: boolean) {
+  await api.put(`/Locacoes/${id}/pronta`, { pronta });
+  carregarLocacoes();
+}
 
 
   // ---- cálculos derivados ----

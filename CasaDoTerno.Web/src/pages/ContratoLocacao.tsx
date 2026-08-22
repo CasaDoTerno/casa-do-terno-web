@@ -125,26 +125,31 @@ export function ContratoLocacao() {
           (cinquenta reais) por dia de atraso, por peça</strong> não devolvida.
         </p>
 
-        <p className="clausula">
-          <strong>3.</strong> Em caso de avaria, mancha, rasgo, queimadura ou qualquer dano que
-          impossibilite a reutilização da peça, será cobrado o <strong>valor integral de venda</strong>
-          {" "}do produto, conforme tabela vigente da loja
-          {(() => {
-            const primeiroProduto = produto(locacao.itens[0]?.produtoId);
-            return primeiroProduto ? ` (ex.: R$ ${primeiroProduto.valorVenda.toFixed(2)} para a primeira peça listada)` : "";
-          })()}.
-        </p>
+          <p className="clausula">
+            <strong>3.</strong> Em caso de avaria, mancha, rasgo, queimadura ou qualquer dano que
+            impossibilite a reutilização da peça, será cobrado o <strong>valor integral de venda</strong>
+            {" "}do produto, conforme tabela vigente da loja.
+          </p>
 
         <p className="clausula">
           <strong>4.</strong> O(A) LOCATÁRIO(A) declara ter vistoriado a(s) peça(s) no ato da
           retirada e está de acordo com o estado de conservação apresentado.
         </p>
+        <p className="clausula">
+          <strong>5.</strong> O valor pago como entrada (R$ {locacao.valorEntrada.toFixed(2)}) tem caráter
+          de sinal e garantia da reserva, <strong>não sendo reembolsável</strong> em caso de desistência,
+          cancelamento ou não comparecimento do(a) LOCATÁRIO(A) para retirada da(s) peça(s) na data combinada.
+        </p>
 
-        <div style={{ marginTop: 40, textAlign: "center" }}>
-          <div className="assinatura-linha" style={{ paddingTop: 6, borderTop: "1px solid #000" }}>
-            Assinatura do(a) Locatário(a)
+          <p style={{ marginTop: 24, fontSize: 12 }}>
+            Visconde do Rio Branco/MG, {dataHoje}.
+          </p>
+
+          <div style={{ marginTop: 40, textAlign: "center" }}>
+            <div className="assinatura-linha" style={{ paddingTop: 6, borderTop: "1px solid #000" }}>
+              Assinatura do(a) Locatário(a)
+            </div>
           </div>
-        </div>
 
         <div style={{ marginTop: 30, textAlign: "center" }}>
           <div className="assinatura-linha" style={{ paddingTop: 6, borderTop: "1px solid #000" }}>

@@ -20,6 +20,8 @@ export function Produtos() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState("");
+  const [pagina, setPagina] = useState(1);
+  const ITENS_POR_PAGINA = 50;
 
   function carregarProdutos() {
     setCarregando(true);
@@ -47,11 +49,17 @@ export function Produtos() {
   }
 
   if (carregando) return <p>Carregando produtos...</p>;
-const produtosFiltrados = produtos.filter((p) => {
+  const produtosFiltrados = produtos.filter((p) => {
   const textoProduto = `${p.modelo} ${p.tamanho} ${p.cor} ${p.referencia ?? ""}`.toLowerCase();
   const palavras = busca.toLowerCase().split(" ").filter((palavra) => palavra.length > 0);
   return palavras.every((palavra) => textoProduto.includes(palavra));
+  
 });
+const totalPaginas = Math.max(Math.ceil(produtosFiltrados.length / ITENS_POR_PAGINA), 1);
+  const produtosDaPagina = produtosFiltrados.slice(
+  (pagina - 1) * ITENS_POR_PAGINA,
+  pagina * ITENS_POR_PAGINA
+);
   return (
     <div>
       <h1>Produtos</h1>
@@ -67,16 +75,19 @@ const produtosFiltrados = produtos.filter((p) => {
           color: "var(--texto-suave)",
         }}
         />
-        <input
+      <input
         type="text"
         placeholder="Buscar por descrição..."
         value={busca}
-        onChange={(e) => setBusca(e.target.value)}
+        onChange={(e) => {
+          setBusca(e.target.value);
+          setPagina(1);
+        }}
         style={{ paddingLeft: 36 }}
-        />
+      />
       </div>
       <ul>
-      {produtosFiltrados.map((produto) => {
+       {produtosDaPagina.map((produto) => {
           const estoqueBaixo = produto.controlaEstoque && produto.quantidade <= produto.estoqueMinimo;
           return (
             <li key={produto.id}>
@@ -102,6 +113,27 @@ const produtosFiltrados = produtos.filter((p) => {
           );
         })}
       </ul>
+      {produtosFiltrados.length > 0 && (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 16, marginTop: 20 }}>
+        <button
+          type="button"
+          onClick={() => setPagina((p) => Math.max(p - 1, 1))}
+          disabled={pagina === 1}
+        >
+          ← Anterior
+        </button>
+        <span style={{ color: "var(--texto-suave)", fontSize: 13 }}>
+          Página {pagina} de {totalPaginas} ({produtosFiltrados.length} produtos)
+        </span>
+        <button
+          type="button"
+          onClick={() => setPagina((p) => Math.min(p + 1, totalPaginas))}
+          disabled={pagina === totalPaginas}
+        >
+          Próxima →
+        </button>
+      </div>
+    )}
     </div>
   );
 }

@@ -6,6 +6,7 @@ using CasaDoTerno.Infrastructure.Data;
 
 namespace CasaDoTerno.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class LocacoesController : ControllerBase
@@ -40,6 +41,7 @@ public class LocacoesController : ControllerBase
             l.FormaPagamentoRestante,
             l.DataPagamentoRestante,
             l.ValorRestante,
+            l.Pronta,
             l.CriadoPor,
             l.EditadoPor,
             l.DataEdicao,
@@ -79,13 +81,18 @@ public class LocacoesController : ControllerBase
         return Ok(locacao);
     }
 
+    public class MarcarProntaRequest
+    {
+        public bool Pronta { get; set; }
+    }
+
     [HttpPut("{id}/pronta")]
-    public IActionResult MarcarPronta(int id, [FromBody] bool pronta)
+    public IActionResult MarcarPronta(int id, [FromBody] MarcarProntaRequest request)
     {
         var locacao = _context.Locacoes.Find(id);
         if (locacao == null) return NotFound();
 
-        locacao.Pronta = pronta;
+        locacao.Pronta = request.Pronta;
         _context.SaveChanges();
         return Ok(locacao);
     }

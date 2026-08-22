@@ -3,4 +3,5 @@
   <Project Path="CasaDoTerno.Application/CasaDoTerno.Application.csproj" />
   <Project Path="CasaDoTerno.Domain/CasaDoTerno.Domain.csproj" />
   <Project Path="CasaDoTerno.Infrastructure/CasaDoTerno.Infrastructure.csproj" />
+  <Project Path="CasaDoTerno.Tests/CasaDoTerno.Tests.csproj" />
 </Solution>

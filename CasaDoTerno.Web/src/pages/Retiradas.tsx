@@ -18,6 +18,7 @@ interface Locacao {
   valorEntrada: number;
   valorRestante: number;
   formaPagamentoRestante: number | null;
+  pronta: boolean;
   itens: ItemLocacao[];
 }
 
@@ -94,6 +95,15 @@ export function Retiradas() {
     }
   }
 
+async function marcarPronta(id: number, pronta: boolean) {
+  try {
+    await api.put(`/Locacoes/${id}/pronta`, { pronta });
+    carregarLocacoes();
+  } catch (erro) {
+    console.error(erro);
+    setMensagem("Erro ao atualizar status de pronta.");
+  }
+}
   async function confirmarRetirada(id: number) {
     const confirmar = window.confirm("Confirmar a RETIRADA física dessa locação?");
     if (!confirmar) return;
@@ -193,6 +203,20 @@ export function Retiradas() {
                   {item.ajustes && ` — ${item.ajustes}`}
                 </div>
               ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+              {locacao.pronta ? (
+                <>
+                  <span style={{ color: "var(--verde)", fontSize: 13 }}>✓ Pronta pra retirada</span>
+                  <button type="button" onClick={() => marcarPronta(locacao.id, false)} style={{ fontSize: 12 }}>
+                    Desmarcar
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={() => marcarPronta(locacao.id, true)} style={{ fontSize: 12 }}>
+                  Marcar como pronta
+                </button>
+              )}
             </div>
 
             <div
