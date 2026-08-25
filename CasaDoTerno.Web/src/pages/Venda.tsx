@@ -17,7 +17,7 @@ interface Usuario {
   email: string;
 }
 
-const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+
 
 interface Cliente {
   id: number;
@@ -51,6 +51,8 @@ export function Venda() {
 
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
+
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
 
   function buscarProdutos() {

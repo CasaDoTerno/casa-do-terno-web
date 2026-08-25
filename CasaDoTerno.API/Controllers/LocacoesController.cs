@@ -31,6 +31,7 @@ public class LocacoesController : ControllerBase
     }
 
     [HttpGet]
+    [HttpGet]
     public IActionResult Listar()
     {
         return Ok(_context.Locacoes.Select(l => new
@@ -52,13 +53,13 @@ public class LocacoesController : ControllerBase
             l.DataPagamentoRestante,
             l.ValorRestante,
             l.Pronta,
+            l.DataCancelamento,
             l.CriadoPor,
             l.EditadoPor,
             l.DataEdicao,
             Itens = l.Itens
         }).ToList());
     }
-
     public class NovaLocacaoRequest
     {
         public int ClienteId { get; set; }
