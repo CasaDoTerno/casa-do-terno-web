@@ -18,6 +18,11 @@ interface Cliente {
   nome: string;
 }
 
+interface Usuario {
+  id: string;
+  email: string;
+}
+
 interface ItemCarrinho {
   produtoId: number;
   modelo: string;
@@ -36,6 +41,7 @@ export function EditarVenda() {
 
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [clienteId, setClienteId] = useState(0);
   const [desconto, setDesconto] = useState(0);
   const [consultor, setConsultor] = useState("");
@@ -55,6 +61,7 @@ export function EditarVenda() {
   useEffect(() => {
     buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+    api.get<Usuario[]>("/Usuarios/lista-simples").then((r) => setUsuarios(r.data));
 
     api.get(`/Vendas/${id}`).then((resposta) => {
       const v = resposta.data;
@@ -124,6 +131,9 @@ export function EditarVenda() {
       return;
     }
 
+    const confirmar = window.confirm("Confirmar as alterações dessa venda?");
+    if (!confirmar) return;
+
     setEnviando(true);
     try {
       await api.put(`/Vendas/${id}`, {
@@ -160,7 +170,12 @@ export function EditarVenda() {
           </div>
           <div>
             <label>Consultor</label>
-            <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
+            <select value={consultor} onChange={(e) => setConsultor(e.target.value)}>
+              <option value="">Selecione...</option>
+              {usuarios.map((u) => (
+                <option key={u.id} value={u.email}>{u.email}</option>
+              ))}
+            </select>
           </div>
         </div>
 

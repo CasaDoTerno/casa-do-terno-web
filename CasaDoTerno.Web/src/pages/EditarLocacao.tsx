@@ -25,14 +25,22 @@ interface Cliente {
   nome: string;
 }
 
+interface Usuario {
+  id: string;
+  email: string;
+}
+
 interface PecaCarrinho {
   produtoId: number;
   modelo: string;
+  referencia: string | null;
+  cor: string;
+  tamanho: string;
   ajustes: string;
   valorLocacao: number;
 }
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Acessorio"];
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
 
 export function EditarLocacao() {
   const { id } = useParams();
@@ -41,6 +49,7 @@ export function EditarLocacao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [eventos, setEventos] = useState<Evento[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
   const [clienteId, setClienteId] = useState(0);
   const [dataEvento, setDataEvento] = useState("");
@@ -63,19 +72,20 @@ export function EditarLocacao() {
   const [carregado, setCarregado] = useState(false);
   const [jaRetirada, setJaRetirada] = useState(false);
 
-function buscarProdutos() {
-  api.get<Produto[]>("/Produtos").then((r) => {
-    const disponiveis = r.data
-      .filter((p) => p.disponivelParaLocacao)
-      .sort((a, b) => (a.referencia || "").localeCompare(b.referencia || ""));
-    setProdutos(disponiveis);
-  });
-}
+  function buscarProdutos() {
+    api.get<Produto[]>("/Produtos").then((r) => {
+      const disponiveis = r.data
+        .filter((p) => p.disponivelParaLocacao)
+        .sort((a, b) => (a.referencia || "").localeCompare(b.referencia || ""));
+      setProdutos(disponiveis);
+    });
+  }
 
   useEffect(() => {
     buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
     api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
+    api.get<Usuario[]>("/Usuarios/lista-simples").then((r) => setUsuarios(r.data));
 
     api.get(`/Locacoes/${id}`).then((resposta) => {
       const l = resposta.data;
@@ -89,17 +99,17 @@ function buscarProdutos() {
       setFormaPagamentoEntrada(l.formaPagamentoEntrada);
       setEventoId(l.eventoId ?? 0);
       setJaRetirada(l.dataRetiradaReal !== null);
-        setPecas(
-          l.itens.map((item: any) => ({
-            produtoId: item.produtoId,
-            modelo: "Carregando...",
-            referencia: null,
-            cor: "",
-            tamanho: "",
-            ajustes: item.ajustes ?? "",
-            valorLocacao: item.valorItem,
-          }))
-        );
+      setPecas(
+        l.itens.map((item: any) => ({
+          produtoId: item.produtoId,
+          modelo: "Carregando...",
+          referencia: null,
+          cor: "",
+          tamanho: "",
+          ajustes: item.ajustes ?? "",
+          valorLocacao: item.valorItem,
+        }))
+      );
 
       if (l.eventoId) {
         api.get(`/Eventos/${l.eventoId}`).then((eventoResposta) => {
@@ -111,17 +121,17 @@ function buscarProdutos() {
     });
   }, [id]);
 
-useEffect(() => {
-  if (!carregado || produtos.length === 0) return;
-  setPecas((atual) =>
-    atual.map((peca) => {
-      const produto = produtos.find((p) => p.id === peca.produtoId);
-      return produto
-        ? { ...peca, modelo: produto.modelo, referencia: produto.referencia, cor: produto.cor, tamanho: produto.tamanho }
-        : peca;
-    })
-  );
-}, [produtos, carregado]);
+  useEffect(() => {
+    if (!carregado || produtos.length === 0) return;
+    setPecas((atual) =>
+      atual.map((peca) => {
+        const produto = produtos.find((p) => p.id === peca.produtoId);
+        return produto
+          ? { ...peca, modelo: produto.modelo, referencia: produto.referencia, cor: produto.cor, tamanho: produto.tamanho }
+          : peca;
+      })
+    );
+  }, [produtos, carregado]);
 
   useEffect(() => {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
@@ -165,7 +175,15 @@ useEffect(() => {
     setMensagem("");
     setPecas([
       ...pecas,
-      { produtoId: produto.id, modelo: produto.modelo, ajustes: ajustesPeca, valorLocacao: valorPeca },
+      {
+        produtoId: produto.id,
+        modelo: produto.modelo,
+        referencia: produto.referencia,
+        cor: produto.cor,
+        tamanho: produto.tamanho,
+        ajustes: ajustesPeca,
+        valorLocacao: valorPeca,
+      },
     ]);
     setProdutoSelecionado(0);
     setAjustesPeca("");
@@ -188,6 +206,9 @@ useEffect(() => {
       setMensagem("A locação precisa ter pelo menos uma peça.");
       return;
     }
+
+    const confirmar = window.confirm("Confirmar as alterações dessa locação?");
+    if (!confirmar) return;
 
     setEnviando(true);
     try {
@@ -247,7 +268,12 @@ useEffect(() => {
           </div>
           <div>
             <label>Consultor</label>
-            <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
+            <select value={consultor} onChange={(e) => setConsultor(e.target.value)}>
+              <option value="">Selecione...</option>
+              {usuarios.map((u) => (
+                <option key={u.id} value={u.email}>{u.email}</option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -336,7 +362,8 @@ useEffect(() => {
             {pecas.map((peca, index) => (
               <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>
-                  {peca.modelo} — R$ {peca.valorLocacao} {peca.ajustes && `— ${peca.ajustes}`}
+                  {peca.referencia ? `${peca.referencia} — ` : ""}{peca.modelo} · {peca.cor} · Tam. {peca.tamanho} — R$ {peca.valorLocacao}
+                  {peca.ajustes && ` — ${peca.ajustes}`}
                 </span>
                 <button type="button" onClick={() => removerPeca(index)}>Remover</button>
               </li>

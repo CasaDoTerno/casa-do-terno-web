@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../Services/API";
+import * as XLSX from "xlsx";
 
 interface ComissaoConsultor {
   consultor: string;
@@ -34,6 +35,22 @@ export function ComissaoConsultor() {
       .catch((erro) => console.error(erro))
       .finally(() => setCarregando(false));
   }
+  function exportarExcel() {
+  const linhas = resultado.map((c) => ({
+    Consultor: c.consultor,
+    "Total Vendas (R$)": c.totalVendas,
+    "Total Locações (R$)": c.totalLocacoes,
+    "Total Geral (R$)": c.totalGeral,
+    "Comissão (R$)": c.totalVendas * (percentual / 100),
+  }));
+
+  const planilha = XLSX.utils.json_to_sheet(linhas);
+  const livro = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(livro, planilha, "Comissão");
+
+  const nomeArquivo = `comissao-consultor_${dataInicio}_a_${dataFim}.xlsx`;
+  XLSX.writeFile(livro, nomeArquivo);
+}
 
   useEffect(() => {
     buscar();
@@ -66,11 +83,23 @@ export function ComissaoConsultor() {
           />
         </div>
         <div className="campo">
-          <label style={{ visibility: "hidden" }}>.</label>
-          <button onClick={buscar} disabled={carregando}>
-            {carregando ? "Buscando..." : "Buscar"}
-          </button>
-        </div>
+  <label style={{ visibility: "hidden" }}>.</label>
+  <button onClick={buscar} disabled={carregando}>
+    {carregando ? "Buscando..." : "Buscar"}
+  </button>
+</div>
+<div className="campo">
+  <label style={{ visibility: "hidden" }}>.</label>
+  <button onClick={exportarExcel} disabled={resultado.length === 0} className="no-imprimir">
+    Exportar Excel
+  </button>
+</div>
+<div className="campo">
+  <label style={{ visibility: "hidden" }}>.</label>
+  <button onClick={() => window.print()} disabled={resultado.length === 0} className="no-imprimir">
+    Exportar PDF
+  </button>
+</div>
       </div>
 
       {resultado.length === 0 && !carregando && (

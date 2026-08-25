@@ -18,11 +18,12 @@ export function Login() {
         { email, password: senha }
       );
 
-      localStorage.setItem("token", resposta.data.accessToken);
+localStorage.setItem("token", resposta.data.accessToken);
+localStorage.setItem("emailUsuario", email);
 
-      const perfilResposta = await api.get("/Usuarios/perfil");
-      localStorage.setItem("papel", perfilResposta.data.papel);
-      localStorage.setItem("modulosPermitidos", perfilResposta.data.modulosPermitidos ?? "");
+const perfilResposta = await api.get("/Usuarios/perfil");
+localStorage.setItem("papel", perfilResposta.data.papel);
+localStorage.setItem("modulosPermitidos", perfilResposta.data.modulosPermitidos ?? "");
 
       navigate("/");
     } catch (erro) {

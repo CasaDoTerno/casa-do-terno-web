@@ -12,6 +12,12 @@ interface Produto {
   valorVenda: number;
   disponivelParaVenda: boolean;
 }
+interface Usuario {
+  id: string;
+  email: string;
+}
+
+const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
 interface Cliente {
   id: number;
@@ -35,7 +41,7 @@ export function Venda() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [clienteId, setClienteId] = useState(0);
   const [desconto, setDesconto] = useState(0);
-  const [consultor, setConsultor] = useState("");
+  const [consultor, setConsultor] = useState(localStorage.getItem("emailUsuario") ?? "");
   const [formaPagamento, setFormaPagamento] = useState(0);
   const [numeroParcelas, setNumeroParcelas] = useState(1);
 
@@ -46,6 +52,7 @@ export function Venda() {
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
 
+
   function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) =>
       setProdutos(r.data.filter((p) => p.disponivelParaVenda))
@@ -55,6 +62,7 @@ export function Venda() {
   useEffect(() => {
     buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+    api.get<Usuario[]>("/Usuarios/lista-simples").then((r) => setUsuarios(r.data));
   }, []);
 
   function adicionarAoCarrinho() {
@@ -130,10 +138,15 @@ setCarrinho([
               placeholder="Buscar cliente..."
             />
           </div>
-          <div>
-            <label>Consultor</label>
-            <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
-          </div>
+<div>
+  <label>Consultor</label>
+  <select value={consultor} onChange={(e) => setConsultor(e.target.value)}>
+    <option value="">Selecione...</option>
+    {usuarios.map((u) => (
+      <option key={u.id} value={u.email}>{u.email}</option>
+    ))}
+  </select>
+</div>
         </div>
 
         <h2>Produtos</h2>

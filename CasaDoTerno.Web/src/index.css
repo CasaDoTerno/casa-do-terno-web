@@ -474,6 +474,12 @@ select option {
     margin-bottom: 8px;
     text-align: justify;
   }
+    table {
+    color: #000 !important;
+  }
+  table th, table td {
+    border: 1px solid #999 !important;
+  }
 }
 
 a {

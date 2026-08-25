@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import * as XLSX from "xlsx";
 import api from "../Services/API";
 
 interface TotalPorFormaPagamento {
@@ -34,14 +35,52 @@ export function FechamentoCaixa() {
     buscarFechamento();
   }, []); // busca uma vez, com a data de hoje, assim que a tela abre
 
+  function exportarExcel() {
+    if (!resultado) return;
+
+    const linhasEntradas = resultado.entradas.map((e) => ({
+      Tipo: "Entrada",
+      "Forma de Pagamento": nomesFormaPagamento[e.formaPagamento],
+      "Valor (R$)": e.valor,
+    }));
+
+    const linhasSaidas = resultado.saidas.map((s) => ({
+      Tipo: "Saída",
+      "Forma de Pagamento": nomesFormaPagamento[s.formaPagamento],
+      "Valor (R$)": s.valor,
+    }));
+
+    const linhaTotal = [
+      { Tipo: "", "Forma de Pagamento": "", "Valor (R$)": "" },
+      { Tipo: "TOTAL ENTRADAS", "Forma de Pagamento": "", "Valor (R$)": resultado.totalEntradas },
+      { Tipo: "TOTAL SAÍDAS", "Forma de Pagamento": "", "Valor (R$)": resultado.totalSaidas },
+      { Tipo: "SALDO LÍQUIDO", "Forma de Pagamento": "", "Valor (R$)": resultado.saldoLiquido },
+    ];
+
+    const linhas = [...linhasEntradas, ...linhasSaidas, ...linhaTotal];
+
+    const planilha = XLSX.utils.json_to_sheet(linhas);
+    const livro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(livro, planilha, "Fechamento");
+
+    const nomeArquivo = `fechamento-caixa_${data}.xlsx`;
+    XLSX.writeFile(livro, nomeArquivo);
+  }
+
   return (
     <div>
       <h1>Fechamento de Caixa</h1>
 
-      <div>
+      <div className="no-imprimir">
         <label>Data: </label>
         <input type="date" value={data} onChange={(e) => setData(e.target.value)} />
         <button onClick={buscarFechamento}>Buscar</button>
+        <button onClick={exportarExcel} disabled={!resultado} style={{ marginLeft: 8 }}>
+          Exportar Excel
+        </button>
+        <button onClick={() => window.print()} disabled={!resultado} style={{ marginLeft: 8 }}>
+          Exportar PDF
+        </button>
       </div>
 
       {carregando && <p>Carregando...</p>}

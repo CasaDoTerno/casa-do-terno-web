@@ -104,6 +104,16 @@ public class UsuariosController : ControllerBase
 
         return Ok(resultado);
     }
+    [HttpGet("lista-simples")]
+    public IActionResult ListaSimples()
+    {
+        var usuarios = _userManager.Users
+            .Select(u => new { id = u.Id, email = u.Email })
+            .ToList();
+
+        return Ok(usuarios);
+    }
+
     [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
     public async Task<IActionResult> BuscarPorId(string id)

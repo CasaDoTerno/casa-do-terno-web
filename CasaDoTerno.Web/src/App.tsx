@@ -57,6 +57,11 @@ import { CadastroPerfil } from "./pages/CadastroPerfil";
 import { EditarUsuario } from "./pages/EditarUsuario";
 import { ContratoLocacao } from "./pages/ContratoLocacao";
 
+import { CadastroFuncionario } from "./pages/CadastroFuncionario";
+import { Funcionarios } from "./pages/Funcionarios";
+import { EditarFuncionario } from "./pages/EditarFuncionario";
+import { FolhaPagamento } from "./pages/FolhaPagamento";
+
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
   const autenticado = !!localStorage.getItem("token");
@@ -132,6 +137,11 @@ function App() {
                     <Route path="/usuarios/editar/:id" element={<EditarUsuario />} />
                     
                     <Route path="/locacoes/contrato/:id" element={<ContratoLocacao />} />
+
+                    <Route path="/cadastro-funcionario" element={<CadastroFuncionario />} />
+<Route path="/funcionarios" element={<Funcionarios />} />
+<Route path="/funcionarios/editar/:id" element={<EditarFuncionario />} />
+<Route path="/funcionarios/:id/folha" element={<FolhaPagamento />} />
 
                   </Routes>
                 </div>

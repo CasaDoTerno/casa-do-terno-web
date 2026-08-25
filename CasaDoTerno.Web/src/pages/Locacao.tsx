@@ -23,6 +23,11 @@ interface Cliente {
   nome: string;
 }
 
+interface Usuario {
+  id: string;
+  email: string;
+}
+
 interface PecaCarrinho {
   produtoId: number;
   modelo: string;
@@ -33,18 +38,19 @@ interface PecaCarrinho {
   valorLocacao: number;
 }
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Acessorio"];
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
 
 export function Locacao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [eventos, setEventos] = useState<Evento[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
   const [clienteId, setClienteId] = useState(0);
   const [dataEvento, setDataEvento] = useState("");
   const [dataRetirada, setDataRetirada] = useState("");
   const [dataDevolucaoPrevista, setDataDevolucaoPrevista] = useState("");
-  const [consultor, setConsultor] = useState("");
+  const [consultor, setConsultor] = useState(localStorage.getItem("emailUsuario") ?? "");
   const [desconto, setDesconto] = useState(0);
   const [valorEntrada, setValorEntrada] = useState(0);
   const [formaPagamentoEntrada, setFormaPagamentoEntrada] = useState(0);
@@ -59,18 +65,20 @@ export function Locacao() {
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-function buscarProdutos() {
-  api.get<Produto[]>("/Produtos").then((r) => {
-    const disponiveis = r.data
-      .filter((p) => p.disponivelParaLocacao)
-      .sort((a, b) => (a.referencia || "").localeCompare(b.referencia || ""));
-    setProdutos(disponiveis);
-  });
-}
+  function buscarProdutos() {
+    api.get<Produto[]>("/Produtos").then((r) => {
+      const disponiveis = r.data
+        .filter((p) => p.disponivelParaLocacao)
+        .sort((a, b) => (a.referencia || "").localeCompare(b.referencia || ""));
+      setProdutos(disponiveis);
+    });
+  }
+
   useEffect(() => {
     buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
     api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
+    api.get<Usuario[]>("/Usuarios/lista-simples").then((r) => setUsuarios(r.data));
   }, []);
 
   useEffect(() => {
@@ -112,18 +120,18 @@ function buscarProdutos() {
     }
 
     setMensagem("");
-  setPecas([
-    ...pecas,
-    {
-      produtoId: produto.id,
-      modelo: produto.modelo,
-      referencia: produto.referencia,
-      cor: produto.cor,
-      tamanho: produto.tamanho,
-      ajustes: ajustesPeca,
-      valorLocacao: valorPeca,
-    },
-  ]);
+    setPecas([
+      ...pecas,
+      {
+        produtoId: produto.id,
+        modelo: produto.modelo,
+        referencia: produto.referencia,
+        cor: produto.cor,
+        tamanho: produto.tamanho,
+        ajustes: ajustesPeca,
+        valorLocacao: valorPeca,
+      },
+    ]);
     setProdutoSelecionado(0);
     setAjustesPeca("");
     setValorPeca(0);
@@ -145,6 +153,11 @@ function buscarProdutos() {
       setMensagem("Adicione pelo menos uma peça antes de confirmar.");
       return;
     }
+
+    const confirmar = window.confirm(
+      `Confirmar a criação dessa locação?\n\nTotal: R$ ${valorTotal.toFixed(2)}\nPeças: ${pecas.length}`
+    );
+    if (!confirmar) return;
 
     setEnviando(true);
     try {
@@ -197,7 +210,12 @@ function buscarProdutos() {
           </div>
           <div>
             <label>Consultor</label>
-            <input value={consultor} onChange={(e) => setConsultor(e.target.value)} />
+            <select value={consultor} onChange={(e) => setConsultor(e.target.value)}>
+              <option value="">Selecione...</option>
+              {usuarios.map((u) => (
+                <option key={u.id} value={u.email}>{u.email}</option>
+              ))}
+            </select>
           </div>
 
           <div>

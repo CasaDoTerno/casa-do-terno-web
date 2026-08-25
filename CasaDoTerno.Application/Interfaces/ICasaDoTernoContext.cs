@@ -20,5 +20,7 @@ public interface ICasaDoTernoContext
     DbSet<Perfil> Perfis { get; }
     DbSet<UsuarioPerfil> UsuarioPerfis { get; }
     DbSet<MetaMensal> MetasMensais { get; }
+    DbSet<Funcionario> Funcionarios { get; }
+    DbSet<Falta> Faltas { get; }
     int SaveChanges();
 }
