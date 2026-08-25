@@ -59,12 +59,14 @@ export function Locacao() {
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  function buscarProdutos() {
-    api.get<Produto[]>("/Produtos").then((r) =>
-      setProdutos(r.data.filter((p) => p.disponivelParaLocacao))
-    );
-  }
-
+function buscarProdutos() {
+  api.get<Produto[]>("/Produtos").then((r) => {
+    const disponiveis = r.data
+      .filter((p) => p.disponivelParaLocacao)
+      .sort((a, b) => (a.referencia || "").localeCompare(b.referencia || ""));
+    setProdutos(disponiveis);
+  });
+}
   useEffect(() => {
     buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));

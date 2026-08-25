@@ -11,6 +11,7 @@ interface Produto {
   cor: string;
   tamanho: string;
   valorLocacao: number;
+  disponivelParaLocacao: boolean;
 }
 
 interface Evento {
@@ -62,9 +63,14 @@ export function EditarLocacao() {
   const [carregado, setCarregado] = useState(false);
   const [jaRetirada, setJaRetirada] = useState(false);
 
-  function buscarProdutos() {
-    api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
-  }
+function buscarProdutos() {
+  api.get<Produto[]>("/Produtos").then((r) => {
+    const disponiveis = r.data
+      .filter((p) => p.disponivelParaLocacao)
+      .sort((a, b) => (a.referencia || "").localeCompare(b.referencia || ""));
+    setProdutos(disponiveis);
+  });
+}
 
   useEffect(() => {
     buscarProdutos();
