@@ -36,6 +36,8 @@ public class Locacao
     public decimal MultaAtraso { get; set; }
     public FormaPagamento? FormaPagamentoMulta { get; set; }
     public DateTime? DataPagamentoMulta { get; set; }
+    public DateTime? DataCancelamento { get; set; }
+
     public bool EstaAtrasada()
     {
         return DataDevolucaoReal == null && DateTime.Now > DataDevolucaoPrevista;

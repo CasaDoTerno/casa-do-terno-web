@@ -378,6 +378,37 @@ public class LocacaoService
 
         return (true, "Pagamento da multa registrado com sucesso.");
     }
+    public (bool sucesso, string mensagem) CancelarLocacao(int locacaoId)
+    {
+        var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.");
+
+        if (locacao.DataCancelamento != null)
+            return (false, "Essa locação já foi cancelada.");
+
+        if (locacao.DataRetiradaReal != null)
+            return (false, "Não é possível cancelar uma locação que já foi retirada. Se as peças não vão ser usadas, registre a devolução.");
+
+        var eventoId = locacao.EventoId;
+
+        // remove os itens — como as consultas de trava/disponibilidade sempre juntam com ItensLocacao,
+        // uma locação sem itens simplesmente para de "contar" pra qualquer travamento
+        _context.ItensLocacao.RemoveRange(locacao.Itens);
+        locacao.Itens.Clear();
+        locacao.DataCancelamento = DateTime.Now;
+
+        _context.SaveChanges();
+
+        // se essa locação estava vinculada a um evento, recalcula o desconto da peça principal
+        // (um padrinho a menos pode significar menos desconto pro noivo)
+        if (eventoId.HasValue)
+        {
+            AtualizarDescontoDoEvento(eventoId.Value);
+        }
+
+        return (true, "Locação cancelada com sucesso.");
+    }
     public (bool sucesso, string mensagem) IsentarMulta(int locacaoId)
     {
         var locacao = _context.Locacoes.Find(locacaoId);

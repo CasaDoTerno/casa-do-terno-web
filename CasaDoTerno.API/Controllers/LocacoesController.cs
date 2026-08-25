@@ -19,6 +19,16 @@ public class LocacoesController : ControllerBase
         _context = context;
         _locacaoService = locacaoService;
     }
+    [HttpPut("{id}/cancelar")]
+    public IActionResult Cancelar(int id)
+    {
+        var (sucesso, mensagem) = _locacaoService.CancelarLocacao(id);
+
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        return Ok(new { mensagem });
+    }
 
     [HttpGet]
     public IActionResult Listar()

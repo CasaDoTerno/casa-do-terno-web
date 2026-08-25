@@ -14,6 +14,7 @@ interface Locacao {
   dataEvento: string;
   dataRetirada: string;
   dataRetiradaReal: string | null;
+  dataCancelamento: string | null;
   valorTotal: number;
   valorEntrada: number;
   valorRestante: number;
@@ -57,14 +58,16 @@ export function Retiradas() {
   const [dataReferencia, setDataReferencia] = useState(() => new Date().toISOString().split("T")[0]);
   const [mostrarTodas, setMostrarTodas] = useState(false);
 
-  function carregarLocacoes() {
-    api.get<Locacao[]>("/Locacoes").then((resposta) => {
-      const pendentes = resposta.data.filter(
-        (l) => l.dataRetiradaReal === null || l.formaPagamentoRestante === null
-      );
-      setLocacoes(pendentes);
-    });
-  }
+function carregarLocacoes() {
+  api.get<Locacao[]>("/Locacoes").then((resposta) => {
+    const pendentes = resposta.data.filter(
+      (l) =>
+        l.dataCancelamento === null &&
+        (l.dataRetiradaReal === null || l.formaPagamentoRestante === null)
+    );
+    setLocacoes(pendentes);
+  });
+}
 
   useEffect(() => {
     carregarLocacoes();
@@ -115,6 +118,19 @@ async function marcarPronta(id: number, pronta: boolean) {
       setMensagem(erro.response?.data || "Erro ao registrar retirada.");
     }
   }
+  async function cancelarLocacao(id: number) {
+  const confirmar = window.confirm(
+    "Tem certeza que quer CANCELAR essa locação?\n\nIsso não pode ser desfeito. O valor de entrada já pago não é reembolsado."
+  );
+  if (!confirmar) return;
+  try {
+    await api.put(`/Locacoes/${id}/cancelar`);
+    setMensagem(`Locação #${id} cancelada.`);
+    carregarLocacoes();
+  } catch (erro: any) {
+    setMensagem(erro.response?.data || "Erro ao cancelar locação.");
+  }
+}
 
   const inicio = inicioDaSemana(new Date(dataReferencia + "T00:00:00"));
   const fim = new Date(inicio);
@@ -249,9 +265,16 @@ async function marcarPronta(id: number, pronta: boolean) {
               {locacao.formaPagamentoRestante === null && (
                 <PagamentoInline onConfirmar={(forma) => registrarPagamento(locacao.id, forma)} />
               )}
-
               {locacao.dataRetiradaReal === null ? (
-                <button onClick={() => confirmarRetirada(locacao.id)}>Confirmar retirada</button>
+                <>
+                  <button onClick={() => confirmarRetirada(locacao.id)}>Confirmar retirada</button>
+                  <button
+                    onClick={() => cancelarLocacao(locacao.id)}
+                    style={{ background: "#7f1d1d", color: "#fecaca" }}
+                  >
+                    Cancelar locação
+                  </button>
+                </>
               ) : (
                 <span style={{ color: "var(--verde)", fontSize: 13 }}>✔ Já retirado</span>
               )}

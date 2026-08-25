@@ -17,6 +17,7 @@ interface Locacao {
   dataDevolucaoReal: string | null;
   valorTotal: number;
   itens: ItemLocacao[];
+  dataCancelamento: string | null;
 }
 
 interface Cliente {
@@ -33,6 +34,9 @@ interface Produto {
 }
 
 function statusDaLocacao(locacao: Locacao): { texto: string; cor: string } {
+  if (locacao.dataCancelamento !== null) {
+    return { texto: "Cancelada", cor: "var(--texto-suave)" };
+  }
   if (locacao.dataDevolucaoReal !== null) {
     return { texto: "Devolvida", cor: "var(--verde)" };
   }
