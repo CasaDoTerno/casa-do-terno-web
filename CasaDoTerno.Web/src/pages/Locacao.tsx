@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
+import { useNavigate } from "react-router-dom";
 
 interface Produto {
   id: number;
@@ -64,6 +65,9 @@ export function Locacao() {
 
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
+
+  const [locacaoCriadaId, setLocacaoCriadaId] = useState<number | null>(null);
+const navigate = useNavigate();
 
   function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) => {
@@ -159,32 +163,33 @@ export function Locacao() {
     );
     if (!confirmar) return;
 
-    setEnviando(true);
-    try {
-      await api.post("/Locacoes", {
-        clienteId,
-        dataEvento,
-        dataRetirada,
-        dataDevolucaoPrevista,
-        consultor,
-        desconto,
-        valorEntrada,
-        formaPagamentoEntrada,
-        eventoId: eventoId === 0 ? null : eventoId,
-        ehLocacaoPrincipalDoEvento: ehPrincipalDoEvento,
-        itens: pecas.map((p) => ({
-          produtoId: p.produtoId,
-          ajustes: p.ajustes,
-          valorItem: p.valorLocacao,
-        })),
-      });
-      setMensagem("Locação criada com sucesso!");
-      setPecas([]);
-      setDesconto(0);
-      setValorEntrada(0);
-      setEventoId(0);
-      setEhPrincipalDoEvento(false);
-    } catch (erro: any) {
+setEnviando(true);
+try {
+  const resposta = await api.post("/Locacoes", {
+    clienteId,
+    dataEvento,
+    dataRetirada,
+    dataDevolucaoPrevista,
+    consultor,
+    desconto,
+    valorEntrada,
+    formaPagamentoEntrada,
+    eventoId: eventoId === 0 ? null : eventoId,
+    ehLocacaoPrincipalDoEvento: ehPrincipalDoEvento,
+    itens: pecas.map((p) => ({
+      produtoId: p.produtoId,
+      ajustes: p.ajustes,
+      valorItem: p.valorLocacao,
+    })),
+  });
+  setLocacaoCriadaId(resposta.data.id);
+  setMensagem("Locação criada com sucesso!");
+  setPecas([]);
+  setDesconto(0);
+  setValorEntrada(0);
+  setEventoId(0);
+  setEhPrincipalDoEvento(false);
+} catch (erro: any) {
       console.error(erro);
       setMensagem(erro.response?.data || "Erro ao criar locação.");
     } finally {
@@ -361,9 +366,28 @@ export function Locacao() {
         <button type="submit" disabled={enviando}>
           {enviando ? "Salvando..." : "Confirmar locação"}
         </button>
-      </form>
+</form>
 
-      {mensagem && <p>{mensagem}</p>}
+{mensagem && <p>{mensagem}</p>}
+
+{locacaoCriadaId && (
+  <div className="card" style={{ marginTop: 20, borderLeft: "3px solid var(--verde)" }}>
+    <p style={{ fontWeight: 700, marginBottom: 12 }}>
+      Locação #{locacaoCriadaId} criada! Imprima o contrato agora pra colher a assinatura do cliente:
+    </p>
+    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+      <button type="button" onClick={() => navigate(`/locacoes/contrato/${locacaoCriadaId}`)}>
+        Ver Contrato (assinar agora)
+      </button>
+      <button type="button" onClick={() => navigate(`/locacoes/imprimir/${locacaoCriadaId}`)}>
+        Ver Recibo
+      </button>
+      <button type="button" onClick={() => setLocacaoCriadaId(null)} style={{ background: "var(--chumbo-input)" }}>
+        Fazer nova locação
+      </button>
     </div>
+  </div>
+)}
+</div>
   );
 }
