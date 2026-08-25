@@ -62,6 +62,8 @@ import { Funcionarios } from "./pages/Funcionarios";
 import { EditarFuncionario } from "./pages/EditarFuncionario";
 import { FolhaPagamento } from "./pages/FolhaPagamento";
 
+import { Auditoria } from "./pages/Auditoria";
+
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
   const autenticado = !!localStorage.getItem("token");
@@ -142,6 +144,7 @@ function App() {
 <Route path="/funcionarios" element={<Funcionarios />} />
 <Route path="/funcionarios/editar/:id" element={<EditarFuncionario />} />
 <Route path="/funcionarios/:id/folha" element={<FolhaPagamento />} />
+<Route path="/auditoria" element={<Auditoria />} />
 
                   </Routes>
                 </div>

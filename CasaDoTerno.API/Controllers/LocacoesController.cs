@@ -13,12 +13,16 @@ public class LocacoesController : ControllerBase
 {
     private readonly CasaDoTernoContext _context;
     private readonly LocacaoService _locacaoService;
+    private readonly AuditoriaService _auditoriaService;
 
-    public LocacoesController(CasaDoTernoContext context, LocacaoService locacaoService)
+    public LocacoesController(CasaDoTernoContext context, LocacaoService locacaoService, AuditoriaService auditoriaService)
     {
         _context = context;
         _locacaoService = locacaoService;
+        _auditoriaService = auditoriaService;
     }
+
+
     [HttpPut("{id}/cancelar")]
     public IActionResult Cancelar(int id)
     {
@@ -27,10 +31,12 @@ public class LocacoesController : ControllerBase
         if (!sucesso)
             return BadRequest(mensagem);
 
+        _auditoriaService.Registrar(User.Identity?.Name, "Cancelou", "Locacao", id);
+
         return Ok(new { mensagem });
     }
 
-    [HttpGet]
+
     [HttpGet]
     public IActionResult Listar()
     {
@@ -89,6 +95,8 @@ public class LocacoesController : ControllerBase
         locacao!.CriadoPor = User.Identity?.Name;
         _context.SaveChanges();
 
+        _auditoriaService.Registrar(User.Identity?.Name, "Criou", "Locacao", locacao.Id, $"Total: R$ {locacao.ValorTotal:F2}");
+
         return Ok(locacao);
     }
 
@@ -105,6 +113,9 @@ public class LocacoesController : ControllerBase
 
         locacao.Pronta = request.Pronta;
         _context.SaveChanges();
+
+        _auditoriaService.Registrar(User.Identity?.Name, request.Pronta ? "Marcou pronta" : "Desmarcou pronta", "Locacao", locacao.Id);
+
         return Ok(locacao);
     }
 
@@ -180,9 +191,12 @@ public class LocacoesController : ControllerBase
 
         if (!sucesso)
             return BadRequest(mensagem);
+
         locacao!.EditadoPor = User.Identity?.Name;
         locacao.DataEdicao = DateTime.Now;
         _context.SaveChanges();
+
+        _auditoriaService.Registrar(User.Identity?.Name, "Editou", "Locacao", locacao.Id, $"Total: R$ {locacao.ValorTotal:F2}");
 
         return Ok(locacao);
     }
@@ -207,7 +221,6 @@ public class LocacoesController : ControllerBase
 
         return Ok(mensagem);
     }
-
     [HttpPut("{id}/retirada")]
     public IActionResult RegistrarRetirada(int id)
     {
@@ -216,8 +229,11 @@ public class LocacoesController : ControllerBase
         if (!sucesso)
             return BadRequest(mensagem);
 
+        _auditoriaService.Registrar(User.Identity?.Name, "Confirmou retirada", "Locacao", id);
+
         return Ok(mensagem);
     }
+
     [HttpPut("{id}/isentar-multa")]
     public IActionResult IsentarMulta(int id)
     {
@@ -237,6 +253,11 @@ public class LocacoesController : ControllerBase
 
         if (!sucesso)
             return BadRequest(mensagem);
+
+        _auditoriaService.Registrar(
+            User.Identity?.Name, "Confirmou devolução", "Locacao", id,
+            multa > 0 ? $"Multa calculada: R$ {multa:F2}" : null
+        );
 
         return Ok(new { mensagem, multa });
     }

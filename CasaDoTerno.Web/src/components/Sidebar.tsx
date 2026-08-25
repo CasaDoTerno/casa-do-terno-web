@@ -157,6 +157,9 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           <NavLink to="/perfis" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
             <Users size={18} /> Perfis de Acesso
           </NavLink>
+          <NavLink to="/auditoria" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
+            <Users size={18} /> Log de Auditoria
+          </NavLink>
         </>
       )}
 

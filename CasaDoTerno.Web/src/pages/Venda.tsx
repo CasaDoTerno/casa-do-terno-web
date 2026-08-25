@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
+import { useNavigate } from "react-router-dom";
 
 interface Produto {
   id: number;
@@ -54,6 +55,9 @@ export function Venda() {
 
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
+  const [vendaCriadaId, setVendaCriadaId] = useState<number | null>(null);
+const navigate = useNavigate();
+
 
   function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) =>
@@ -103,20 +107,21 @@ setCarrinho([
       return;
     }
 
-    setEnviando(true);
-    try {
-      await api.post("/Vendas", {
-        clienteId,
-        desconto,
-        consultor,
-        formaPagamento,
-        numeroParcelas,
-        itens: carrinho.map((item) => ({ produtoId: item.produtoId, quantidade: item.quantidade })),
-      });
-      setMensagem("Venda registrada com sucesso!");
-      setCarrinho([]);
-      setDesconto(0);
-    } catch (erro: any) {
+setEnviando(true);
+try {
+  const resposta = await api.post("/Vendas", {
+    clienteId,
+    desconto,
+    consultor,
+    formaPagamento,
+    numeroParcelas,
+    itens: carrinho.map((item) => ({ produtoId: item.produtoId, quantidade: item.quantidade })),
+  });
+  setVendaCriadaId(resposta.data.id);
+  setMensagem("Venda registrada com sucesso!");
+  setCarrinho([]);
+  setDesconto(0);
+} catch (erro: any) {
       console.error(erro);
       setMensagem(erro.response?.data || "Erro ao registrar venda.");
     } finally {
@@ -232,7 +237,23 @@ setCarrinho([
         </button>
       </form>
 
-      {mensagem && <p>{mensagem}</p>}
+{mensagem && <p>{mensagem}</p>}
+
+{vendaCriadaId && (
+  <div className="card" style={{ marginTop: 20, borderLeft: "3px solid var(--verde)" }}>
+    <p style={{ fontWeight: 700, marginBottom: 12 }}>
+      Venda #{vendaCriadaId} registrada!
+    </p>
+    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+      <button type="button" onClick={() => navigate(`/vendas/imprimir/${vendaCriadaId}`)}>
+        Ver Recibo
+      </button>
+      <button type="button" onClick={() => setVendaCriadaId(null)} style={{ background: "var(--chumbo-input)" }}>
+        Fazer nova venda
+      </button>
     </div>
+  </div>
+)}
+</div>
   );
 }

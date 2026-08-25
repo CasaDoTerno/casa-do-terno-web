@@ -22,5 +22,6 @@ public interface ICasaDoTernoContext
     DbSet<MetaMensal> MetasMensais { get; }
     DbSet<Funcionario> Funcionarios { get; }
     DbSet<Falta> Faltas { get; }
+    DbSet<LogAuditoria> LogsAuditoria { get; }
     int SaveChanges();
 }
