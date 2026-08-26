@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../Services/API";
-import { useNavigate } from "react-router-dom";
 import { ehAdmin } from "../Services/permissoes";
 
 interface ItemLocacao {
@@ -55,7 +54,7 @@ export function Locacoes() {
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todas");
   const admin = ehAdmin();
-const navigate = useNavigate();
+
 
 function carregarLocacoes() {
   api.get<Locacao[]>("/Locacoes").then((r) =>
