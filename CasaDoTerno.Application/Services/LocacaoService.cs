@@ -378,6 +378,42 @@ public class LocacaoService
 
         return (true, "Pagamento da multa registrado com sucesso.");
     }
+    public (bool sucesso, string mensagem) DesfazerDevolucao(int locacaoId)
+    {
+        var locacao = _context.Locacoes.Find(locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.");
+
+        if (locacao.DataDevolucaoReal == null)
+            return (false, "Essa locação não tem devolução registrada pra desfazer.");
+
+        if (locacao.FormaPagamentoMulta != null)
+            return (false, "Essa locação já tem uma multa paga registrada — desfazer a devolução deixaria isso inconsistente. Ajuste manualmente pelo Neon, se necessário.");
+
+        locacao.DataDevolucaoReal = null;
+        locacao.MultaAtraso = 0;
+        _context.SaveChanges();
+
+        return (true, "Devolução desfeita com sucesso.");
+    }
+
+    public (bool sucesso, string mensagem) DesfazerRetirada(int locacaoId)
+    {
+        var locacao = _context.Locacoes.Find(locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.");
+
+        if (locacao.DataRetiradaReal == null)
+            return (false, "Essa locação não tem retirada registrada pra desfazer.");
+
+        if (locacao.DataDevolucaoReal != null)
+            return (false, "Essa locação já foi devolvida — desfaça a devolução primeiro, se for o caso.");
+
+        locacao.DataRetiradaReal = null;
+        _context.SaveChanges();
+
+        return (true, "Retirada desfeita com sucesso.");
+    }
     public (bool sucesso, string mensagem) CancelarLocacao(int locacaoId)
     {
         var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);

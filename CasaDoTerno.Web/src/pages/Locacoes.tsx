@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../Services/API";
+import { useNavigate } from "react-router-dom";
+import { ehAdmin } from "../Services/permissoes";
 
 interface ItemLocacao {
   produtoId: number;
@@ -52,14 +54,45 @@ export function Locacoes() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todas");
+  const admin = ehAdmin();
+const navigate = useNavigate();
 
-  useEffect(() => {
-    api.get<Locacao[]>("/Locacoes").then((r) =>
-      setLocacoes(r.data.sort((a, b) => new Date(b.dataEvento).getTime() - new Date(a.dataEvento).getTime()))
-    );
-    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-    api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
-  }, []);
+function carregarLocacoes() {
+  api.get<Locacao[]>("/Locacoes").then((r) =>
+    setLocacoes(r.data.sort((a, b) => new Date(b.dataEvento).getTime() - new Date(a.dataEvento).getTime()))
+  );
+}
+
+useEffect(() => {
+  carregarLocacoes();
+  api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+  api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+}, []);
+async function desfazerDevolucao(id: number) {
+  const confirmar = window.confirm(
+    "Tem certeza que quer DESFAZER a devolução dessa locação?\n\nEla volta a aparecer como pendente de devolução."
+  );
+  if (!confirmar) return;
+  try {
+    await api.put(`/Locacoes/${id}/desfazer-devolucao`);
+    carregarLocacoes();
+  } catch (erro: any) {
+    alert(erro.response?.data || "Erro ao desfazer devolução.");
+  }
+}
+
+async function desfazerRetirada(id: number) {
+  const confirmar = window.confirm(
+    "Tem certeza que quer DESFAZER a retirada dessa locação?\n\nEla volta a aparecer como pendente de retirada."
+  );
+  if (!confirmar) return;
+  try {
+    await api.put(`/Locacoes/${id}/desfazer-retirada`);
+    carregarLocacoes();
+  } catch (erro: any) {
+    alert(erro.response?.data || "Erro ao desfazer retirada.");
+  }
+}
 
   function nomeCliente(clienteId: number) {
     return clientes.find((c) => c.id === clienteId)?.nome ?? `Cliente #${clienteId}`;
@@ -141,10 +174,33 @@ export function Locacoes() {
                 ))}
               </div>
 
-              <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-                <Link to={`/locacoes/editar/${locacao.id}`}>Editar</Link>
-                <Link to={`/locacoes/imprimir/${locacao.id}`}>Imprimir</Link>
-              </div>
+<div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+  <Link to={`/locacoes/editar/${locacao.id}`}>Editar</Link>
+  <Link to={`/locacoes/imprimir/${locacao.id}`}>Imprimir</Link>
+</div>
+
+{admin && (
+  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+    {locacao.dataDevolucaoReal !== null && (
+      <button
+        type="button"
+        onClick={() => desfazerDevolucao(locacao.id)}
+        style={{ fontSize: 12, background: "#7f1d1d", color: "#fecaca" }}
+      >
+        Desfazer devolução
+      </button>
+    )}
+    {locacao.dataRetiradaReal !== null && locacao.dataDevolucaoReal === null && (
+      <button
+        type="button"
+        onClick={() => desfazerRetirada(locacao.id)}
+        style={{ fontSize: 12, background: "#7f1d1d", color: "#fecaca" }}
+      >
+        Desfazer retirada
+      </button>
+    )}
+  </div>
+)}
             </div>
           );
         })}

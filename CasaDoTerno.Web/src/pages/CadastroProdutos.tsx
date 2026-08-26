@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "../Services/API";
+import { ehAdmin } from "../Services/permissoes";
 
 export function CadastroProduto() {
   const [descricao, setDescricao] = useState("");
@@ -18,6 +19,7 @@ export function CadastroProduto() {
   const [observacao, setObservacao] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const admin = ehAdmin();  
 
   async function handleSubmit(evento: React.FormEvent) {
     evento.preventDefault();
@@ -105,20 +107,22 @@ export function CadastroProduto() {
 
         <h2>Valores</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div className="grid-3">
-            <div>
-              <label>Custo</label>
-              <input type="number" value={valorCusto} onChange={(e) => setValorCusto(Number(e.target.value))} />
-            </div>
-            <div>
-              <label>Venda</label>
-              <input type="number" value={valorVenda} onChange={(e) => setValorVenda(Number(e.target.value))} />
-            </div>
-            <div>
-              <label>Locação</label>
-              <input type="number" value={valorLocacao} onChange={(e) => setValorLocacao(Number(e.target.value))} />
-            </div>
-          </div>
+         <div className={admin ? "grid-3" : "grid-2"}>
+  {admin && (
+    <div>
+      <label>Custo</label>
+      <input type="number" value={valorCusto} onChange={(e) => setValorCusto(Number(e.target.value))} />
+    </div>
+  )}
+  <div>
+    <label>Venda</label>
+    <input type="number" value={valorVenda} onChange={(e) => setValorVenda(Number(e.target.value))} />
+  </div>
+  <div>
+    <label>Locação</label>
+    <input type="number" value={valorLocacao} onChange={(e) => setValorLocacao(Number(e.target.value))} />
+  </div>
+</div>
         </div>
 
         <h2>Estoque e disponibilidade</h2>

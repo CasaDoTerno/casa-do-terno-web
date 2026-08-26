@@ -244,7 +244,33 @@ public class LocacoesController : ControllerBase
 
         return Ok(new { mensagem });
     }
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id}/desfazer-devolucao")]
+    public IActionResult DesfazerDevolucao(int id)
+    {
+        var (sucesso, mensagem) = _locacaoService.DesfazerDevolucao(id);
 
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        _auditoriaService.Registrar(User.Identity?.Name, "Desfez devolução", "Locacao", id);
+
+        return Ok(new { mensagem });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id}/desfazer-retirada")]
+    public IActionResult DesfazerRetirada(int id)
+    {
+        var (sucesso, mensagem) = _locacaoService.DesfazerRetirada(id);
+
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        _auditoriaService.Registrar(User.Identity?.Name, "Desfez retirada", "Locacao", id);
+
+        return Ok(new { mensagem });
+    }
 
     [HttpPut("{id}/devolucao")]
     public IActionResult RegistrarDevolucao(int id)

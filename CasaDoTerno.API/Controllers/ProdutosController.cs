@@ -20,19 +20,63 @@ public class ProdutosController : ControllerBase
     [HttpGet]
     public IActionResult Listar()
     {
-        return Ok(_context.Produtos.ToList());
+        bool admin = User.IsInRole("Admin");
+
+        var produtos = _context.Produtos.Select(p => new
+        {
+            p.Id,
+            p.Modelo,
+            p.Categoria,
+            p.Tamanho,
+            p.Cor,
+            p.Referencia,
+            ValorCusto = admin ? p.ValorCusto : (decimal?)null,
+            p.ValorVenda,
+            p.ValorLocacao,
+            p.ControlaEstoque,
+            p.Quantidade,
+            p.EstoqueMinimo,
+            p.Observacao,
+            p.DisponivelParaVenda,
+            p.DisponivelParaLocacao
+        }).ToList();
+
+        return Ok(produtos);
     }
 
     [HttpGet("{id}")]
     public IActionResult BuscarPorId(int id)
     {
-        var produto = _context.Produtos.Find(id);
+        bool admin = User.IsInRole("Admin");
+
+        var produto = _context.Produtos
+            .Where(p => p.Id == id)
+            .Select(p => new
+            {
+                p.Id,
+                p.Modelo,
+                p.Categoria,
+                p.Tamanho,
+                p.Cor,
+                p.Referencia,
+                ValorCusto = admin ? p.ValorCusto : (decimal?)null,
+                p.ValorVenda,
+                p.ValorLocacao,
+                p.ControlaEstoque,
+                p.Quantidade,
+                p.EstoqueMinimo,
+                p.Observacao,
+                p.DisponivelParaVenda,
+                p.DisponivelParaLocacao
+            })
+            .FirstOrDefault();
+
         if (produto == null)
             return NotFound();
 
         return Ok(produto);
     }
-    
+
     [HttpPost]
     public IActionResult Criar([FromBody] Produto terno)
     {

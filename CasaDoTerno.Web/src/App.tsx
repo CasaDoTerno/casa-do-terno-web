@@ -63,6 +63,7 @@ import { EditarFuncionario } from "./pages/EditarFuncionario";
 import { FolhaPagamento } from "./pages/FolhaPagamento";
 
 import { Auditoria } from "./pages/Auditoria";
+import { CadastroVariacoes } from "./pages/CadastroVariacoes";
 
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -141,10 +142,11 @@ function App() {
                     <Route path="/locacoes/contrato/:id" element={<ContratoLocacao />} />
 
                     <Route path="/cadastro-funcionario" element={<CadastroFuncionario />} />
-<Route path="/funcionarios" element={<Funcionarios />} />
-<Route path="/funcionarios/editar/:id" element={<EditarFuncionario />} />
-<Route path="/funcionarios/:id/folha" element={<FolhaPagamento />} />
-<Route path="/auditoria" element={<Auditoria />} />
+                    <Route path="/funcionarios" element={<Funcionarios />} />
+                    <Route path="/funcionarios/editar/:id" element={<EditarFuncionario />} />
+                    <Route path="/funcionarios/:id/folha" element={<FolhaPagamento />} />
+                    <Route path="/auditoria" element={<Auditoria />} />
+                    <Route path="/cadastro-variacoes" element={<CadastroVariacoes />} />
 
                   </Routes>
                 </div>
