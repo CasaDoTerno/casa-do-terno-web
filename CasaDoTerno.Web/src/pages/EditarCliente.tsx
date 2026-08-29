@@ -21,6 +21,9 @@ export function EditarCliente() {
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState("");
 
+  const [panturrilha, setPanturrilha] = useState<number | "">("");
+  const [coxa, setCoxa] = useState<number | "">("");
+
   useEffect(() => {
     api.get(`/Clientes/${id}`).then((resposta) => {
       const c = resposta.data;
@@ -34,6 +37,8 @@ export function EditarCliente() {
       setAbdomen(c.abdomen ?? "");
       setBainha(c.bainha ?? "");
       setCintura(c.cintura ?? "");
+      setPanturrilha(c.panturrilha ?? "");
+      setCoxa(c.coxa ?? "");
     });
   }, [id]);
 
@@ -54,6 +59,8 @@ export function EditarCliente() {
         abdomen: abdomen === "" ? null : abdomen,
         bainha: bainha === "" ? null : bainha,
         cintura: cintura === "" ? null : cintura,
+        panturrilha: panturrilha === "" ? null : panturrilha,
+        coxa: coxa === "" ? null : coxa,
       });
       setMensagem("Cliente atualizado com sucesso!");
       navigate("/clientes");

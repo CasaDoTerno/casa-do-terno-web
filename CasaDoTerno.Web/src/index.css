@@ -1,3 +1,7 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 :root {
   --chumbo: #171b22;
   --chumbo-conteudo: #232933;
@@ -195,6 +199,7 @@ input, select {
   border: 1px solid var(--borda);
   border-radius: 6px;
   font-size: 14px;
+  width: 100%;
 }
 
 input:focus, select:focus {

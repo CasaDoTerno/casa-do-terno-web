@@ -25,6 +25,7 @@ interface Cliente {
   id: number;
   nome: string;
   telefone: string;
+  cpf: string;
 }
 
 interface Produto {
@@ -126,14 +127,15 @@ async function confirmarDevolucao(id: number) {
 
   const hojeISO = new Date().toISOString().split("T")[0];
 
-  const locacoesFiltradas = locacoes.filter((locacao) => {
-    const textoCliente = nomeCliente(locacao.clienteId).toLowerCase();
-    const textoPecas = locacao.itens.map((item) => descricaoProduto(item.produtoId)).join(" ").toLowerCase();
-    const textoCompleto = `${textoCliente} ${textoPecas}`;
+const locacoesFiltradas = locacoes.filter((locacao) => {
+  const cliente = clientes.find((c) => c.id === locacao.clienteId);
+  const textoCliente = `${cliente?.nome ?? ""} ${cliente?.cpf ?? ""} ${cliente?.telefone ?? ""}`.toLowerCase();
+  const textoPecas = locacao.itens.map((item) => descricaoProduto(item.produtoId)).join(" ").toLowerCase();
+  const textoCompleto = `${textoCliente} ${textoPecas}`;
 
-    const palavras = busca.toLowerCase().split(" ").filter((p) => p.length > 0);
-    return palavras.every((palavra) => textoCompleto.includes(palavra));
-  });
+  const palavras = busca.toLowerCase().split(" ").filter((p) => p.length > 0);
+  return palavras.every((palavra) => textoCompleto.includes(palavra));
+});
 
   const locacoesOrdenadas = [...locacoesFiltradas].sort(
     (a, b) => new Date(a.dataDevolucaoPrevista).getTime() - new Date(b.dataDevolucaoPrevista).getTime()
@@ -145,12 +147,12 @@ async function confirmarDevolucao(id: number) {
       <div className="card" style={{ marginBottom: 20 }}>
         <div className="campo">
           <label>Buscar por cliente ou peça</label>
-          <input
-            type="text"
-            placeholder="Nome do cliente, descrição, código..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
+            <input
+              type="text"
+              placeholder="Nome do cliente, CPF, telefone, descrição, código..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>

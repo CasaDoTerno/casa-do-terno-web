@@ -45,13 +45,11 @@ export function ImprimirRetiradasSemana() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [dataReferencia, setDataReferencia] = useState(() => new Date().toISOString().split("T")[0]);
 
-  useEffect(() => {
-    api.get<Locacao[]>("/Locacoes").then((r) =>
-      setLocacoes(r.data.filter((l) => l.dataRetiradaReal === null))
-    );
-    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-    api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
-  }, []);
+useEffect(() => {
+  api.get<Locacao[]>("/Locacoes").then((r) => setLocacoes(r.data));
+  api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+  api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+}, []);
 
   function nomeCliente(clienteId: number) {
     return clientes.find((c) => c.id === clienteId)?.nome ?? `Cliente #${clienteId}`;
@@ -114,9 +112,13 @@ export function ImprimirRetiradasSemana() {
             <strong style={{ fontSize: 16 }}>{nomeCliente(locacao.clienteId)}</strong>
             <span>{telefoneCliente(locacao.clienteId)}</span>
           </div>
-          <div style={{ marginTop: 4 }}>
+         <div style={{ marginTop: 4 }}>
             Retirada: <strong>{new Date(locacao.dataRetirada).toLocaleDateString("pt-BR")}</strong>
             {" — "}Evento: {new Date(locacao.dataEvento).toLocaleDateString("pt-BR")}
+            {" — "}
+            <strong style={{ color: locacao.dataRetiradaReal !== null ? "#166534" : "#b91c1c" }}>
+              {locacao.dataRetiradaReal !== null ? "✓ RETIRADO" : "○ PENDENTE"}
+            </strong>
           </div>
           <div style={{ marginTop: 8 }}>
             {locacao.itens.map((item, index) => (

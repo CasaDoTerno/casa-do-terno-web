@@ -15,4 +15,6 @@ public class Cliente
     public decimal? Abdomen { get; set; }
     public decimal? Bainha { get; set; }
     public decimal? Cintura { get; set; }
+    public decimal? Panturrilha { get; set; }
+    public decimal? Coxa { get; set; }
 }

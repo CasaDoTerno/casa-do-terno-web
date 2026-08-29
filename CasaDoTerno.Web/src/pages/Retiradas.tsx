@@ -27,6 +27,7 @@ interface Cliente {
   id: number;
   nome: string;
   telefone: string;
+  cpf: string;
 }
 
 interface Produto {
@@ -57,6 +58,7 @@ export function Retiradas() {
   const [mensagem, setMensagem] = useState("");
   const [dataReferencia, setDataReferencia] = useState(() => new Date().toISOString().split("T")[0]);
   const [mostrarTodas, setMostrarTodas] = useState(false);
+  const [busca, setBusca] = useState("");
 
 function carregarLocacoes() {
   api.get<Locacao[]>("/Locacoes").then((resposta) => {
@@ -67,6 +69,11 @@ function carregarLocacoes() {
     );
     setLocacoes(pendentes);
   });
+}
+function textoBuscavelDaLocacao(locacao: Locacao) {
+  const cliente = clientes.find((c) => c.id === locacao.clienteId);
+  if (!cliente) return "";
+  return `${cliente.nome} ${cliente.cpf} ${cliente.telefone}`.toLowerCase();
 }
 
   useEffect(() => {
@@ -144,7 +151,14 @@ async function marcarPronta(id: number, pronta: boolean) {
         return evento >= inicio && evento <= fim;
       });
 
-  const locacoesOrdenadas = [...locacoesDaSemana].sort((a, b) => {
+const locacoesFiltradas = locacoesDaSemana.filter((locacao) => {
+  if (!busca) return true;
+  const palavras = busca.toLowerCase().split(" ").filter((p) => p.length > 0);
+  const texto = textoBuscavelDaLocacao(locacao);
+  return palavras.every((palavra) => texto.includes(palavra));
+});
+
+const locacoesOrdenadas = [...locacoesFiltradas].sort((a, b) => {
     const eventoA = new Date(a.dataEvento).getTime();
     const eventoB = new Date(b.dataEvento).getTime();
     if (eventoA !== eventoB) return eventoA - eventoB;
@@ -158,9 +172,18 @@ async function marcarPronta(id: number, pronta: boolean) {
     <div>
       <h1>Retiradas e Pagamentos Pendentes</h1>
 
-      <div className="card" style={{ marginBottom: 20, display: "flex", gap: 24, flexWrap: "wrap" }}>
-        <div className="campo">
-          <label>Semana de referência</label>
+<div className="card" style={{ marginBottom: 20, display: "flex", gap: 24, flexWrap: "wrap" }}>
+  <div className="campo">
+    <label>Buscar por nome, CPF ou telefone</label>
+    <input
+      type="text"
+      placeholder="Digite pra buscar..."
+      value={busca}
+      onChange={(e) => setBusca(e.target.value)}
+    />
+  </div>
+  <div className="campo">
+    <label>Semana de referência</label>
           <input
             type="date"
             value={dataReferencia}

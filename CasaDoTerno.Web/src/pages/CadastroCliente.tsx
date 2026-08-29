@@ -17,6 +17,9 @@ export function CadastroCliente() {
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState("");
 
+  const [panturrilha, setPanturrilha] = useState<number | "">("");
+  const [coxa, setCoxa] = useState<number | "">("");
+
   async function handleSubmit(evento: React.FormEvent) {
     evento.preventDefault();
     if (enviando) return;
@@ -34,6 +37,8 @@ export function CadastroCliente() {
         abdomen: abdomen === "" ? null : abdomen,
         bainha: bainha === "" ? null : bainha,
         cintura: cintura === "" ? null : cintura,
+        panturrilha: panturrilha === "" ? null : panturrilha,
+        coxa: coxa === "" ? null : coxa,
       });
       setMensagem("Cliente cadastrado com sucesso!");
       setNome("");
@@ -46,6 +51,8 @@ export function CadastroCliente() {
       setAbdomen("");
       setBainha("");
       setCintura("");
+      setPanturrilha("");
+      setCoxa("");
     } catch (erro: any) {
       console.error(erro);
       setMensagem(erro.response?.data || "Erro ao cadastrar cliente. Veja o console (F12).");
@@ -129,6 +136,24 @@ export function CadastroCliente() {
                 value={cintura}
                 onChange={(e) => setCintura(e.target.value === "" ? "" : Number(e.target.value))}
               />
+            </div>
+            <div className="grid-2" style={{ marginTop: 12 }}>
+              <div>
+                <label>Panturrilha</label>
+                <input
+                  type="number"
+                  value={panturrilha}
+                  onChange={(e) => setPanturrilha(e.target.value === "" ? "" : Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <label>Coxa</label>
+                <input
+                  type="number"
+                  value={coxa}
+                  onChange={(e) => setCoxa(e.target.value === "" ? "" : Number(e.target.value))}
+                />
+              </div>
             </div>
           </div>
         </div>
