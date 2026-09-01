@@ -149,14 +149,24 @@ const navigate = useNavigate();
   const valorTotal = subtotal - desconto;
   const valorRestante = valorTotal - valorEntrada;
 
-  async function handleSubmit(evento: React.FormEvent) {
-    evento.preventDefault();
-    if (enviando) return;
+async function handleSubmit(evento: React.FormEvent) {
+  evento.preventDefault();
+  if (enviando) return;
 
-    if (pecas.length === 0) {
-      setMensagem("Adicione pelo menos uma peça antes de confirmar.");
-      return;
-    }
+  if (pecas.length === 0) {
+    setMensagem("Adicione pelo menos uma peça antes de confirmar.");
+    return;
+  }
+
+  if (dataRetirada > dataEvento) {
+    setMensagem("A data de retirada não pode ser depois da data do evento.");
+    return;
+  }
+
+  if (dataDevolucaoPrevista < dataRetirada) {
+    setMensagem("A data de devolução não pode ser antes da data de retirada.");
+    return;
+  }
 
     const confirmar = window.confirm(
       `Confirmar a criação dessa locação?\n\nTotal: R$ ${valorTotal.toFixed(2)}\nPeças: ${pecas.length}`
@@ -262,7 +272,13 @@ try {
             </div>
             <div>
               <label>Retirada</label>
-              <input type="date" value={dataRetirada} onChange={(e) => setDataRetirada(e.target.value)} required />
+              <input
+                type="date"
+                value={dataRetirada}
+                onChange={(e) => setDataRetirada(e.target.value)}
+                max={dataEvento || undefined}
+                required
+              />
             </div>
             <div>
               <label>Devolução prevista</label>
@@ -270,10 +286,11 @@ try {
                 type="date"
                 value={dataDevolucaoPrevista}
                 onChange={(e) => setDataDevolucaoPrevista(e.target.value)}
+                min={dataRetirada || undefined}
                 required
               />
             </div>
-          </div>
+</div>
         </div>
 
         <h2>Peças</h2>

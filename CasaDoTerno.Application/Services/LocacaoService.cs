@@ -28,6 +28,12 @@ public class LocacaoService
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A locação precisa ter pelo menos uma peça.", null);
 
+        if (dataRetirada.Date > dataEvento.Date)
+            return (false, "A data de retirada não pode ser depois da data do evento.", null);
+
+        if (dataDevolucaoPrevista.Date < dataRetirada.Date)
+            return (false, "A data de devolução não pode ser antes da data de retirada.", null);
+
         Evento? evento = null;
         if (eventoId.HasValue)
         {
@@ -225,6 +231,11 @@ public class LocacaoService
 
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A locação precisa ter pelo menos uma peça.", null);
+        if (dataRetirada.Date > dataEvento.Date)
+            return (false, "A data de retirada não pode ser depois da data do evento.", null);
+
+        if (dataDevolucaoPrevista.Date < dataRetirada.Date)
+            return (false, "A data de devolução não pode ser antes da data de retirada.", null);
 
         _context.ItensLocacao.RemoveRange(locacao.Itens);
         locacao.Itens.Clear();

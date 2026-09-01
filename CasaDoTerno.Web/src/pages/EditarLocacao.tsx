@@ -40,7 +40,7 @@ interface PecaCarrinho {
   valorLocacao: number;
 }
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Acessorio"];
 
 export function EditarLocacao() {
   const { id } = useParams();
