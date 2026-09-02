@@ -28,7 +28,8 @@ public class NotificacoesController : ControllerBase
             .Where(l => l.DataRetirada.Date == amanha && l.DataRetiradaReal == null)
             .ToList();
 
-        int enviados = 0, semEmail = 0, erros = 0;
+        int enviados = 0, semEmail = 0;
+        var detalhesErros = new List<string>();
 
         foreach (var locacao in locacoes)
         {
@@ -42,23 +43,23 @@ public class NotificacoesController : ControllerBase
             try
             {
                 var corpo = $@"
-                    <p>Olá, {cliente.Nome}!</p>
-                    <p>Passando pra lembrar que a retirada da sua locação na <strong>Casa do Terno</strong>
-                    está marcada para <strong>amanhã, {locacao.DataRetirada:dd/MM/yyyy}</strong>.</p>
-                    <p>Data prevista de devolução: <strong>{locacao.DataDevolucaoPrevista:dd/MM/yyyy}</strong>.</p>
-                    <p>Qualquer dúvida, é só nos chamar!</p>
-                ";
+                <p>Olá, {cliente.Nome}!</p>
+                <p>Passando pra lembrar que a retirada da sua locação na <strong>Casa do Terno</strong>
+                está marcada para <strong>amanhã, {locacao.DataRetirada:dd/MM/yyyy}</strong>.</p>
+                <p>Data prevista de devolução: <strong>{locacao.DataDevolucaoPrevista:dd/MM/yyyy}</strong>.</p>
+                <p>Qualquer dúvida, é só nos chamar!</p>
+            ";
 
                 _email.Enviar(cliente.Email, "Lembrete: retirada amanhã — Casa do Terno", corpo);
                 enviados++;
             }
-            catch
+            catch (Exception ex)
             {
-                erros++;
+                detalhesErros.Add($"{cliente.Nome} ({cliente.Email}): {ex.Message}");
             }
         }
 
-        return Ok(new { enviados, semEmail, erros, total = locacoes.Count });
+        return Ok(new { enviados, semEmail, erros = detalhesErros.Count, total = locacoes.Count, detalhesErros });
     }
 
     [HttpPost("lembrete-devolucao")]
