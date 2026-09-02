@@ -17,12 +17,11 @@ export function EditarCliente() {
   const [abdomen, setAbdomen] = useState<number | "">("");
   const [bainha, setBainha] = useState<number | "">("");
   const [cintura, setCintura] = useState<number | "">("");
+  const [panturrilha, setPanturrilha] = useState<number | "">("");
+  const [coxa, setCoxa] = useState<number | "">("");
 
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState("");
-
-  const [panturrilha, setPanturrilha] = useState<number | "">("");
-  const [coxa, setCoxa] = useState<number | "">("");
 
   useEffect(() => {
     api.get(`/Clientes/${id}`).then((resposta) => {
@@ -108,25 +107,63 @@ export function EditarCliente() {
           <div className="grid-3">
             <div>
               <label>Ombro</label>
-              <input type="number" value={ombro} onChange={(e) => setOmbro(e.target.value === "" ? "" : Number(e.target.value))} />
+              <input
+                type="number"
+                value={ombro}
+                onChange={(e) => setOmbro(e.target.value === "" ? "" : Number(e.target.value))}
+              />
             </div>
             <div>
               <label>Manga</label>
-              <input type="number" value={manga} onChange={(e) => setManga(e.target.value === "" ? "" : Number(e.target.value))} />
+              <input
+                type="number"
+                value={manga}
+                onChange={(e) => setManga(e.target.value === "" ? "" : Number(e.target.value))}
+              />
             </div>
             <div>
               <label>Abdômen</label>
-              <input type="number" value={abdomen} onChange={(e) => setAbdomen(e.target.value === "" ? "" : Number(e.target.value))} />
+              <input
+                type="number"
+                value={abdomen}
+                onChange={(e) => setAbdomen(e.target.value === "" ? "" : Number(e.target.value))}
+              />
             </div>
           </div>
           <div className="grid-2" style={{ marginTop: 12 }}>
             <div>
               <label>Bainha</label>
-              <input type="number" value={bainha} onChange={(e) => setBainha(e.target.value === "" ? "" : Number(e.target.value))} />
+              <input
+                type="number"
+                value={bainha}
+                onChange={(e) => setBainha(e.target.value === "" ? "" : Number(e.target.value))}
+              />
             </div>
             <div>
               <label>Cintura</label>
-              <input type="number" value={cintura} onChange={(e) => setCintura(e.target.value === "" ? "" : Number(e.target.value))} />
+              <input
+                type="number"
+                value={cintura}
+                onChange={(e) => setCintura(e.target.value === "" ? "" : Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="grid-2" style={{ marginTop: 12 }}>
+            <div>
+              <label>Panturrilha</label>
+              <input
+                type="number"
+                value={panturrilha}
+                onChange={(e) => setPanturrilha(e.target.value === "" ? "" : Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label>Coxa</label>
+              <input
+                type="number"
+                value={coxa}
+                onChange={(e) => setCoxa(e.target.value === "" ? "" : Number(e.target.value))}
+              />
             </div>
           </div>
         </div>

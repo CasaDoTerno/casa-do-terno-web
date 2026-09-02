@@ -65,6 +65,8 @@ import { FolhaPagamento } from "./pages/FolhaPagamento";
 import { Auditoria } from "./pages/Auditoria";
 import { CadastroVariacoes } from "./pages/CadastroVariacoes";
 
+import { Notificacoes } from "./pages/Notificacoes";
+
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
   const autenticado = !!localStorage.getItem("token");
@@ -147,6 +149,8 @@ function App() {
                     <Route path="/funcionarios/:id/folha" element={<FolhaPagamento />} />
                     <Route path="/auditoria" element={<Auditoria />} />
                     <Route path="/cadastro-variacoes" element={<CadastroVariacoes />} />
+                    <Route path="/notificacoes" element={<Notificacoes />} />
+
 
                   </Routes>
                 </div>

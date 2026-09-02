@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Logo } from "./Logo";
+import {Mail} from "lucide-react";
 import { ehAdmin, temModulo } from "../Services/permissoes";
 import {
   LayoutDashboard, Shirt, ShoppingCart, Package, Users, Truck,
@@ -62,11 +63,11 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
       <div style={{ padding: "0 12px 24px 12px" }}>
         <Logo />
       </div>
-
-      <NavLink to="/" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar} end>
-        <LayoutDashboard size={18} /> Dashboard
-      </NavLink>
-
+      {admin && (
+        <NavLink to="/" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar} end>
+          <LayoutDashboard size={18} /> Dashboard
+        </NavLink>
+      )}
       {podeEstoque && (
         <GrupoMenu
           titulo="Estoque"
@@ -162,6 +163,11 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
             <Users size={18} /> Log de Auditoria
           </NavLink>
         </>
+      )}
+      {admin && (
+        <NavLink to="/notificacoes" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
+          <Mail size={18} /> Notificações
+        </NavLink>
       )}
 
       <NavLink to="/minha-conta" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
