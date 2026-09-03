@@ -42,7 +42,7 @@ public class MetasController : ControllerBase
     [HttpPut("atual")]
     public IActionResult DefinirMetaAtual([FromBody] DefinirMetaRequest request)
     {
-        var hoje = DateTime.Now;
+        var hoje = CasaDoTerno.Application.Utils.FusoHorario.AgoraBrasilia();
         var meta = _context.MetasMensais.FirstOrDefault(m => m.Ano == hoje.Year && m.Mes == hoje.Month);
 
         if (meta == null)

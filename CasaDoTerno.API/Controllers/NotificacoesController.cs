@@ -22,7 +22,7 @@ public class NotificacoesController : ControllerBase
     [HttpPost("lembrete-retirada")]
     public IActionResult LembreteRetirada()
     {
-        var amanha = DateTime.Now.Date.AddDays(1);
+        var amanha = CasaDoTerno.Application.Utils.FusoHorario.HojeBrasilia().AddDays(1);
 
         var locacoes = _context.Locacoes
             .Where(l => l.DataRetirada.Date == amanha && l.DataRetiradaReal == null)
@@ -65,7 +65,7 @@ public class NotificacoesController : ControllerBase
     [HttpPost("lembrete-devolucao")]
     public IActionResult LembreteDevolucao()
     {
-        var amanha = DateTime.Now.Date.AddDays(1);
+        var amanha = CasaDoTerno.Application.Utils.FusoHorario.HojeBrasilia().AddDays(1);
 
         var locacoes = _context.Locacoes
             .Where(l => l.DataDevolucaoPrevista.Date == amanha && l.DataDevolucaoReal == null)

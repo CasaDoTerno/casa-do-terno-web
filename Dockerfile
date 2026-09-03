@@ -15,5 +15,8 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:10000
 EXPOSE 10000
 
+
+RUN apt-get update && apt-get install -y tzdata && rm -rf /var/lib/apt/lists/*
+
 ENTRYPOINT ["dotnet", "CasaDoTerno.API.dll"]
 

@@ -486,7 +486,7 @@ public class LocacaoService
         if (locacao.DataDevolucaoReal != null)
             return (false, "A devolução dessa locação já foi registrada.", 0);
 
-        var hoje = DateTime.Now.Date;
+        var hoje = CasaDoTerno.Application.Utils.FusoHorario.HojeBrasilia();
         decimal multa = 0;
 
         if (hoje > locacao.DataDevolucaoPrevista.Date)
