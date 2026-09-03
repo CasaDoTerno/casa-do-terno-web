@@ -19,6 +19,7 @@ public class VendaService
     {
         public int ProdutoId { get; set; }
         public int Quantidade { get; set; }
+        public string? Ajustes { get; set; }
     }
 
     public (bool sucesso, string mensagem, Venda? venda) AtualizarVenda(
@@ -60,7 +61,8 @@ public class VendaService
             {
                 ProdutoId = produto.Id,
                 Quantidade = entrada.Quantidade,
-                ValorUnitario = produto.ValorVenda
+                ValorUnitario = produto.ValorVenda,
+                Ajustes = entrada.Ajustes
             };
 
             venda.Itens.Add(item);
@@ -124,7 +126,8 @@ public class VendaService
             {
                 ProdutoId = produto.Id,
                 Quantidade = entrada.Quantidade,
-                ValorUnitario = produto.ValorVenda
+                ValorUnitario = produto.ValorVenda,
+                Ajustes = entrada.Ajustes
             };
 
             venda.Itens.Add(item);
@@ -158,20 +161,6 @@ public class VendaService
 
         return (true, "Venda criada com sucesso.", venda);
     }
-    public (bool sucesso, string mensagem) ConfirmarRetiradaVenda(int vendaId)
-    {
-        var venda = _context.Vendas.Find(vendaId);
-        if (venda == null)
-            return (false, "Venda não encontrada.");
-
-        if (venda.DataRetiradaRealizada != null)
-            return (false, "A retirada dessa venda já foi confirmada.");
-
-        venda.DataRetiradaRealizada = CasaDoTerno.Application.Utils.FusoHorario.AgoraBrasilia();
-        _context.SaveChanges();
-
-        return (true, "Retirada confirmada com sucesso.");
-    }
 
     public (bool sucesso, string mensagem) RegistrarPagamentoVenda(
         int vendaId, FormaPagamento formaPagamento, int numeroParcelas)
@@ -193,5 +182,19 @@ public class VendaService
             numeroParcelas, formaPagamento, DateTime.Today);
 
         return (true, "Pagamento registrado com sucesso.");
+    }
+    public (bool sucesso, string mensagem) ConfirmarRetiradaVenda(int vendaId)
+    {
+        var venda = _context.Vendas.Find(vendaId);
+        if (venda == null)
+            return (false, "Venda não encontrada.");
+
+        if (venda.DataRetiradaRealizada != null)
+            return (false, "A retirada dessa venda já foi confirmada.");
+
+        venda.DataRetiradaRealizada = CasaDoTerno.Application.Utils.FusoHorario.AgoraBrasilia();
+        _context.SaveChanges();
+
+        return (true, "Retirada confirmada com sucesso.");
     }
 }

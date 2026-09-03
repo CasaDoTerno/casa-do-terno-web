@@ -54,6 +54,17 @@ public class VendasController : ControllerBase
         public List<VendaService.ItemVendaEntrada> Itens { get; set; } = new();
     }
 
+    [HttpPut("{id}/confirmar-retirada")]
+    public IActionResult ConfirmarRetirada(int id)
+    {
+        var (sucesso, mensagem) = _vendaService.ConfirmarRetiradaVenda(id);
+
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        return Ok(new { mensagem });
+    }
+
     [HttpPost]
     public IActionResult Criar([FromBody] NovaVendaRequest request)
     {

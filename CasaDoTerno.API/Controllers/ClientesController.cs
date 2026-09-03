@@ -30,6 +30,85 @@ public class ClientesController : ControllerBase
         return Ok(cliente);
     }
 
+    public class ItemDebito
+    {
+        public string Tipo { get; set; } = ""; // "Venda" ou "Locação"
+        public int Id { get; set; }
+        public decimal Valor { get; set; }
+        public DateTime Data { get; set; }
+    }
+    [HttpGet("com-debito")]
+    public IActionResult ClientesComDebito()
+    {
+        var idsComVendaPendente = _context.Vendas
+            .Where(v => v.PagamentoPendente)
+            .Select(v => v.ClienteId)
+            .Distinct();
+
+        var idsComLocacaoPendente = _context.Locacoes
+            .Where(l => l.ValorRestante > 0 && l.FormaPagamentoRestante == null)
+            .Select(l => l.ClienteId)
+            .Distinct();
+
+        var idsComDebito = idsComVendaPendente.Union(idsComLocacaoPendente).ToList();
+
+        var resultado = idsComDebito.Select(clienteId =>
+        {
+            var cliente = _context.Clientes.Find(clienteId);
+            var totalVendas = _context.Vendas
+                .Where(v => v.ClienteId == clienteId && v.PagamentoPendente)
+                .Sum(v => (decimal?)v.ValorTotal) ?? 0;
+            var totalLocacoes = _context.Locacoes
+                .Where(l => l.ClienteId == clienteId && l.ValorRestante > 0 && l.FormaPagamentoRestante == null)
+                .Sum(l => (decimal?)l.ValorRestante) ?? 0;
+
+            return new
+            {
+                clienteId,
+                nome = cliente?.Nome ?? $"Cliente #{clienteId}",
+                totalDebito = totalVendas + totalLocacoes
+            };
+        })
+        .OrderByDescending(c => c.totalDebito)
+        .ToList();
+
+        return Ok(resultado);
+    }
+
+    [HttpGet("{id}/debitos")]
+    public IActionResult Debitos(int id)
+    {
+        var itens = new List<ItemDebito>();
+
+        var vendasPendentes = _context.Vendas
+            .Where(v => v.ClienteId == id && v.PagamentoPendente)
+            .ToList();
+
+        itens.AddRange(vendasPendentes.Select(v => new ItemDebito
+        {
+            Tipo = "Venda",
+            Id = v.Id,
+            Valor = v.ValorTotal,
+            Data = v.DataVenda
+        }));
+
+        var locacoesComRestante = _context.Locacoes
+            .Where(l => l.ClienteId == id && l.ValorRestante > 0 && l.FormaPagamentoRestante == null)
+            .ToList();
+
+        itens.AddRange(locacoesComRestante.Select(l => new ItemDebito
+        {
+            Tipo = "Locação",
+            Id = l.Id,
+            Valor = l.ValorRestante,
+            Data = l.DataEvento
+        }));
+
+        var total = itens.Sum(i => i.Valor);
+
+        return Ok(new { itens = itens.OrderBy(i => i.Data).ToList(), total });
+    }
+
     [HttpPut("{id}")]
     public IActionResult Atualizar(int id, [FromBody] Cliente clienteAtualizado)
     {

@@ -7,5 +7,6 @@ public class ItemVenda
     public int ProdutoId { get; set; }
     public int Quantidade { get; set; }
     public decimal ValorUnitario { get; set; }
+    public string? Ajustes { get; set; }
     public decimal ValorTotal => Quantidade * ValorUnitario;
 }

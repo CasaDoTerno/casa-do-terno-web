@@ -18,6 +18,5 @@ public class Venda
     public DateTime? DataPagamentoRealizado { get; set; }
     public int NumeroParcelasPendente { get; set; } = 1;
     public DateTime? DataRetiradaRealizada { get; set; }
-    public string? Ajustes { get; set; }
     public List<ItemVenda> Itens { get; set; } = new();
 }   

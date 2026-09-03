@@ -3,6 +3,7 @@ using System;
 using CasaDoTerno.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CasaDoTerno.Infrastructure.Migrations
 {
     [DbContext(typeof(CasaDoTernoContext))]
-    partial class CasaDoTernoContextModelSnapshot : ModelSnapshot
+    [Migration("20260903113719_SincronizaModelo")]
+    partial class SincronizaModelo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -323,9 +326,6 @@ namespace CasaDoTerno.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Ajustes")
-                        .HasColumnType("text");
-
                     b.Property<int>("ProdutoId")
                         .HasColumnType("integer");
 
@@ -629,6 +629,9 @@ namespace CasaDoTerno.Infrastructure.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Ajustes")
+                        .HasColumnType("text");
 
                     b.Property<int>("ClienteId")
                         .HasColumnType("integer");
