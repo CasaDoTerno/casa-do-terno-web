@@ -32,11 +32,9 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<CasaDoTernoContext>();
 builder.Services.AddSingleton(new EmailService(
-    builder.Configuration["Email:Host"]!,
-    int.Parse(builder.Configuration["Email:Porta"]!),
-    builder.Configuration["Email:Usuario"]!,
-    builder.Configuration["Email:Senha"]!,
-    builder.Configuration["Email:NomeExibicao"]!
+    builder.Configuration["Brevo:ApiKey"]!,
+    builder.Configuration["Brevo:RemetenteEmail"]!,
+    builder.Configuration["Brevo:RemetenteNome"]!
 ));
 
 

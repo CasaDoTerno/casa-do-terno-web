@@ -1,38 +1,43 @@
-﻿using MailKit.Net.Smtp;
-using MimeKit;
-using System.Net.Mail;
+﻿using System.Net.Http.Json;
+using System.Net.Http.Headers;
 
 namespace CasaDoTerno.Application.Services;
 
 public class EmailService
 {
-    private readonly string _host;
-    private readonly int _porta;
-    private readonly string _usuario;
-    private readonly string _senha;
-    private readonly string _nomeExibicao;
+    private readonly string _apiKey;
+    private readonly string _remetenteEmail;
+    private readonly string _remetenteNome;
+    private static readonly HttpClient _httpClient = new HttpClient();
 
-    public EmailService(string host, int porta, string usuario, string senha, string nomeExibicao)
+    public EmailService(string apiKey, string remetenteEmail, string remetenteNome)
     {
-        _host = host;
-        _porta = porta;
-        _usuario = usuario;
-        _senha = senha;
-        _nomeExibicao = nomeExibicao;
+        _apiKey = apiKey;
+        _remetenteEmail = remetenteEmail;
+        _remetenteNome = remetenteNome;
     }
 
     public void Enviar(string destinatario, string assunto, string corpoHtml)
     {
-        var mensagem = new MimeMessage();
-        mensagem.From.Add(new MailboxAddress(_nomeExibicao, _usuario));
-        mensagem.To.Add(MailboxAddress.Parse(destinatario));
-        mensagem.Subject = assunto;
-        mensagem.Body = new TextPart("html") { Text = corpoHtml };
+        var payload = new
+        {
+            sender = new { email = _remetenteEmail, name = _remetenteNome },
+            to = new[] { new { email = destinatario } },
+            subject = assunto,
+            htmlContent = corpoHtml
+        };
 
-        using var cliente = new MailKit.Net.Smtp.SmtpClient();
-        cliente.Connect(_host, _porta, MailKit.Security.SecureSocketOptions.StartTls);
-        cliente.Authenticate(_usuario, _senha);
-        cliente.Send(mensagem);
-        cliente.Disconnect(true);
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.brevo.com/v3/smtp/email");
+        request.Headers.Add("api-key", _apiKey);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        request.Content = JsonContent.Create(payload);
+
+        var resposta = _httpClient.Send(request);
+
+        if (!resposta.IsSuccessStatusCode)
+        {
+            var corpoErro = resposta.Content.ReadAsStringAsync().Result;
+            throw new Exception($"Falha ao enviar e-mail via Brevo ({resposta.StatusCode}): {corpoErro}");
+        }
     }
 }
