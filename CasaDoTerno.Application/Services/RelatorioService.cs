@@ -181,4 +181,105 @@ public class RelatorioService
         return resultado;
     }
 
+    public class PagamentoDetalhado
+    {
+        public string Descricao { get; set; } = "";
+        public decimal Valor { get; set; }
+        public DateTime Data { get; set; }
+    }
+
+    public class GrupoPagamento
+    {
+        public string TipoPagamento { get; set; } = "";
+        public List<PagamentoDetalhado> Itens { get; set; } = new();
+        public decimal TotalDoTipo => Itens.Sum(i => i.Valor);
+    }
+
+    public List<GrupoPagamento> PagamentosPorTipo(DateTime dataInicio, DateTime dataFim)
+    {
+        var fimAjustado = dataFim.Date.AddDays(1).AddTicks(-1);
+        var itens = new List<(FormaPagamento forma, PagamentoDetalhado item)>();
+
+        var parcelasVenda = _context.Parcelas
+            .Where(p => p.Origem == OrigemPagamento.Venda && p.DataPagamento != null
+                        && p.DataPagamento >= dataInicio.Date && p.DataPagamento <= fimAjustado)
+            .ToList();
+
+        foreach (var parcela in parcelasVenda)
+        {
+            var venda = _context.Vendas.Find(parcela.OrigemId);
+            var cliente = venda != null ? _context.Clientes.Find(venda.ClienteId) : null;
+            itens.Add((parcela.FormaPagamento, new PagamentoDetalhado
+            {
+                Descricao = $"Venda #{parcela.OrigemId} — {cliente?.Nome ?? "Cliente"}",
+                Valor = parcela.ValorParcela,
+                Data = parcela.DataPagamento!.Value
+            }));
+        }
+
+        var entradasLocacao = _context.Locacoes
+            .Where(l => l.DataPagamentoEntrada != null
+                        && l.DataPagamentoEntrada >= dataInicio.Date && l.DataPagamentoEntrada <= fimAjustado)
+            .ToList();
+
+        foreach (var locacao in entradasLocacao)
+        {
+            var cliente = _context.Clientes.Find(locacao.ClienteId);
+            itens.Add((locacao.FormaPagamentoEntrada, new PagamentoDetalhado
+            {
+                Descricao = $"Locação #{locacao.Id} — Entrada — {cliente?.Nome ?? "Cliente"}",
+                Valor = locacao.ValorEntrada,
+                Data = locacao.DataPagamentoEntrada!.Value
+            }));
+        }
+
+        var restantesLocacao = _context.Locacoes
+            .Where(l => l.DataPagamentoRestante != null && l.FormaPagamentoRestante != null
+                        && l.DataPagamentoRestante >= dataInicio.Date && l.DataPagamentoRestante <= fimAjustado)
+            .ToList();
+
+        foreach (var locacao in restantesLocacao)
+        {
+            var cliente = _context.Clientes.Find(locacao.ClienteId);
+            itens.Add((locacao.FormaPagamentoRestante!.Value, new PagamentoDetalhado
+            {
+                Descricao = $"Locação #{locacao.Id} — Restante — {cliente?.Nome ?? "Cliente"}",
+                Valor = locacao.ValorRestante,
+                Data = locacao.DataPagamentoRestante!.Value
+            }));
+        }
+
+        var multasPagas = _context.Locacoes
+            .Where(l => l.DataPagamentoMulta != null && l.FormaPagamentoMulta != null
+                        && l.DataPagamentoMulta >= dataInicio.Date && l.DataPagamentoMulta <= fimAjustado)
+            .ToList();
+
+        foreach (var locacao in multasPagas)
+        {
+            var cliente = _context.Clientes.Find(locacao.ClienteId);
+            itens.Add((locacao.FormaPagamentoMulta!.Value, new PagamentoDetalhado
+            {
+                Descricao = $"Locação #{locacao.Id} — Multa de atraso — {cliente?.Nome ?? "Cliente"}",
+                Valor = locacao.MultaAtraso,
+                Data = locacao.DataPagamentoMulta!.Value
+            }));
+        }
+
+        var nomesFormaPagamento = new[] { "Dinheiro", "Cartão", "Pix", "Boleto" };
+
+        var grupos = itens
+            .GroupBy(i => i.forma)
+            .Select(g => new GrupoPagamento
+            {
+                TipoPagamento = nomesFormaPagamento[(int)g.Key],
+                Itens = g.Select(x => x.item).OrderBy(i => i.Data).ToList()
+            })
+            .OrderByDescending(g => g.TotalDoTipo)
+            .ToList();
+
+        return grupos;
+    }
+
 }
+
+

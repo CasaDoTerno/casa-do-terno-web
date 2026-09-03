@@ -66,6 +66,8 @@ import { Auditoria } from "./pages/Auditoria";
 import { CadastroVariacoes } from "./pages/CadastroVariacoes";
 
 import { Notificacoes } from "./pages/Notificacoes";
+import { RelatorioPagamentos } from "./pages/RelatorioPagamentos";
+import { DemonstrativoPagamento } from "./pages/DemonstrativoPagamento";
 
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -150,6 +152,8 @@ function App() {
                     <Route path="/auditoria" element={<Auditoria />} />
                     <Route path="/cadastro-variacoes" element={<CadastroVariacoes />} />
                     <Route path="/notificacoes" element={<Notificacoes />} />
+                    <Route path="/relatorio-pagamentos" element={<RelatorioPagamentos />} />
+                    <Route path="/funcionarios/:id/demonstrativo" element={<DemonstrativoPagamento />} />
 
 
                   </Routes>

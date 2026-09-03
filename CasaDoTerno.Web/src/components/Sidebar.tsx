@@ -127,7 +127,8 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
             { to: "/caixa", label: "Fechamento de Caixa" },
             { to: "/comissao-consultor", label: "Comissão por Consultor" },
             { to: "/funcionarios", label: "Funcionários" },
-{ to: "/cadastro-funcionario", label: "Cadastrar Funcionário" },
+            { to: "/cadastro-funcionario", label: "Cadastrar Funcionário" },
+            { to: "/relatorio-pagamentos", label: "Pagamentos por Tipo" },
           ]}
           onFechar={onFechar}
         />

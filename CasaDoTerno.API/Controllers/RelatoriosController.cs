@@ -35,4 +35,10 @@ public class RelatoriosController : ControllerBase
         var resultado = _relatorioService.EntradasPorDia(dataInicio, dataFim);
         return Ok(resultado);
     }
+    [HttpGet("pagamentos-por-tipo")]
+    public IActionResult PagamentosPorTipo([FromQuery] DateTime dataInicio, [FromQuery] DateTime dataFim)
+    {
+        var resultado = _relatorioService.PagamentosPorTipo(dataInicio, dataFim);
+        return Ok(resultado);
+    }
 }

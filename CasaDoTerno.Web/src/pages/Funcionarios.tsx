@@ -51,6 +51,9 @@ export function Funcionarios() {
                 <Link to={`/funcionarios/${f.id}/folha`}>
                   <button type="button">Folha de Pagamento</button>
                 </Link>
+                <Link to={`/funcionarios/${f.id}/demonstrativo`}>
+                  <button type="button">Demonstrativo (imprimir)</button>
+                </Link>
                 <Link to={`/funcionarios/editar/${f.id}`}>Editar</Link>
                 <button type="button" onClick={() => alternarAtivo(f)}>
                   {f.ativo ? "Desativar" : "Reativar"}
