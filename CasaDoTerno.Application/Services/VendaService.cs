@@ -7,7 +7,6 @@ namespace CasaDoTerno.Application.Services;
 public class VendaService
 {
     private readonly ICasaDoTernoContext _context;
-
     private readonly ParcelaService _parcelaService;
 
     public VendaService(ICasaDoTernoContext context, ParcelaService parcelaService)
@@ -23,8 +22,8 @@ public class VendaService
     }
 
     public (bool sucesso, string mensagem, Venda? venda) AtualizarVenda(
-    int vendaId, int clienteId, decimal desconto, string? consultor,
-    List<ItemVendaEntrada> itensEntrada)
+        int vendaId, int clienteId, decimal desconto, string? consultor,
+        List<ItemVendaEntrada> itensEntrada)
     {
         var venda = _context.Vendas.Include(v => v.Itens).FirstOrDefault(v => v.Id == vendaId);
         if (venda == null)
@@ -33,7 +32,6 @@ public class VendaService
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A venda precisa ter pelo menos um item.", null);
 
-        // devolve ao estoque a quantidade dos itens ANTIGOS, antes de remover
         foreach (var itemAntigo in venda.Itens)
         {
             var produtoAntigo = _context.Produtos.Find(itemAntigo.ProdutoId);
@@ -48,7 +46,6 @@ public class VendaService
         _context.ItensVenda.RemoveRange(venda.Itens);
         venda.Itens.Clear();
 
-        // aplica os itens NOVOS, com as mesmas checagens da criação
         decimal valorTotal = 0;
         foreach (var entrada in itensEntrada)
         {
@@ -86,19 +83,28 @@ public class VendaService
 
         return (true, "Venda atualizada com sucesso.", venda);
     }
+
     public (bool sucesso, string mensagem, Venda? venda) CriarVenda(
           int clienteId, decimal desconto, string? consultor, FormaPagamento formaPagamento,
-          int numeroParcelas, List<ItemVendaEntrada> itensEntrada)
+          int numeroParcelas, bool precisaAjuste, DateTime? dataRetiradaAjuste, bool pagamentoPendente,
+          List<ItemVendaEntrada> itensEntrada)
     {
         if (itensEntrada == null || itensEntrada.Count == 0)
             return (false, "A venda precisa ter pelo menos um item.", null);
+
+        if (precisaAjuste && dataRetiradaAjuste == null)
+            return (false, "Informe a data de retirada, já que essa venda precisa de ajuste.", null);
 
         var venda = new Venda
         {
             ClienteId = clienteId,
             Desconto = desconto,
             Consultor = consultor,
-            FormaPagamento = formaPagamento
+            FormaPagamento = formaPagamento,
+            PrecisaAjuste = precisaAjuste,
+            DataRetiradaAjuste = precisaAjuste ? dataRetiradaAjuste : null,
+            PagamentoPendente = pagamentoPendente,
+            NumeroParcelasPendente = numeroParcelas
         };
         decimal valorTotal = 0;
 
@@ -124,7 +130,6 @@ public class VendaService
             venda.Itens.Add(item);
             valorTotal += item.ValorTotal;
 
-            // dá baixa no estoque, se esse produto controla estoque
             if (produto.ControlaEstoque)
             {
                 produto.Quantidade -= entrada.Quantidade;
@@ -138,12 +143,41 @@ public class VendaService
         _context.Vendas.Add(venda);
         _context.SaveChanges(); // precisa salvar ANTES, pra gerar o venda.Id
 
-        _parcelaService.GerarParcelas(
-            OrigemPagamento.Venda, venda.Id, venda.ValorTotal,
-            numeroParcelas, formaPagamento, DateTime.Today);
+        if (!pagamentoPendente)
+        {
+            // pagamento acontece na hora — gera as parcelas normalmente, do jeito que já era
+            _parcelaService.GerarParcelas(
+                OrigemPagamento.Venda, venda.Id, venda.ValorTotal,
+                numeroParcelas, formaPagamento, DateTime.Today);
+
+            venda.DataPagamentoRealizado = DateTime.Now;
+            _context.SaveChanges();
+        }
+        // se pagamentoPendente == true, NÃO gera parcela nenhuma ainda —
+        // isso só vai acontecer quando RegistrarPagamentoVenda for chamado, depois
 
         return (true, "Venda criada com sucesso.", venda);
     }
 
+    public (bool sucesso, string mensagem) RegistrarPagamentoVenda(
+        int vendaId, FormaPagamento formaPagamento, int numeroParcelas)
+    {
+        var venda = _context.Vendas.Find(vendaId);
+        if (venda == null)
+            return (false, "Venda não encontrada.");
 
+        if (!venda.PagamentoPendente)
+            return (false, "Essa venda não está com pagamento pendente.");
+
+        venda.PagamentoPendente = false;
+        venda.FormaPagamento = formaPagamento;
+        venda.DataPagamentoRealizado = DateTime.Now;
+        _context.SaveChanges();
+
+        _parcelaService.GerarParcelas(
+            OrigemPagamento.Venda, venda.Id, venda.ValorTotal,
+            numeroParcelas, formaPagamento, DateTime.Today);
+
+        return (true, "Pagamento registrado com sucesso.");
+    }
 }

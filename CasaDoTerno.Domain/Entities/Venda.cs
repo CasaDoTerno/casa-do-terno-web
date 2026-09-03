@@ -12,6 +12,10 @@ public class Venda
     public string? CriadoPor { get; set; }
     public string? EditadoPor { get; set; }
     public DateTime? DataEdicao { get; set; }
-
+    public bool PrecisaAjuste { get; set; }
+    public DateTime? DataRetiradaAjuste { get; set; }
+    public bool PagamentoPendente { get; set; }
+    public DateTime? DataPagamentoRealizado { get; set; }
+    public int NumeroParcelasPendente { get; set; } = 1;
     public List<ItemVenda> Itens { get; set; } = new();
 }   

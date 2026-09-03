@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
-import { useNavigate } from "react-router-dom";
 
 interface Produto {
   id: number;
@@ -13,12 +13,11 @@ interface Produto {
   valorVenda: number;
   disponivelParaVenda: boolean;
 }
+
 interface Usuario {
   id: string;
   email: string;
 }
-
-
 
 interface Cliente {
   id: number;
@@ -38,13 +37,20 @@ interface ItemCarrinho {
 const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
 
 export function Venda() {
+  const navigate = useNavigate();
+
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [clienteId, setClienteId] = useState(0);
   const [desconto, setDesconto] = useState(0);
   const [consultor, setConsultor] = useState(localStorage.getItem("emailUsuario") ?? "");
   const [formaPagamento, setFormaPagamento] = useState(0);
   const [numeroParcelas, setNumeroParcelas] = useState(1);
+
+  const [precisaAjuste, setPrecisaAjuste] = useState(false);
+  const [dataRetiradaAjuste, setDataRetiradaAjuste] = useState("");
+  const [pagamentoPendente, setPagamentoPendente] = useState(false);
 
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
@@ -52,12 +58,7 @@ export function Venda() {
 
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
-
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-
   const [vendaCriadaId, setVendaCriadaId] = useState<number | null>(null);
-const navigate = useNavigate();
-
 
   function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) =>
@@ -75,18 +76,18 @@ const navigate = useNavigate();
     const produto = produtos.find((p) => p.id === produtoSelecionado);
     if (!produto) return;
 
-setCarrinho([
-  ...carrinho,
-  {
-    produtoId: produto.id,
-    modelo: produto.modelo,
-    referencia: produto.referencia,
-    cor: produto.cor,
-    tamanho: produto.tamanho,
-    quantidade,
-    valorUnitario: produto.valorVenda,
-  },
-]);
+    setCarrinho([
+      ...carrinho,
+      {
+        produtoId: produto.id,
+        modelo: produto.modelo,
+        referencia: produto.referencia,
+        cor: produto.cor,
+        tamanho: produto.tamanho,
+        quantidade,
+        valorUnitario: produto.valorVenda,
+      },
+    ]);
     setProdutoSelecionado(0);
     setQuantidade(1);
   }
@@ -107,21 +108,38 @@ setCarrinho([
       return;
     }
 
-setEnviando(true);
-try {
-  const resposta = await api.post("/Vendas", {
-    clienteId,
-    desconto,
-    consultor,
-    formaPagamento,
-    numeroParcelas,
-    itens: carrinho.map((item) => ({ produtoId: item.produtoId, quantidade: item.quantidade })),
-  });
-  setVendaCriadaId(resposta.data.id);
-  setMensagem("Venda registrada com sucesso!");
-  setCarrinho([]);
-  setDesconto(0);
-} catch (erro: any) {
+    if (precisaAjuste && !dataRetiradaAjuste) {
+      setMensagem("Informe a data de retirada, já que essa venda precisa de ajuste.");
+      return;
+    }
+
+    const confirmar = window.confirm(
+      `Confirmar essa venda?\n\nTotal: R$ ${totalComDesconto.toFixed(2)}` +
+      (pagamentoPendente ? "\n\nPagamento ficará PENDENTE, a receber na retirada." : "")
+    );
+    if (!confirmar) return;
+
+    setEnviando(true);
+    try {
+      const resposta = await api.post("/Vendas", {
+        clienteId,
+        desconto,
+        consultor,
+        formaPagamento,
+        numeroParcelas,
+        precisaAjuste,
+        dataRetiradaAjuste: precisaAjuste ? dataRetiradaAjuste : null,
+        pagamentoPendente,
+        itens: carrinho.map((item) => ({ produtoId: item.produtoId, quantidade: item.quantidade })),
+      });
+      setVendaCriadaId(resposta.data.id);
+      setMensagem("Venda registrada com sucesso!");
+      setCarrinho([]);
+      setDesconto(0);
+      setPrecisaAjuste(false);
+      setDataRetiradaAjuste("");
+      setPagamentoPendente(false);
+    } catch (erro: any) {
       console.error(erro);
       setMensagem(erro.response?.data || "Erro ao registrar venda.");
     } finally {
@@ -145,15 +163,15 @@ try {
               placeholder="Buscar cliente..."
             />
           </div>
-<div>
-  <label>Consultor</label>
-  <select value={consultor} onChange={(e) => setConsultor(e.target.value)}>
-    <option value="">Selecione...</option>
-    {usuarios.map((u) => (
-      <option key={u.id} value={u.email}>{u.email}</option>
-    ))}
-  </select>
-</div>
+          <div>
+            <label>Consultor</label>
+            <select value={consultor} onChange={(e) => setConsultor(e.target.value)}>
+              <option value="">Selecione...</option>
+              {usuarios.map((u) => (
+                <option key={u.id} value={u.email}>{u.email}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <h2>Produtos</h2>
@@ -199,32 +217,82 @@ try {
           {carrinho.length === 0 && <p style={{ color: "var(--texto-suave)" }}>Nenhum item adicionado ainda.</p>}
         </div>
 
-        <h2>Pagamento</h2>
+        <h2>Ajuste</h2>
         <div className="card" style={{ marginBottom: 20 }}>
-          <div className="grid-2">
-            <div>
-              <label>Desconto</label>
-              <input type="number" value={desconto} onChange={(e) => setDesconto(Number(e.target.value))} />
-            </div>
-            <div>
-              <label>Número de parcelas</label>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, margin: 0 }}>
+            <input
+              type="checkbox"
+              checked={precisaAjuste}
+              onChange={(e) => setPrecisaAjuste(e.target.checked)}
+              style={{ width: "auto" }}
+            />
+            Essa peça precisa de ajuste
+          </label>
+
+          {precisaAjuste && (
+            <div style={{ marginTop: 12, maxWidth: 240 }}>
+              <label>Data de retirada</label>
               <input
-                type="number"
-                min={1}
-                value={numeroParcelas}
-                onChange={(e) => setNumeroParcelas(Number(e.target.value))}
+                type="date"
+                value={dataRetiradaAjuste}
+                onChange={(e) => setDataRetiradaAjuste(e.target.value)}
+                required
               />
             </div>
-          </div>
-          <div>
-            <label>Forma de pagamento</label>
-            <select value={formaPagamento} onChange={(e) => setFormaPagamento(Number(e.target.value))}>
-              <option value={0}>Dinheiro</option>
-              <option value={1}>Cartão</option>
-              <option value={2}>Pix</option>
-              <option value={3}>Boleto</option>
-            </select>
-          </div>
+          )}
+        </div>
+
+        <h2>Pagamento</h2>
+        <div className="card" style={{ marginBottom: 20 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, margin: 0 }}>
+            <input
+              type="checkbox"
+              checked={pagamentoPendente}
+              onChange={(e) => setPagamentoPendente(e.target.checked)}
+              style={{ width: "auto" }}
+            />
+            Pagamento pendente (cliente vai pagar na retirada)
+          </label>
+
+          {!pagamentoPendente && (
+            <>
+              <div className="grid-2" style={{ marginTop: 16 }}>
+                <div>
+                  <label>Desconto</label>
+                  <input type="number" value={desconto} onChange={(e) => setDesconto(Number(e.target.value))} />
+                </div>
+                <div>
+                  <label>Número de parcelas</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={numeroParcelas}
+                    onChange={(e) => setNumeroParcelas(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <label>Forma de pagamento</label>
+                <select value={formaPagamento} onChange={(e) => setFormaPagamento(Number(e.target.value))}>
+                  <option value={0}>Dinheiro</option>
+                  <option value={1}>Cartão</option>
+                  <option value={2}>Pix</option>
+                  <option value={3}>Boleto</option>
+                </select>
+              </div>
+            </>
+          )}
+
+          {pagamentoPendente && (
+            <div style={{ marginTop: 16 }}>
+              <label>Desconto</label>
+              <input type="number" value={desconto} onChange={(e) => setDesconto(Number(e.target.value))} />
+              <p style={{ fontSize: 12, color: "var(--texto-suave)", marginTop: 8 }}>
+                A forma de pagamento e o número de parcelas serão definidos na hora de registrar o pagamento,
+                quando o cliente vier buscar.
+              </p>
+            </div>
+          )}
 
           <div style={{ borderTop: "1px solid var(--borda)", marginTop: 16, paddingTop: 16 }}>
             <p style={{ color: "var(--texto-suave)", margin: "4px 0" }}>Subtotal: R$ {totalCarrinho.toFixed(2)}</p>
@@ -237,23 +305,23 @@ try {
         </button>
       </form>
 
-{mensagem && <p>{mensagem}</p>}
+      {mensagem && <p>{mensagem}</p>}
 
-{vendaCriadaId && (
-  <div className="card" style={{ marginTop: 20, borderLeft: "3px solid var(--verde)" }}>
-    <p style={{ fontWeight: 700, marginBottom: 12 }}>
-      Venda #{vendaCriadaId} registrada!
-    </p>
-    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-      <button type="button" onClick={() => navigate(`/vendas/imprimir/${vendaCriadaId}`)}>
-        Ver Recibo
-      </button>
-      <button type="button" onClick={() => setVendaCriadaId(null)} style={{ background: "var(--chumbo-input)" }}>
-        Fazer nova venda
-      </button>
+      {vendaCriadaId && (
+        <div className="card" style={{ marginTop: 20, borderLeft: "3px solid var(--verde)" }}>
+          <p style={{ fontWeight: 700, marginBottom: 12 }}>
+            Venda #{vendaCriadaId} registrada!
+          </p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button type="button" onClick={() => navigate(`/vendas/imprimir/${vendaCriadaId}`)}>
+              Ver Recibo
+            </button>
+            <button type="button" onClick={() => setVendaCriadaId(null)} style={{ background: "var(--chumbo-input)" }}>
+              Fazer nova venda
+            </button>
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-)}
-</div>
   );
 }

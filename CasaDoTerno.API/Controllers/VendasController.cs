@@ -31,8 +31,13 @@ public class VendasController : ControllerBase
             v.CriadoPor,
             v.EditadoPor,
             v.DataEdicao,
+            v.PrecisaAjuste,
+            v.DataRetiradaAjuste,
+            v.PagamentoPendente,
+            v.DataPagamentoRealizado,
+            v.NumeroParcelasPendente,
             Itens = v.Itens
-            
+
         }).ToList());
     }
 
@@ -43,16 +48,20 @@ public class VendasController : ControllerBase
         public string? Consultor { get; set; }
         public FormaPagamento FormaPagamento { get; set; }
         public int NumeroParcelas { get; set; } = 1;
+        public bool PrecisaAjuste { get; set; }
+        public DateTime? DataRetiradaAjuste { get; set; }
+        public bool PagamentoPendente { get; set; }
         public List<VendaService.ItemVendaEntrada> Itens { get; set; } = new();
     }
 
     [HttpPost]
-    [HttpPost]
     public IActionResult Criar([FromBody] NovaVendaRequest request)
     {
         var (sucesso, mensagem, venda) = _vendaService.CriarVenda(
-            request.ClienteId, request.Desconto, request.Consultor,
-            request.FormaPagamento, request.NumeroParcelas, request.Itens);
+     request.ClienteId, request.Desconto, request.Consultor,
+     request.FormaPagamento, request.NumeroParcelas,
+     request.PrecisaAjuste, request.DataRetiradaAjuste, request.PagamentoPendente,
+     request.Itens);
 
         if (!sucesso)
             return BadRequest(mensagem);
@@ -80,6 +89,11 @@ public class VendasController : ControllerBase
                 v.CriadoPor,
                 v.EditadoPor,
                 v.DataEdicao,
+                v.PrecisaAjuste,
+                v.DataRetiradaAjuste,
+                v.PagamentoPendente,
+                v.DataPagamentoRealizado,
+                v.NumeroParcelasPendente,
                 Itens = v.Itens
             })
             .FirstOrDefault();
@@ -97,6 +111,24 @@ public class VendasController : ControllerBase
         public string? Consultor { get; set; }
         public List<VendaService.ItemVendaEntrada> Itens { get; set; } = new();
     }
+
+    public class RegistrarPagamentoVendaRequest
+{
+    public FormaPagamento FormaPagamento { get; set; }
+    public int NumeroParcelas { get; set; } = 1;
+}
+
+[HttpPut("{id}/registrar-pagamento")]
+public IActionResult RegistrarPagamento(int id, [FromBody] RegistrarPagamentoVendaRequest request)
+{
+    var (sucesso, mensagem) = _vendaService.RegistrarPagamentoVenda(id, request.FormaPagamento, request.NumeroParcelas);
+
+    if (!sucesso)
+        return BadRequest(mensagem);
+
+    return Ok(new { mensagem });
+}
+
     [HttpPut("{id}")]
     public IActionResult Atualizar(int id, [FromBody] EditarVendaRequest request)
     {
