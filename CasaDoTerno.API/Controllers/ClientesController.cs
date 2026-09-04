@@ -43,12 +43,15 @@ public class ClientesController : ControllerBase
         var idsComVendaPendente = _context.Vendas
             .Where(v => v.PagamentoPendente)
             .Select(v => v.ClienteId)
-            .Distinct();
+            .Distinct()
+            .ToList();
 
         var idsComLocacaoPendente = _context.Locacoes
+            .ToList()
             .Where(l => l.ValorRestante > 0 && l.FormaPagamentoRestante == null)
             .Select(l => l.ClienteId)
-            .Distinct();
+            .Distinct()
+            .ToList();
 
         var idsComDebito = idsComVendaPendente.Union(idsComLocacaoPendente).ToList();
 
@@ -59,7 +62,9 @@ public class ClientesController : ControllerBase
                 .Where(v => v.ClienteId == clienteId && v.PagamentoPendente)
                 .Sum(v => (decimal?)v.ValorTotal) ?? 0;
             var totalLocacoes = _context.Locacoes
-                .Where(l => l.ClienteId == clienteId && l.ValorRestante > 0 && l.FormaPagamentoRestante == null)
+                .Where(l => l.ClienteId == clienteId)
+                .ToList()
+                .Where(l => l.ValorRestante > 0 && l.FormaPagamentoRestante == null)
                 .Sum(l => (decimal?)l.ValorRestante) ?? 0;
 
             return new
@@ -92,8 +97,12 @@ public class ClientesController : ControllerBase
             Data = v.DataVenda
         }));
 
-        var locacoesComRestante = _context.Locacoes
-            .Where(l => l.ClienteId == id && l.ValorRestante > 0 && l.FormaPagamentoRestante == null)
+        var todasLocacoesDoCliente = _context.Locacoes
+            .Where(l => l.ClienteId == id)
+            .ToList();
+
+        var locacoesComRestante = todasLocacoesDoCliente
+            .Where(l => l.ValorRestante > 0 && l.FormaPagamentoRestante == null)
             .ToList();
 
         itens.AddRange(locacoesComRestante.Select(l => new ItemDebito
