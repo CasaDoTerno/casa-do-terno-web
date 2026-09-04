@@ -20,9 +20,21 @@ export function DebitosClientes() {
   const [clientes, setClientes] = useState<ClienteComDebito[]>([]);
   const [clienteAberto, setClienteAberto] = useState<number | null>(null);
   const [detalhes, setDetalhes] = useState<{ itens: ItemDebito[]; total: number } | null>(null);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState("");
+  const [busca, setBusca] = useState("");
 
   function carregar() {
-    api.get<ClienteComDebito[]>("/Clientes/com-debito").then((r) => setClientes(r.data));
+    setCarregando(true);
+    setErro("");
+    api
+      .get<ClienteComDebito[]>("/Clientes/com-debito")
+      .then((r) => setClientes(r.data))
+      .catch((e) => {
+        console.error(e);
+        setErro("Não foi possível carregar os débitos. Veja o console (F12) pra mais detalhes.");
+      })
+      .finally(() => setCarregando(false));
   }
 
   useEffect(() => {
@@ -41,6 +53,11 @@ export function DebitosClientes() {
     });
   }
 
+  const clientesFiltrados = clientes.filter((c) => {
+    if (!busca) return true;
+    return c.nome.toLowerCase().includes(busca.toLowerCase());
+  });
+
   return (
     <div>
       <h1>Débitos por Cliente</h1>
@@ -48,12 +65,27 @@ export function DebitosClientes() {
         Clientes com pagamento pendente (venda) ou restante em aberto (locação).
       </p>
 
-      {clientes.length === 0 && (
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="campo">
+          <label>Buscar por nome</label>
+          <input
+            type="text"
+            placeholder="Digite pra buscar..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {carregando && <p>Carregando...</p>}
+      {erro && <p style={{ color: "#f87171" }}>{erro}</p>}
+
+      {clientesFiltrados.length === 0 && !carregando && !erro && (
         <p style={{ color: "var(--texto-suave)" }}>Nenhum cliente com débito no momento.</p>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {clientes.map((cliente) => (
+        {clientesFiltrados.map((cliente) => (
           <div key={cliente.clienteId} className="card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <strong>{cliente.nome}</strong>

@@ -31,6 +31,7 @@ interface ItemCarrinho {
   tamanho: string;
   quantidade: number;
   valorUnitario: number;
+  ajustes: string;
 }
 
 const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
@@ -46,8 +47,14 @@ export function EditarVenda() {
   const [desconto, setDesconto] = useState(0);
   const [consultor, setConsultor] = useState("");
 
+  const [precisaAjuste, setPrecisaAjuste] = useState(false);
+  const [dataRetiradaAjuste, setDataRetiradaAjuste] = useState("");
+  const [pagamentoPendente, setPagamentoPendente] = useState(false);
+
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [quantidade, setQuantidade] = useState(1);
+  const [valorUnitario, setValorUnitario] = useState(0);
+  const [ajustesPeca, setAjustesPeca] = useState("");
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
 
   const [enviando, setEnviando] = useState(false);
@@ -68,6 +75,9 @@ export function EditarVenda() {
       setClienteId(v.clienteId);
       setDesconto(v.desconto);
       setConsultor(v.consultor ?? "");
+      setPrecisaAjuste(v.precisaAjuste ?? false);
+      setDataRetiradaAjuste(v.dataRetiradaAjuste ? v.dataRetiradaAjuste.split("T")[0] : "");
+      setPagamentoPendente(v.pagamentoPendente ?? false);
       setCarrinho(
         v.itens.map((item: any) => ({
           produtoId: item.produtoId,
@@ -77,6 +87,7 @@ export function EditarVenda() {
           tamanho: "",
           quantidade: item.quantidade,
           valorUnitario: item.valorUnitario,
+          ajustes: item.ajustes ?? "",
         }))
       );
       setCarregado(true);
@@ -95,6 +106,13 @@ export function EditarVenda() {
     );
   }, [produtos, carregado]);
 
+  useEffect(() => {
+    const produto = produtos.find((p) => p.id === produtoSelecionado);
+    if (produto) {
+      setValorUnitario(produto.valorVenda);
+    }
+  }, [produtoSelecionado, produtos]);
+
   function adicionarAoCarrinho() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
     if (!produto) return;
@@ -108,11 +126,14 @@ export function EditarVenda() {
         cor: produto.cor,
         tamanho: produto.tamanho,
         quantidade,
-        valorUnitario: produto.valorVenda,
+        valorUnitario,
+        ajustes: ajustesPeca,
       },
     ]);
     setProdutoSelecionado(0);
     setQuantidade(1);
+    setValorUnitario(0);
+    setAjustesPeca("");
   }
 
   function removerDoCarrinho(index: number) {
@@ -131,6 +152,11 @@ export function EditarVenda() {
       return;
     }
 
+    if (precisaAjuste && !dataRetiradaAjuste) {
+      setMensagem("Informe a data de retirada, já que essa venda precisa de ajuste.");
+      return;
+    }
+
     const confirmar = window.confirm("Confirmar as alterações dessa venda?");
     if (!confirmar) return;
 
@@ -140,7 +166,12 @@ export function EditarVenda() {
         clienteId,
         desconto,
         consultor,
-        itens: carrinho.map((item) => ({ produtoId: item.produtoId, quantidade: item.quantidade })),
+        itens: carrinho.map((item) => ({
+          produtoId: item.produtoId,
+          quantidade: item.quantidade,
+          valorUnitario: item.valorUnitario,
+          ajustes: item.ajustes,
+        })),
       });
       setMensagem("Venda atualizada com sucesso!");
       navigate("/vendas/listagem");
@@ -155,6 +186,23 @@ export function EditarVenda() {
   return (
     <div>
       <h1>Editar Venda #{id}</h1>
+
+      {(precisaAjuste || pagamentoPendente) && (
+        <div className="card" style={{ marginBottom: 20, borderLeft: "3px solid #facc15" }}>
+          <strong>Situação atual:</strong>
+          {precisaAjuste && (
+            <p style={{ margin: "6px 0", fontSize: 13 }}>
+              Precisa de ajuste — retirada prevista: {dataRetiradaAjuste || "não informada"}
+            </p>
+          )}
+          {pagamentoPendente && (
+            <p style={{ margin: "6px 0", fontSize: 13, color: "#f87171" }}>
+              ⚠ Pagamento pendente — vá em "Vendas Pendentes" pra registrar o pagamento quando o cliente vier buscar.
+            </p>
+          )}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} style={{ maxWidth: 640 }}>
 
         <h2>Dados gerais</h2>
@@ -194,11 +242,25 @@ export function EditarVenda() {
               placeholder="Buscar produto..."
             />
           </div>
-          <div style={{ maxWidth: 140 }}>
-            <label>Quantidade</label>
-            <input type="number" min={1} value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
+          <div className="grid-2" style={{ maxWidth: 320 }}>
+            <div>
+              <label>Quantidade</label>
+              <input type="number" min={1} value={quantidade} onChange={(e) => setQuantidade(Number(e.target.value))} />
+            </div>
+            <div>
+              <label>Valor unitário</label>
+              <input type="number" value={valorUnitario} onChange={(e) => setValorUnitario(Number(e.target.value))} />
+            </div>
           </div>
-          <button type="button" onClick={adicionarAoCarrinho} disabled={produtoSelecionado === 0}>
+          <div style={{ marginTop: 12 }}>
+            <label>Ajustes (opcional)</label>
+            <input
+              value={ajustesPeca}
+              onChange={(e) => setAjustesPeca(e.target.value)}
+              placeholder="ex: Bainha -2cm, ajustar manga"
+            />
+          </div>
+          <button type="button" onClick={adicionarAoCarrinho} disabled={produtoSelecionado === 0} style={{ marginTop: 12 }}>
             + Adicionar
           </button>
 
@@ -207,11 +269,42 @@ export function EditarVenda() {
               <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span>
                   {item.quantidade}x {item.referencia ? `${item.referencia} — ` : ""}{item.modelo} · {item.cor} · Tam. {item.tamanho} — R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
+                  {item.ajustes && ` — ${item.ajustes}`}
                 </span>
                 <button type="button" onClick={() => removerDoCarrinho(index)}>Remover</button>
               </li>
             ))}
           </ul>
+        </div>
+
+        <h2>Ajuste</h2>
+        <div className="card" style={{ marginBottom: 20 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 600, margin: 0 }}>
+            <input
+              type="checkbox"
+              checked={precisaAjuste}
+              onChange={(e) => setPrecisaAjuste(e.target.checked)}
+              style={{ width: "auto" }}
+            />
+            Essa peça precisa de ajuste
+          </label>
+
+          {precisaAjuste && (
+            <div style={{ marginTop: 12, maxWidth: 240 }}>
+              <label>Data de retirada</label>
+              <input
+                type="date"
+                value={dataRetiradaAjuste}
+                onChange={(e) => setDataRetiradaAjuste(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
+          <p style={{ fontSize: 12, color: "var(--texto-suave)", marginTop: 8 }}>
+            Nota: essa tela ainda não salva mudanças de ajuste/pagamento pendente — use isso só como conferência.
+            Pra alterar de verdade, use a tela "Vendas Pendentes".
+          </p>
         </div>
 
         <h2>Pagamento</h2>

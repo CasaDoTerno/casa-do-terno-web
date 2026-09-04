@@ -23,6 +23,7 @@ interface Cliente {
   id: number;
   nome: string;
   telefone: string;
+  cpf: string;
 }
 
 export function VendasPendentes() {
@@ -30,6 +31,7 @@ export function VendasPendentes() {
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [mensagem, setMensagem] = useState("");
+  const [busca, setBusca] = useState("");
 
   function carregar() {
     api.get<Venda[]>("/Vendas").then((r) => {
@@ -61,6 +63,14 @@ export function VendasPendentes() {
     }
   }
 
+  const vendasFiltradas = vendas.filter((venda) => {
+    if (!busca) return true;
+    const cliente = clientes.find((c) => c.id === venda.clienteId);
+    const texto = `${cliente?.nome ?? ""} ${cliente?.cpf ?? ""} ${cliente?.telefone ?? ""}`.toLowerCase();
+    const palavras = busca.toLowerCase().split(" ").filter((p) => p.length > 0);
+    return palavras.every((palavra) => texto.includes(palavra));
+  });
+
   return (
     <div>
       <h1>Vendas Pendentes</h1>
@@ -68,14 +78,26 @@ export function VendasPendentes() {
         Vendas com pagamento a receber e/ou peça ainda não retirada.
       </p>
 
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div className="campo">
+          <label>Buscar por nome, CPF ou telefone</label>
+          <input
+            type="text"
+            placeholder="Digite pra buscar..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
+        </div>
+      </div>
+
       {mensagem && <p>{mensagem}</p>}
 
-      {vendas.length === 0 && (
-        <p style={{ color: "var(--texto-suave)" }}>Nenhuma venda pendente no momento.</p>
+      {vendasFiltradas.length === 0 && (
+        <p style={{ color: "var(--texto-suave)" }}>Nenhuma venda pendente encontrada.</p>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {vendas.map((venda) => (
+        {vendasFiltradas.map((venda) => (
           <div key={venda.id} className="card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
