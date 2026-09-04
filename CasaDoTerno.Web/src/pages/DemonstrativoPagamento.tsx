@@ -7,6 +7,8 @@ interface Folha {
   funcionarioId: number;
   nomeFuncionario: string;
   salarioBase: number;
+  diasTrabalhados: number;
+  salarioProporcional: number;
   quantidadeFaltas: number;
   quantidadeFaltasAbonadas: number;
   valorPorDia: number;
@@ -62,6 +64,12 @@ export function DemonstrativoPagamento() {
           <span>Salário base</span>
           <span>R$ {folha.salarioBase.toFixed(2)}</span>
         </div>
+        {folha.diasTrabalhados < 30 && (
+          <div className="recibo-linha">
+            <span>Dias trabalhados / Salário proporcional</span>
+            <span>{folha.diasTrabalhados}/30 — R$ {folha.salarioProporcional.toFixed(2)}</span>
+          </div>
+        )}
         <div className="recibo-linha">
           <span>Valor por dia</span>
           <span>R$ {folha.valorPorDia.toFixed(2)}</span>

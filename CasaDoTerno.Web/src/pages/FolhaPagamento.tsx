@@ -13,6 +13,8 @@ interface Folha {
   funcionarioId: number;
   nomeFuncionario: string;
   salarioBase: number;
+  diasTrabalhados: number;
+  salarioProporcional: number;
   quantidadeFaltas: number;
   quantidadeFaltasAbonadas: number;
   valorPorDia: number;
@@ -93,22 +95,29 @@ export function FolhaPagamento() {
         </div>
       </div>
 
-      {folha && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <p style={{ margin: "4px 0" }}>Salário base: <strong>R$ {folha.salarioBase.toFixed(2)}</strong></p>
-          <p style={{ margin: "4px 0" }}>Valor por dia: R$ {folha.valorPorDia.toFixed(2)}</p>
-          <p style={{ margin: "4px 0" }}>
-            Faltas no mês: <strong>{folha.quantidadeFaltas}</strong>
-            {folha.quantidadeFaltasAbonadas > 0 && ` (+ ${folha.quantidadeFaltasAbonadas} abonada(s), sem desconto)`}
-          </p>
-          <p style={{ margin: "4px 0", color: "#f87171" }}>
-            Desconto por faltas: -R$ {folha.valorDescontado.toFixed(2)}
-          </p>
-          <p style={{ fontSize: 20, fontWeight: 800, marginTop: 12, color: "var(--verde)" }}>
-            Salário líquido: R$ {folha.salarioLiquido.toFixed(2)}
-          </p>
-        </div>
-      )}
+{folha && (
+  <div className="card" style={{ marginBottom: 20 }}>
+    <p style={{ margin: "4px 0" }}>Salário base: <strong>R$ {folha.salarioBase.toFixed(2)}</strong></p>
+
+    {folha.diasTrabalhados < 30 && (
+      <p style={{ margin: "4px 0", color: "#facc15" }}>
+        Dias trabalhados no mês: <strong>{folha.diasTrabalhados}/30</strong> — salário proporcional: R$ {folha.salarioProporcional.toFixed(2)}
+      </p>
+    )}
+
+    <p style={{ margin: "4px 0" }}>Valor por dia: R$ {folha.valorPorDia.toFixed(2)}</p>
+    <p style={{ margin: "4px 0" }}>
+      Faltas no mês: <strong>{folha.quantidadeFaltas}</strong>
+      {folha.quantidadeFaltasAbonadas > 0 && ` (+ ${folha.quantidadeFaltasAbonadas} abonada(s), sem desconto)`}
+    </p>
+    <p style={{ margin: "4px 0", color: "#f87171" }}>
+      Desconto por faltas: -R$ {folha.valorDescontado.toFixed(2)}
+    </p>
+    <p style={{ fontSize: 20, fontWeight: 800, marginTop: 12, color: "var(--verde)" }}>
+      Salário líquido: R$ {folha.salarioLiquido.toFixed(2)}
+    </p>
+  </div>
+)}
 
       <h2>Registrar falta</h2>
       <form onSubmit={registrarFalta} className="card" style={{ marginBottom: 20, maxWidth: 480 }}>
