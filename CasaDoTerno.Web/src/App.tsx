@@ -68,6 +68,8 @@ import { CadastroVariacoes } from "./pages/CadastroVariacoes";
 import { Notificacoes } from "./pages/Notificacoes";
 import { RelatorioPagamentos } from "./pages/RelatorioPagamentos";
 import { DemonstrativoPagamento } from "./pages/DemonstrativoPagamento";
+import { VendasPendentes } from "./pages/VendasPendentes";
+import { DebitosClientes } from "./pages/DebitosClientes";
 
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -154,6 +156,8 @@ function App() {
                     <Route path="/notificacoes" element={<Notificacoes />} />
                     <Route path="/relatorio-pagamentos" element={<RelatorioPagamentos />} />
                     <Route path="/funcionarios/:id/demonstrativo" element={<DemonstrativoPagamento />} />
+                    <Route path="/vendas/pendentes" element={<VendasPendentes />} />
+                    <Route path="/debitos-clientes" element={<DebitosClientes />} />
 
 
                   </Routes>

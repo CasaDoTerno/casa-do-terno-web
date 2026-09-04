@@ -32,6 +32,7 @@ interface ItemCarrinho {
   tamanho: string;
   quantidade: number;
   valorUnitario: number;
+  ajustes: string;
 }
 
 const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
@@ -59,6 +60,8 @@ export function Venda() {
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [vendaCriadaId, setVendaCriadaId] = useState<number | null>(null);
+  const [valorUnitario, setValorUnitario] = useState(0);
+  const [ajustesPeca, setAjustesPeca] = useState("");
 
   function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) =>
@@ -66,31 +69,41 @@ export function Venda() {
     );
   }
 
+useEffect(() => {
+  const produto = produtos.find((p) => p.id === produtoSelecionado);
+  if (produto) {
+    setValorUnitario(produto.valorVenda);
+  }
+}, [produtoSelecionado, produtos]);
+
   useEffect(() => {
     buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
     api.get<Usuario[]>("/Usuarios/lista-simples").then((r) => setUsuarios(r.data));
   }, []);
 
-  function adicionarAoCarrinho() {
-    const produto = produtos.find((p) => p.id === produtoSelecionado);
-    if (!produto) return;
+function adicionarAoCarrinho() {
+  const produto = produtos.find((p) => p.id === produtoSelecionado);
+  if (!produto) return;
 
-    setCarrinho([
-      ...carrinho,
-      {
-        produtoId: produto.id,
-        modelo: produto.modelo,
-        referencia: produto.referencia,
-        cor: produto.cor,
-        tamanho: produto.tamanho,
-        quantidade,
-        valorUnitario: produto.valorVenda,
-      },
-    ]);
-    setProdutoSelecionado(0);
-    setQuantidade(1);
-  }
+  setCarrinho([
+    ...carrinho,
+    {
+      produtoId: produto.id,
+      modelo: produto.modelo,
+      referencia: produto.referencia,
+      cor: produto.cor,
+      tamanho: produto.tamanho,
+      quantidade,
+      valorUnitario,
+      ajustes: ajustesPeca,
+    },
+  ]);
+  setProdutoSelecionado(0);
+  setQuantidade(1);
+  setValorUnitario(0);
+  setAjustesPeca("");
+}
 
   function removerDoCarrinho(index: number) {
     setCarrinho(carrinho.filter((_, i) => i !== index));
@@ -130,7 +143,12 @@ export function Venda() {
         precisaAjuste,
         dataRetiradaAjuste: precisaAjuste ? dataRetiradaAjuste : null,
         pagamentoPendente,
-        itens: carrinho.map((item) => ({ produtoId: item.produtoId, quantidade: item.quantidade })),
+        itens: carrinho.map((item) => ({
+        produtoId: item.produtoId,
+        quantidade: item.quantidade,
+        valorUnitario: item.valorUnitario,
+        ajustes: item.ajustes,
+      })),
       });
       setVendaCriadaId(resposta.data.id);
       setMensagem("Venda registrada com sucesso!");
@@ -189,15 +207,33 @@ export function Venda() {
               placeholder="Buscar produto..."
             />
           </div>
-          <div style={{ maxWidth: 140 }}>
-            <label>Quantidade</label>
-            <input
-              type="number"
-              min={1}
-              value={quantidade}
-              onChange={(e) => setQuantidade(Number(e.target.value))}
-            />
-          </div>
+         <div className="grid-2" style={{ maxWidth: 320 }}>
+  <div>
+    <label>Quantidade</label>
+    <input
+      type="number"
+      min={1}
+      value={quantidade}
+      onChange={(e) => setQuantidade(Number(e.target.value))}
+    />
+  </div>
+  <div>
+    <label>Valor unitário</label>
+    <input
+      type="number"
+      value={valorUnitario}
+      onChange={(e) => setValorUnitario(Number(e.target.value))}
+    />
+  </div>
+  <div style={{ marginTop: 12 }}>
+  <label>Ajustes (opcional)</label>
+  <input
+    value={ajustesPeca}
+    onChange={(e) => setAjustesPeca(e.target.value)}
+    placeholder="ex: Bainha -2cm, ajustar manga"
+  />
+</div>
+</div>
           <button type="button" onClick={adicionarAoCarrinho} disabled={produtoSelecionado === 0}>
             + Adicionar
           </button>
@@ -206,9 +242,10 @@ export function Venda() {
             <ul style={{ marginTop: 16 }}>
               {carrinho.map((item, index) => (
                 <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>
-                    {item.quantidade}x {item.referencia ? `${item.referencia} — ` : ""}{item.modelo} · {item.cor} · Tam. {item.tamanho} — R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
-                  </span>
+<span>
+  {item.quantidade}x {item.referencia ? `${item.referencia} — ` : ""}{item.modelo} · {item.cor} · Tam. {item.tamanho} — R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
+  {item.ajustes && ` — ${item.ajustes}`}
+</span>
                   <button type="button" onClick={() => removerDoCarrinho(index)}>Remover</button>
                 </li>
               ))}

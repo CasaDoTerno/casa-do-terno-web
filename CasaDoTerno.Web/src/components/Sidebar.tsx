@@ -111,6 +111,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           itens={[
             { to: "/venda", label: "Nova Venda" },
             { to: "/vendas/listagem", label: "Listar Vendas" },
+            { to: "/vendas/pendentes", label: "Vendas Pendentes" },
           ]}
           onFechar={onFechar}
         />
@@ -129,6 +130,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
             { to: "/funcionarios", label: "Funcionários" },
             { to: "/cadastro-funcionario", label: "Cadastrar Funcionário" },
             { to: "/relatorio-pagamentos", label: "Pagamentos por Tipo" },
+            { to: "/debitos-clientes", label: "Débitos por Cliente" },
           ]}
           onFechar={onFechar}
         />
