@@ -18,7 +18,7 @@ export function ConfiguracaoImpressora() {
     setTestando(true);
     setMensagem("");
     try {
-      const resposta = await fetch(`http://${ip}:5005/status`);
+      const resposta = await fetch(`https://${ip}:5005/status`);
       const dados = await resposta.json();
       setMensagem(`Conexão OK: ${dados.status}`);
     } catch (erro) {

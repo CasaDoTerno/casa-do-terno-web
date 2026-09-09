@@ -6,7 +6,7 @@ export async function imprimirNaRede(texto: string): Promise<{ sucesso: boolean;
   }
 
   try {
-    const resposta = await fetch(`http://${ip}:5005/imprimir`, {
+    const resposta = await fetch(`https://${ip}:5005/imprimir`, {
       method: "POST",
       body: texto,
     });
