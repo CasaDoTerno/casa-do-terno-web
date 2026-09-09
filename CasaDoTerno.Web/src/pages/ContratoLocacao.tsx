@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/API";
 import { Logo } from "../components/Logo";
+import { imprimirNaRede } from "../Services/impressaoRede";
 
 interface ItemLocacao {
   produtoId: number;
@@ -40,6 +41,7 @@ export function ContratoLocacao() {
   const [locacao, setLocacao] = useState<Locacao | null>(null);
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [statusImpressao, setStatusImpressao] = useState("");
 
   useEffect(() => {
     document.body.classList.add("papel-termico");
@@ -56,7 +58,57 @@ export function ContratoLocacao() {
       api.get(`/Clientes/${locacao.clienteId}`).then((r) => setCliente(r.data));
     }
   }, [locacao]);
+async function imprimirNaTermicaDeRede() {
+  if (!locacao || !cliente) return;
 
+  const linhas: string[] = [];
+  linhas.push("      CASA DO TERNO");
+  linhas.push("------------------------------");
+  linhas.push("CONTRATO DE LOCACAO");
+  linhas.push(`Locacao no: ${locacao.id}`);
+  linhas.push(`Data: ${dataHoje}`);
+  linhas.push("");
+  linhas.push("LOCATARIO(A)");
+  linhas.push(`Nome: ${cliente.nome}`);
+  linhas.push(`CPF: ${cliente.cpf}`);
+  linhas.push(`Tel: ${cliente.telefone}`);
+  linhas.push("");
+  linhas.push("DATAS");
+  linhas.push(`Evento: ${new Date(locacao.dataEvento).toLocaleDateString("pt-BR")}`);
+  linhas.push(`Retirada: ${new Date(locacao.dataRetirada).toLocaleDateString("pt-BR")}`);
+  linhas.push(`Devolucao: ${new Date(locacao.dataDevolucaoPrevista).toLocaleDateString("pt-BR")}`);
+  linhas.push("");
+  linhas.push("PECAS");
+  locacao.itens.forEach((item) => {
+    const p = produto(item.produtoId);
+    linhas.push(`${p?.referencia ? p.referencia + " - " : ""}${p?.modelo ?? "Produto"}`);
+    if (item.ajustes) linhas.push(`  Ajustes: ${item.ajustes}`);
+  });
+  linhas.push("");
+  linhas.push("VALORES");
+  linhas.push(`Total: R$ ${locacao.valorTotal.toFixed(2)}`);
+  linhas.push(`Entrada: R$ ${locacao.valorEntrada.toFixed(2)}`);
+  linhas.push(`Restante: R$ ${(locacao.valorTotal - locacao.valorEntrada).toFixed(2)}`);
+  linhas.push("");
+  linhas.push("CLAUSULAS");
+  linhas.push("1. Devolver ate a data prevista.");
+  linhas.push("2. Atraso: multa de R$50,00/dia por peca.");
+  linhas.push("3. Avaria: cobranca do valor de venda.");
+  linhas.push("4. Cliente vistoriou a peca na retirada.");
+  linhas.push(`5. Entrada (R$ ${locacao.valorEntrada.toFixed(2)}) nao reembolsavel em desistencia.`);
+  linhas.push("");
+  linhas.push("");
+  linhas.push("_________________________");
+  linhas.push("Assinatura Locatario(a)");
+  linhas.push("");
+  linhas.push("");
+  linhas.push("_________________________");
+  linhas.push("Assinatura Casa do Terno");
+
+  setStatusImpressao("Enviando...");
+  const resultado = await imprimirNaRede(linhas.join("\n"));
+  setStatusImpressao(resultado.mensagem);
+}
   function produto(produtoId: number) {
     return produtos.find((p) => p.id === produtoId);
   }
@@ -67,10 +119,15 @@ export function ContratoLocacao() {
 
   return (
     <div className="conteudo contrato-termico" style={{ maxWidth: 340, margin: "0 auto" }}>
-      <button className="no-imprimir" onClick={() => window.print()} style={{ marginBottom: 16 }}>
-        Imprimir
-      </button>
-
+<div className="no-imprimir" style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+  <button onClick={() => window.print()}>
+    Imprimir (driver local)
+  </button>
+  <button onClick={imprimirNaTermicaDeRede}>
+    Imprimir na Térmica (rede)
+  </button>
+</div>
+{statusImpressao && <p className="no-imprimir">{statusImpressao}</p>}
       <div className="recibo-card card">
         <Logo tamanho="grande" />
 

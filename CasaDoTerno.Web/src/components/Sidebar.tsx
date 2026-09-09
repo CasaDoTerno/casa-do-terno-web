@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Logo } from "./Logo";
 import {Mail} from "lucide-react";
+import {Printer} from "lucide-react";
 import { ehAdmin, temModulo } from "../Services/permissoes";
 import {
   LayoutDashboard, Shirt, ShoppingCart, Package, Users, Truck,
@@ -172,6 +173,9 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
           <Mail size={18} /> Notificações
         </NavLink>
       )}
+      <NavLink to="/configuracao-impressora" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
+        <Printer size={18} /> Config. Impressora
+      </NavLink>
 
       <NavLink to="/minha-conta" className={({ isActive }) => (isActive ? "ativo" : "")} onClick={onFechar}>
         <LogIn size={18} /> Minha Conta
