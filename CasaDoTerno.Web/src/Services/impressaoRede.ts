@@ -114,7 +114,7 @@ export async function montarBytesImpressao(
     bytes.push(0x0a); // \n — quebra de linha
   }
 
-  bytes.push(0x1b, 0x64, 0x12); // ESC d 1 — avança 1 linha
+  bytes.push(0x1b, 0x64, 0x08); // ESC d 1 — avança 1 linha
  
 
   return new Uint8Array(bytes);
