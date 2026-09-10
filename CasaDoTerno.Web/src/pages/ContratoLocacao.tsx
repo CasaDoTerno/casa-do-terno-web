@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/API";
 import { Logo } from "../components/Logo";
-import logoImagem from "../assets/logo.png";
+import logoImagem from "../assets/Logo.png";
 import { imprimirNaRede, montarBytesImpressao, type LinhaImpressao } from "../Services/impressaoRede";
 
 interface ItemLocacao {
