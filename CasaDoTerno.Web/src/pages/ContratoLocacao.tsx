@@ -118,10 +118,10 @@ async function imprimirNaTermicaDeRede() {
     { texto: "Assinatura - Casa do Terno", centralizado: true }
   );
 
-  setStatusImpressao("Enviando...");
-  const bytes = montarBytesImpressao(linhas);
-  const resultado = await imprimirNaRede(bytes);
-  setStatusImpressao(resultado.mensagem);
+setStatusImpressao("Enviando...");
+const bytes = await montarBytesImpressao(linhas);
+const resultado = await imprimirNaRede(bytes);
+setStatusImpressao(resultado.mensagem);
 }
   function produto(produtoId: number) {
     return produtos.find((p) => p.id === produtoId);
