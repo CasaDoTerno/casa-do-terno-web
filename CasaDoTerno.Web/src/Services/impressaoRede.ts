@@ -33,6 +33,7 @@ export function montarBytesImpressao(linhas: (string | LinhaImpressao)[]): Uint8
   }
 
   bytes.push(0x1b, 0x64, 0x04); // ESC d 4 — avança 4 linhas (espaço extra pra rasgar com folga)
+  bytes.push(0x1d, 0x56, 0x42, 0x00); // GS V 66 0 — corte parcial
 
   return new Uint8Array(bytes);
 }
