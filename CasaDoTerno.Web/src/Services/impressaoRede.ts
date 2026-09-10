@@ -1,3 +1,17 @@
+const ESC = String.fromCharCode(0x1B);
+
+export function negrito(texto: string): string {
+  return `${ESC}\x45\x01${texto}${ESC}\x45\x00`;
+}
+
+export function centralizado(texto: string): string {
+  return `${ESC}\x61\x01${texto}\n${ESC}\x61\x00`;
+}
+
+export function negritoCentralizado(texto: string): string {
+  return `${ESC}\x61\x01${ESC}\x45\x01${texto}${ESC}\x45\x00${ESC}\x61\x00\n`;
+}
+
 export async function imprimirNaRede(texto: string): Promise<{ sucesso: boolean; mensagem: string }> {
   const ip = localStorage.getItem("ipPonteImpressao");
 

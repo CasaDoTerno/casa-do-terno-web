@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/API";
 import { Logo } from "../components/Logo";
-import { imprimirNaRede } from "../Services/impressaoRede";
+import { imprimirNaRede, negrito, centralizado, negritoCentralizado } from "../Services/impressaoRede";
 
 interface ItemLocacao {
   produtoId: number;
@@ -62,48 +62,65 @@ async function imprimirNaTermicaDeRede() {
   if (!locacao || !cliente) return;
 
   const linhas: string[] = [];
-  linhas.push("      CASA DO TERNO");
+  linhas.push(negritoCentralizado("CASA DO TERNO"));
+  linhas.push(centralizado("Locacao & Venda de Ternos"));
   linhas.push("------------------------------");
-  linhas.push("CONTRATO DE LOCACAO");
+  linhas.push(negrito("CONTRATO DE LOCACAO") + "\n");
   linhas.push(`Locacao no: ${locacao.id}`);
   linhas.push(`Data: ${dataHoje}`);
   linhas.push("");
-  linhas.push("LOCATARIO(A)");
+  linhas.push(negrito("LOCATARIO(A)"));
   linhas.push(`Nome: ${cliente.nome}`);
   linhas.push(`CPF: ${cliente.cpf}`);
   linhas.push(`Tel: ${cliente.telefone}`);
   linhas.push("");
-  linhas.push("DATAS");
+  linhas.push(negrito("DATAS"));
   linhas.push(`Evento: ${new Date(locacao.dataEvento).toLocaleDateString("pt-BR")}`);
   linhas.push(`Retirada: ${new Date(locacao.dataRetirada).toLocaleDateString("pt-BR")}`);
-  linhas.push(`Devolucao: ${new Date(locacao.dataDevolucaoPrevista).toLocaleDateString("pt-BR")}`);
+  linhas.push(`Devolucao prevista: ${new Date(locacao.dataDevolucaoPrevista).toLocaleDateString("pt-BR")}`);
   linhas.push("");
-  linhas.push("PECAS");
+  linhas.push(negrito("PECAS LOCADAS"));
   locacao.itens.forEach((item) => {
     const p = produto(item.produtoId);
     linhas.push(`${p?.referencia ? p.referencia + " - " : ""}${p?.modelo ?? "Produto"}`);
     if (item.ajustes) linhas.push(`  Ajustes: ${item.ajustes}`);
   });
   linhas.push("");
-  linhas.push("VALORES");
+  linhas.push(negrito("VALORES"));
   linhas.push(`Total: R$ ${locacao.valorTotal.toFixed(2)}`);
-  linhas.push(`Entrada: R$ ${locacao.valorEntrada.toFixed(2)}`);
+  linhas.push(`Entrada paga: R$ ${locacao.valorEntrada.toFixed(2)}`);
   linhas.push(`Restante: R$ ${(locacao.valorTotal - locacao.valorEntrada).toFixed(2)}`);
   linhas.push("");
-  linhas.push("CLAUSULAS");
-  linhas.push("1. Devolver ate a data prevista.");
-  linhas.push("2. Atraso: multa de R$50,00/dia por peca.");
-  linhas.push("3. Avaria: cobranca do valor de venda.");
-  linhas.push("4. Cliente vistoriou a peca na retirada.");
-  linhas.push(`5. Entrada (R$ ${locacao.valorEntrada.toFixed(2)}) nao reembolsavel em desistencia.`);
+  linhas.push(negrito("CLAUSULAS"));
+  linhas.push("");
+  linhas.push(
+    "1. O(A) LOCATARIO(A) compromete-se a devolver a(s) peca(s) descrita(s) acima ate a data prevista de devolucao informada neste contrato."
+  );
+  linhas.push("");
+  linhas.push(
+    "2. Em caso de atraso na devolucao, sera cobrada multa de R$ 50,00 (cinquenta reais) por dia de atraso, por peca nao devolvida."
+  );
+  linhas.push("");
+  linhas.push(
+    "3. Em caso de avaria, mancha, rasgo, queimadura ou qualquer dano que impossibilite a reutilizacao da peca, sera cobrado o valor integral de venda do produto, conforme tabela vigente da loja."
+  );
+  linhas.push("");
+  linhas.push(
+    "4. O(A) LOCATARIO(A) declara ter vistoriado a(s) peca(s) no ato da retirada e esta de acordo com o estado de conservacao apresentado."
+  );
+  linhas.push("");
+  linhas.push(
+    `5. O valor pago como entrada (R$ ${locacao.valorEntrada.toFixed(2)}) tem carater de sinal e garantia da reserva, nao sendo reembolsavel em caso de desistencia, cancelamento ou nao comparecimento do(a) LOCATARIO(A) para retirada da(s) peca(s) na data combinada.`
+  );
+  linhas.push("");
+  linhas.push(`Visconde do Rio Branco/MG, ${dataHoje}.`);
   linhas.push("");
   linhas.push("");
-  linhas.push("_________________________");
-  linhas.push("Assinatura Locatario(a)");
+  linhas.push(centralizado("_________________________"));
+  linhas.push(centralizado("Assinatura Locatario(a)"));
   linhas.push("");
-  linhas.push("");
-  linhas.push("_________________________");
-  linhas.push("Assinatura Casa do Terno");
+  linhas.push(centralizado("_________________________"));
+  linhas.push(centralizado("Assinatura - Casa do Terno"));
 
   setStatusImpressao("Enviando...");
   const resultado = await imprimirNaRede(linhas.join("\n"));
