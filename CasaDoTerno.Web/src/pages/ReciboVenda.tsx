@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/API";
 import { Logo } from "../components/Logo";
+import { imprimirNaRede, montarBytesImpressao, type LinhaImpressao } from "../Services/impressaoRede";
 
 interface ItemVenda {
   produtoId: number;
@@ -38,6 +39,7 @@ export function ReciboVenda() {
   const [venda, setVenda] = useState<Venda | null>(null);
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [statusImpressao, setStatusImpressao] = useState("");
 
   useEffect(() => {
     api.get(`/Vendas/${id}`).then((r) => setVenda(r.data));
@@ -54,15 +56,63 @@ export function ReciboVenda() {
     return produtos.find((p) => p.id === produtoId)?.modelo ?? `Produto #${produtoId}`;
   }
 
+  async function imprimirNaTermicaDeRede() {
+    if (!venda || !cliente) return;
+
+    const linhas: LinhaImpressao[] = [
+      { texto: "CASA DO TERNO", negrito: true, centralizado: true },
+      { texto: "Locacao & Venda de Ternos", centralizado: true },
+      { texto: "------------------------------" },
+      { texto: `RECIBO DE VENDA #${venda.id}`, negrito: true },
+      { texto: "" },
+      { texto: `Cliente: ${cliente.nome}` },
+      { texto: `Telefone: ${cliente.telefone}` },
+      { texto: `Data: ${new Date(venda.dataVenda).toLocaleDateString("pt-BR")}` },
+    ];
+
+    if (venda.consultor) {
+      linhas.push({ texto: `Consultor: ${venda.consultor}` });
+    }
+
+    linhas.push({ texto: "" }, { texto: "ITENS", negrito: true });
+
+    venda.itens.forEach((item) => {
+      linhas.push({
+        texto: `${item.quantidade}x ${nomeProduto(item.produtoId)} - R$ ${(item.quantidade * item.valorUnitario).toFixed(2)}`,
+      });
+    });
+
+    const subtotal = venda.itens.reduce((soma, item) => soma + item.quantidade * item.valorUnitario, 0);
+
+    linhas.push(
+      { texto: "" },
+      { texto: `Subtotal: R$ ${subtotal.toFixed(2)}` },
+      { texto: `Desconto: R$ ${venda.desconto.toFixed(2)}` },
+      { texto: `TOTAL: R$ ${venda.valorTotal.toFixed(2)}`, negrito: true },
+      { texto: `Forma de pagamento: ${nomesFormaPagamento[venda.formaPagamento]}` },
+      { texto: "" },
+      { texto: "" },
+      { texto: "_________________________", centralizado: true },
+      { texto: "Assinatura do Cliente", centralizado: true }
+    );
+
+    setStatusImpressao("Enviando...");
+    const bytes = await montarBytesImpressao(linhas);
+    const resultado = await imprimirNaRede(bytes);
+    setStatusImpressao(resultado.mensagem);
+  }
+
   if (!venda || !cliente) return <p>Carregando...</p>;
 
   const subtotal = venda.itens.reduce((soma, item) => soma + item.quantidade * item.valorUnitario, 0);
 
   return (
     <div className="conteudo" style={{ maxWidth: 700, margin: "0 auto" }}>
-      <button className="no-imprimir" onClick={() => window.print()} style={{ marginBottom: 20 }}>
-        Imprimir
-      </button>
+      <div className="no-imprimir" style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+        <button onClick={() => window.print()}>Imprimir (driver local)</button>
+        <button onClick={imprimirNaTermicaDeRede}>Imprimir na Térmica (rede)</button>
+      </div>
+      {statusImpressao && <p className="no-imprimir">{statusImpressao}</p>}
 
       <div className="recibo-card card">
         <div style={{ marginBottom: 16 }}>
@@ -91,26 +141,26 @@ export function ReciboVenda() {
         )}
 
         <h2 style={{ marginTop: 24 }}>Itens</h2>
-          <table className="recibo-tabela" style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid var(--borda)" }}>Produto</th>
-                <th style={{ textAlign: "center", padding: 8, borderBottom: "1px solid var(--borda)" }}>Qtd.</th>
-                <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid var(--borda)" }}>Valor</th>
+        <table className="recibo-tabela" style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid var(--borda)" }}>Produto</th>
+              <th style={{ textAlign: "center", padding: 8, borderBottom: "1px solid var(--borda)" }}>Qtd.</th>
+              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid var(--borda)" }}>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {venda.itens.map((item, index) => (
+              <tr key={index}>
+                <td style={{ padding: 8, borderBottom: "1px solid var(--borda)" }}>{nomeProduto(item.produtoId)}</td>
+                <td style={{ padding: 8, textAlign: "center", borderBottom: "1px solid var(--borda)" }}>{item.quantidade}</td>
+                <td style={{ padding: 8, textAlign: "right", borderBottom: "1px solid var(--borda)" }}>
+                  R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {venda.itens.map((item, index) => (
-                <tr key={index}>
-                  <td style={{ padding: 8, borderBottom: "1px solid var(--borda)" }}>{nomeProduto(item.produtoId)}</td>
-                  <td style={{ padding: 8, textAlign: "center", borderBottom: "1px solid var(--borda)" }}>{item.quantidade}</td>
-                  <td style={{ padding: 8, textAlign: "right", borderBottom: "1px solid var(--borda)" }}>
-                    R$ {(item.quantidade * item.valorUnitario).toFixed(2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
 
         <div className="recibo-linha" style={{ marginTop: 16 }}>
           <span>Subtotal</span>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/API";
 import { Logo } from "../components/Logo";
+import { imprimirNaRede, montarBytesImpressao, type LinhaImpressao } from "../Services/impressaoRede";
 
 interface ItemLocacao {
   produtoId: number;
@@ -41,6 +42,7 @@ export function ReciboLocacao() {
   const [locacao, setLocacao] = useState<Locacao | null>(null);
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [statusImpressao, setStatusImpressao] = useState("");
 
   useEffect(() => {
     api.get(`/Locacoes/${id}`).then((r) => setLocacao(r.data));
@@ -57,15 +59,66 @@ export function ReciboLocacao() {
     return produtos.find((p) => p.id === produtoId)?.modelo ?? `Produto #${produtoId}`;
   }
 
+  async function imprimirNaTermicaDeRede() {
+    if (!locacao || !cliente) return;
+
+    const restanteCalc = locacao.valorTotal - locacao.valorEntrada;
+
+    const linhas: LinhaImpressao[] = [
+      { texto: "CASA DO TERNO", negrito: true, centralizado: true },
+      { texto: "Locacao & Venda de Ternos", centralizado: true },
+      { texto: "------------------------------" },
+      { texto: `RECIBO DE LOCACAO #${locacao.id}`, negrito: true },
+      { texto: "" },
+      { texto: `Cliente: ${cliente.nome}` },
+      { texto: `Telefone: ${cliente.telefone}` },
+      { texto: `Data do evento: ${new Date(locacao.dataEvento).toLocaleDateString("pt-BR")}` },
+      { texto: `Retirada: ${new Date(locacao.dataRetirada).toLocaleDateString("pt-BR")}` },
+      { texto: `Devolucao prevista: ${new Date(locacao.dataDevolucaoPrevista).toLocaleDateString("pt-BR")}` },
+    ];
+
+    if (locacao.consultor) {
+      linhas.push({ texto: `Consultor: ${locacao.consultor}` });
+    }
+
+    linhas.push({ texto: "" }, { texto: "PECAS", negrito: true });
+
+    locacao.itens.forEach((item) => {
+      linhas.push({ texto: `${nomeProduto(item.produtoId)} - R$ ${item.valorItem.toFixed(2)}` });
+      if (item.ajustes) linhas.push({ texto: `  Ajustes: ${item.ajustes}` });
+    });
+
+    linhas.push(
+      { texto: "" },
+      { texto: `Desconto: R$ ${locacao.desconto.toFixed(2)}` },
+      { texto: `TOTAL: R$ ${locacao.valorTotal.toFixed(2)}`, negrito: true },
+      { texto: `Entrada (${nomesFormaPagamento[locacao.formaPagamentoEntrada]}): R$ ${locacao.valorEntrada.toFixed(2)}` },
+      { texto: `RESTANTE (na retirada): R$ ${restanteCalc.toFixed(2)}`, negrito: true },
+      { texto: "" },
+      { texto: "O cliente declara estar ciente de que a(s) peca(s) deve(m) ser devolvida(s) ate a data prevista, em bom estado, sendo responsavel por qualquer dano, extravio ou atraso na devolucao." },
+      { texto: "" },
+      { texto: "" },
+      { texto: "_________________________", centralizado: true },
+      { texto: "Assinatura do Cliente", centralizado: true }
+    );
+
+    setStatusImpressao("Enviando...");
+    const bytes = await montarBytesImpressao(linhas);
+    const resultado = await imprimirNaRede(bytes);
+    setStatusImpressao(resultado.mensagem);
+  }
+
   if (!locacao || !cliente) return <p>Carregando...</p>;
 
   const restante = locacao.valorTotal - locacao.valorEntrada;
 
   return (
     <div className="conteudo" style={{ maxWidth: 700, margin: "0 auto" }}>
-      <button className="no-imprimir" onClick={() => window.print()} style={{ marginBottom: 20 }}>
-        Imprimir
-      </button>
+      <div className="no-imprimir" style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+        <button onClick={() => window.print()}>Imprimir (driver local)</button>
+        <button onClick={imprimirNaTermicaDeRede}>Imprimir na Térmica (rede)</button>
+      </div>
+      {statusImpressao && <p className="no-imprimir">{statusImpressao}</p>}
 
       <div className="recibo-card card">
         <div style={{ marginBottom: 16 }}>
