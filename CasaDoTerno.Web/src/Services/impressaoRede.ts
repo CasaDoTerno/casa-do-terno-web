@@ -81,16 +81,16 @@ function textoParaBytes(texto: string): number[] {
 
 export async function montarBytesImpressao(
   linhas: (string | LinhaImpressao)[],
-  incluirLogo: boolean = true
+  logoUrl?: string
 ): Promise<Uint8Array> {
   const bytes: number[] = [];
 
   // ESC @ — inicializa a impressora
   bytes.push(0x1b, 0x40);
 
-  if (incluirLogo) {
+  if (logoUrl) {
     try {
-      const logoBytes = await carregarLogoComoBytesEscPos("../assets/logo.png", 300);
+      const logoBytes = await carregarLogoComoBytesEscPos(logoUrl, 300);
       bytes.push(0x1b, 0x61, 0x01); // centraliza
       bytes.push(...logoBytes);
       bytes.push(0x0a, 0x0a);
