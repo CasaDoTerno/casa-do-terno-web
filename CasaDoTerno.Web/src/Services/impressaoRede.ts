@@ -32,8 +32,8 @@ export function montarBytesImpressao(linhas: (string | LinhaImpressao)[]): Uint8
     bytes.push(0x0a); // \n — quebra de linha
   }
 
-  bytes.push(0x1b, 0x64, 0x01); // ESC d 1 — avança 1 linha
-  bytes.push(0x1d, 0x56, 0x42, 0x00); // GS V 66 0 — corte parcial
+  bytes.push(0x1b, 0x64, 0x06); // ESC d 1 — avança 1 linha
+ 
 
   return new Uint8Array(bytes);
 }
