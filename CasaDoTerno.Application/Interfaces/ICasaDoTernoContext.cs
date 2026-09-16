@@ -23,5 +23,6 @@ public interface ICasaDoTernoContext
     DbSet<Funcionario> Funcionarios { get; }
     DbSet<Falta> Faltas { get; }
     DbSet<LogAuditoria> LogsAuditoria { get; }
+    DbSet<DespesaRecorrente> DespesasRecorrentes { get; }
     int SaveChanges();
 }

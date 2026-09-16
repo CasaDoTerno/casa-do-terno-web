@@ -11,4 +11,5 @@ public class Despesa
     public string? CriadoPor { get; set; }
     public string? EditadoPor { get; set; }
     public DateTime? DataEdicao { get; set; }
+    public int? DespesaRecorrenteId { get; set; }
 }

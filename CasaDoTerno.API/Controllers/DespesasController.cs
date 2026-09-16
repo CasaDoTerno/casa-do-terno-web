@@ -34,6 +34,7 @@ public class DespesasController : ControllerBase
         public string? Observacao { get; set; }
         public FormaPagamento FormaPagamento { get; set; }
         public int NumeroParcelas { get; set; } = 1;
+       
     }
 
     [HttpPost]

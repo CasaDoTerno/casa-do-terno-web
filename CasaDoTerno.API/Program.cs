@@ -28,6 +28,7 @@ builder.Services.AddScoped<ParcelaService>();
 builder.Services.AddScoped<DespesaService>();
 builder.Services.AddScoped<AuditoriaService>();
 builder.Services.AddScoped<FuncionarioService>();
+builder.Services.AddScoped<DespesaRecorrenteService>();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<CasaDoTernoContext>();

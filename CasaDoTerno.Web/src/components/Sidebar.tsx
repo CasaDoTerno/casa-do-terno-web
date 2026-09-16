@@ -131,6 +131,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
             { to: "/cadastro-funcionario", label: "Cadastrar Funcionário" },
             { to: "/relatorio-pagamentos", label: "Pagamentos por Tipo" },
             { to: "/debitos-clientes", label: "Débitos por Cliente" },
+            { to: "/despesas-recorrentes", label: "Despesas Recorrentes" },
           ]}
           onFechar={onFechar}
         />

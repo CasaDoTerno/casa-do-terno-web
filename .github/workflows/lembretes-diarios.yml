@@ -27,3 +27,7 @@ jobs:
         run: |
           curl -X POST https://casa-do-terno-api.onrender.com/api/Notificacoes/lembrete-devolucao \
             -H "Authorization: Bearer ${{ steps.login.outputs.token }}"
+- name: Gerar despesas recorrentes do mês
+  run: |
+    curl -X POST https://casa-do-terno-api.onrender.com/api/DespesasRecorrentes/gerar-do-mes \
+      -H "Authorization: Bearer ${{ steps.login.outputs.token }}"

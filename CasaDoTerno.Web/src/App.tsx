@@ -71,6 +71,8 @@ import { DemonstrativoPagamento } from "./pages/DemonstrativoPagamento";
 import { VendasPendentes } from "./pages/VendasPendentes";
 import { DebitosClientes } from "./pages/DebitosClientes";
 
+import { DespesasRecorrentes } from "./pages/DespesasRecorrentes";
+
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
   const autenticado = !!localStorage.getItem("token");
@@ -158,6 +160,7 @@ function App() {
                     <Route path="/funcionarios/:id/demonstrativo" element={<DemonstrativoPagamento />} />
                     <Route path="/vendas/pendentes" element={<VendasPendentes />} />
                     <Route path="/debitos-clientes" element={<DebitosClientes />} />
+                    <Route path="/despesas-recorrentes" element={<DespesasRecorrentes />} />
 
 
                   </Routes>
