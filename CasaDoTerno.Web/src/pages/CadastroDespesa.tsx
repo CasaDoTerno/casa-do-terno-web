@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../Services/API";
 
 export function CadastroDespesa() {
-  const navigate = useNavigate();
+  
   const [descricao, setDescricao] = useState("");
   const [categoria, setCategoria] = useState("");
   const [valor, setValor] = useState(0);

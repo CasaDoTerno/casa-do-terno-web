@@ -20,6 +20,13 @@ interface Cliente {
   id: number;
   nome: string;
   telefone: string;
+  ombro: number | null;
+  manga: number | null;
+  abdomen: number | null;
+  bainha: number | null;
+  cintura: number | null;
+  panturrilha: number | null;
+  coxa: number | null;
 }
 
 interface Produto {
@@ -45,18 +52,38 @@ export function ImprimirRetiradasSemana() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [dataReferencia, setDataReferencia] = useState(() => new Date().toISOString().split("T")[0]);
 
-useEffect(() => {
-  api.get<Locacao[]>("/Locacoes").then((r) => setLocacoes(r.data));
-  api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-  api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
-}, []);
+  useEffect(() => {
+    api.get<Locacao[]>("/Locacoes").then((r) => setLocacoes(r.data));
+    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+    api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+  }, []);
+
+  function cliente(clienteId: number) {
+    return clientes.find((c) => c.id === clienteId);
+  }
 
   function nomeCliente(clienteId: number) {
-    return clientes.find((c) => c.id === clienteId)?.nome ?? `Cliente #${clienteId}`;
+    return cliente(clienteId)?.nome ?? `Cliente #${clienteId}`;
   }
 
   function telefoneCliente(clienteId: number) {
-    return clientes.find((c) => c.id === clienteId)?.telefone ?? "";
+    return cliente(clienteId)?.telefone ?? "";
+  }
+
+  function medidasCliente(clienteId: number): string {
+    const c = cliente(clienteId);
+    if (!c) return "";
+
+    const partes: string[] = [];
+    if (c.ombro != null) partes.push(`Ombro: ${c.ombro}`);
+    if (c.manga != null) partes.push(`Manga: ${c.manga}`);
+    if (c.abdomen != null) partes.push(`Abdômen: ${c.abdomen}`);
+    if (c.bainha != null) partes.push(`Bainha: ${c.bainha}`);
+    if (c.cintura != null) partes.push(`Cintura: ${c.cintura}`);
+    if (c.panturrilha != null) partes.push(`Panturrilha: ${c.panturrilha}`);
+    if (c.coxa != null) partes.push(`Coxa: ${c.coxa}`);
+
+    return partes.join(" · ");
   }
 
   function descricaoProduto(produtoId: number) {
@@ -106,30 +133,40 @@ useEffect(() => {
 
       {locacoesDaSemana.length === 0 && <p>Nenhuma retirada pendente nessa semana.</p>}
 
-      {locacoesDaSemana.map((locacao) => (
-        <div key={locacao.id} className="recibo-card card" style={{ marginBottom: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <strong style={{ fontSize: 16 }}>{nomeCliente(locacao.clienteId)}</strong>
-            <span>{telefoneCliente(locacao.clienteId)}</span>
-          </div>
-         <div style={{ marginTop: 4 }}>
-            Retirada: <strong>{new Date(locacao.dataRetirada).toLocaleDateString("pt-BR")}</strong>
-            {" — "}Evento: {new Date(locacao.dataEvento).toLocaleDateString("pt-BR")}
-            {" — "}
-            <strong style={{ color: locacao.dataRetiradaReal !== null ? "#166534" : "#b91c1c" }}>
-              {locacao.dataRetiradaReal !== null ? "✓ RETIRADO" : "○ PENDENTE"}
-            </strong>
-          </div>
-          <div style={{ marginTop: 8 }}>
-            {locacao.itens.map((item, index) => (
-              <div key={index}>
-                • {descricaoProduto(item.produtoId)}
-                {item.ajustes && ` — ${item.ajustes}`}
+      {locacoesDaSemana.map((locacao) => {
+        const medidas = medidasCliente(locacao.clienteId);
+        return (
+          <div key={locacao.id} className="recibo-card card" style={{ marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <strong style={{ fontSize: 16 }}>{nomeCliente(locacao.clienteId)}</strong>
+              <span>{telefoneCliente(locacao.clienteId)}</span>
+            </div>
+
+            {medidas && (
+              <div style={{ marginTop: 4, fontSize: 13, color: "var(--texto-suave)" }}>
+                Medidas: {medidas}
               </div>
-            ))}
+            )}
+
+            <div style={{ marginTop: 4 }}>
+              Retirada: <strong>{new Date(locacao.dataRetirada).toLocaleDateString("pt-BR")}</strong>
+              {" — "}Evento: {new Date(locacao.dataEvento).toLocaleDateString("pt-BR")}
+              {" — "}
+              <strong style={{ color: locacao.dataRetiradaReal !== null ? "#166534" : "#b91c1c" }}>
+                {locacao.dataRetiradaReal !== null ? "✓ RETIRADO" : "○ PENDENTE"}
+              </strong>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              {locacao.itens.map((item, index) => (
+                <div key={index}>
+                  • {descricaoProduto(item.produtoId)}
+                  {item.ajustes && ` — ${item.ajustes}`}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

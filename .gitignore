@@ -9,4 +9,4 @@ dist/
 CasaDoTerno.Web/node_modules/
 
 # Configurações locais sensíveis
-appsettings.Development.json
+appsettings.Development.json.vs/ 

@@ -29,6 +29,12 @@ public class RelatoriosController : ControllerBase
         var resultado = _relatorioService.ProdutosMaisMovimentados(dataInicio, dataFim);
         return Ok(resultado);
     }
+    [HttpGet("comissao-consultor")]
+    public IActionResult ComissaoConsultor([FromQuery] DateTime dataInicio, [FromQuery] DateTime dataFim)
+    {
+        var resultado = _relatorioService.ComissaoPorConsultor(dataInicio, dataFim);
+        return Ok(resultado);
+    }
     [HttpGet("entradas-por-dia")]
     public IActionResult EntradasPorDia([FromQuery] DateTime dataInicio, [FromQuery] DateTime dataFim)
     {

@@ -188,6 +188,47 @@ public class RelatorioService
         public DateTime Data { get; set; }
     }
 
+    public class ComissaoConsultor
+    {
+        public string Consultor { get; set; } = "";
+        public decimal TotalVendas { get; set; }
+        public decimal TotalLocacoes { get; set; }
+        public decimal TotalGeral => TotalVendas + TotalLocacoes;
+    }
+
+    public List<ComissaoConsultor> ComissaoPorConsultor(DateTime dataInicio, DateTime dataFim)
+    {
+        var fimAjustado = dataFim.Date.AddDays(1).AddTicks(-1);
+
+        var vendasPorConsultor = _context.Vendas
+            .Where(v => v.DataVenda >= dataInicio.Date && v.DataVenda <= fimAjustado && v.Consultor != null)
+            .GroupBy(v => v.Consultor!)
+            .Select(g => new { Consultor = g.Key, Total = g.Sum(v => v.ValorTotal) })
+            .ToList();
+
+        var locacoesPorConsultor = _context.Locacoes
+            .Where(l => l.DataEvento >= dataInicio.Date && l.DataEvento <= fimAjustado
+                        && l.Consultor != null && l.DataCancelamento == null)
+            .GroupBy(l => l.Consultor!)
+            .Select(g => new { Consultor = g.Key, Total = g.Sum(l => l.ValorTotal) })
+            .ToList();
+
+        var consultores = vendasPorConsultor.Select(v => v.Consultor)
+            .Union(locacoesPorConsultor.Select(l => l.Consultor))
+            .Distinct();
+
+        var resultado = consultores.Select(nome => new ComissaoConsultor
+        {
+            Consultor = nome,
+            TotalVendas = vendasPorConsultor.FirstOrDefault(v => v.Consultor == nome)?.Total ?? 0,
+            TotalLocacoes = locacoesPorConsultor.FirstOrDefault(l => l.Consultor == nome)?.Total ?? 0
+        })
+        .OrderByDescending(c => c.TotalGeral)
+        .ToList();
+
+        return resultado;
+    }
+
     public class GrupoPagamento
     {
         public string TipoPagamento { get; set; } = "";
