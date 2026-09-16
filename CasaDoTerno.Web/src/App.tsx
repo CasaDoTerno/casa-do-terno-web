@@ -70,6 +70,7 @@ import { RelatorioPagamentos } from "./pages/RelatorioPagamentos";
 import { DemonstrativoPagamento } from "./pages/DemonstrativoPagamento";
 import { VendasPendentes } from "./pages/VendasPendentes";
 import { DebitosClientes } from "./pages/DebitosClientes";
+import { ConfiguracaoImpressora } from "./pages/ConfiguracaoImpressora";
 
 import { DespesasRecorrentes } from "./pages/DespesasRecorrentes";
 
@@ -160,7 +161,8 @@ function App() {
                     <Route path="/funcionarios/:id/demonstrativo" element={<DemonstrativoPagamento />} />
                     <Route path="/vendas/pendentes" element={<VendasPendentes />} />
                     <Route path="/debitos-clientes" element={<DebitosClientes />} />
-                    <Route path="/despesas-recorrentes" element={<DespesasRecorrentes />} />
+<Route path="/configuracao-impressora" element={<ConfiguracaoImpressora />} />
+<Route path="/despesas-recorrentes" element={<DespesasRecorrentes />} />
 
 
                   </Routes>

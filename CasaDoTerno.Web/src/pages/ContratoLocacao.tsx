@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/API";
 import { Logo } from "../components/Logo";
+import { imprimirNaRede, montarBytesImpressao, type LinhaImpressao } from "../Services/impressaoRede";
 
 interface ItemLocacao {
   produtoId: number;
@@ -40,6 +41,7 @@ export function ContratoLocacao() {
   const [locacao, setLocacao] = useState<Locacao | null>(null);
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [statusImpressao, setStatusImpressao] = useState("");
 
   useEffect(() => {
     document.body.classList.add("papel-termico");
@@ -56,7 +58,71 @@ export function ContratoLocacao() {
       api.get(`/Clientes/${locacao.clienteId}`).then((r) => setCliente(r.data));
     }
   }, [locacao]);
+async function imprimirNaTermicaDeRede() {
+  if (!locacao || !cliente) return;
 
+  const linhas: LinhaImpressao[] = [
+    { texto: "CASA DO TERNO", negrito: true, centralizado: true },
+    { texto: "Locacao & Venda de Ternos", centralizado: true },
+    { texto: "------------------------------" },
+    { texto: "CONTRATO DE LOCACAO", negrito: true },
+    { texto: "" },
+    { texto: `Locacao no: ${locacao.id}` },
+    { texto: `Data: ${dataHoje}` },
+    { texto: "" },
+    { texto: "LOCATARIO(A)", negrito: true },
+    { texto: `Nome: ${cliente.nome}` },
+    { texto: `CPF: ${cliente.cpf}` },
+    { texto: `Tel: ${cliente.telefone}` },
+    { texto: "" },
+    { texto: "DATAS", negrito: true },
+    { texto: `Evento: ${new Date(locacao.dataEvento).toLocaleDateString("pt-BR")}` },
+    { texto: `Retirada: ${new Date(locacao.dataRetirada).toLocaleDateString("pt-BR")}` },
+    { texto: `Devolucao prevista: ${new Date(locacao.dataDevolucaoPrevista).toLocaleDateString("pt-BR")}` },
+    { texto: "" },
+    { texto: "PECAS LOCADAS", negrito: true },
+  ];
+
+  locacao.itens.forEach((item) => {
+    const p = produto(item.produtoId);
+    linhas.push({ texto: `${p?.referencia ? p.referencia + " - " : ""}${p?.modelo ?? "Produto"}` });
+    if (item.ajustes) linhas.push({ texto: `  Ajustes: ${item.ajustes}` });
+  });
+
+  linhas.push(
+    { texto: "" },
+    { texto: "VALORES", negrito: true },
+    { texto: `Total: R$ ${locacao.valorTotal.toFixed(2)}` },
+    { texto: `Entrada paga: R$ ${locacao.valorEntrada.toFixed(2)}` },
+    { texto: `Restante: R$ ${(locacao.valorTotal - locacao.valorEntrada).toFixed(2)}` },
+    { texto: "" },
+    { texto: "CLAUSULAS", negrito: true },
+    { texto: "" },
+    { texto: "1. O(A) LOCATARIO(A) compromete-se a devolver a(s) peca(s) descrita(s) acima ate a data prevista de devolucao informada neste contrato." },
+    { texto: "" },
+    { texto: "2. Em caso de atraso na devolucao, sera cobrada multa de R$ 50,00 (cinquenta reais) por dia de atraso, por peca nao devolvida." },
+    { texto: "" },
+    { texto: "3. Em caso de avaria, mancha, rasgo, queimadura ou qualquer dano que impossibilite a reutilizacao da peca, sera cobrado o valor integral de venda do produto, conforme tabela vigente da loja." },
+    { texto: "" },
+    { texto: "4. O(A) LOCATARIO(A) declara ter vistoriado a(s) peca(s) no ato da retirada e esta de acordo com o estado de conservacao apresentado." },
+    { texto: "" },
+    { texto: `5. O valor pago como entrada (R$ ${locacao.valorEntrada.toFixed(2)}) tem carater de sinal e garantia da reserva, nao sendo reembolsavel em caso de desistencia, cancelamento ou nao comparecimento do(a) LOCATARIO(A) para retirada da(s) peca(s) na data combinada.` },
+    { texto: "" },
+    { texto: `Visconde do Rio Branco/MG, ${dataHoje}.` },
+    { texto: "" },
+    { texto: "" },
+    { texto: "_________________________", centralizado: true },
+    { texto: "Assinatura Locatario(a)", centralizado: true },
+    { texto: "" },
+    { texto: "_________________________", centralizado: true },
+    { texto: "Assinatura - Casa do Terno", centralizado: true }
+  );
+
+setStatusImpressao("Enviando...");
+const bytes = await montarBytesImpressao(linhas);
+const resultado = await imprimirNaRede(bytes);
+setStatusImpressao(resultado.mensagem);
+}
   function produto(produtoId: number) {
     return produtos.find((p) => p.id === produtoId);
   }
@@ -67,10 +133,15 @@ export function ContratoLocacao() {
 
   return (
     <div className="conteudo contrato-termico" style={{ maxWidth: 340, margin: "0 auto" }}>
-      <button className="no-imprimir" onClick={() => window.print()} style={{ marginBottom: 16 }}>
-        Imprimir
-      </button>
-
+<div className="no-imprimir" style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+  <button onClick={() => window.print()}>
+    Imprimir (driver local)
+  </button>
+  <button onClick={imprimirNaTermicaDeRede}>
+    Imprimir na Térmica (rede)
+  </button>
+</div>
+{statusImpressao && <p className="no-imprimir">{statusImpressao}</p>}
       <div className="recibo-card card">
         <Logo tamanho="grande" />
 
