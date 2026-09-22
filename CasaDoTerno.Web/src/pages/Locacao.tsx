@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
 import { useNavigate } from "react-router-dom";
+import { Plus } from "lucide-react";
 
 interface Produto {
   id: number;
@@ -66,6 +67,12 @@ export function Locacao() {
   const [novoEventoData, setNovoEventoData] = useState("");
   const [salvandoEvento, setSalvandoEvento] = useState(false);
 
+  const [mostrarNovoCliente, setMostrarNovoCliente] = useState(false);
+  const [novoClienteNome, setNovoClienteNome] = useState("");
+  const [novoClienteTelefone, setNovoClienteTelefone] = useState("");
+  const [novoClienteCpf, setNovoClienteCpf] = useState("");
+  const [salvandoCliente, setSalvandoCliente] = useState(false);
+
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [ajustesPeca, setAjustesPeca] = useState("");
   const [valorPeca, setValorPeca] = useState(0);
@@ -90,9 +97,13 @@ export function Locacao() {
     api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
   }
 
+  function buscarClientes() {
+    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+  }
+
   useEffect(() => {
     buscarProdutos();
-    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+    buscarClientes();
     buscarEventos();
     api.get<Usuario[]>("/Usuarios/lista-simples").then((r) => setUsuarios(r.data));
   }, []);
@@ -104,7 +115,6 @@ export function Locacao() {
     }
   }, [produtoSelecionado, produtos]);
 
-  // só eventos de hoje pra frente — não faz sentido vincular a um evento que já passou
   const hojeISO = new Date().toISOString().split("T")[0];
   const eventosFuturos = eventos
     .filter((ev) => ev.data.split("T")[0] >= hojeISO)
@@ -126,7 +136,6 @@ export function Locacao() {
       });
 
       const eventoCriado: Evento = resposta.data;
-      // atualiza a lista local na hora — sem precisar sair da página nem recarregar nada
       setEventos((atual) => [...atual, eventoCriado]);
       setEventoId(eventoCriado.id);
 
@@ -140,6 +149,37 @@ export function Locacao() {
       setMensagem(erro.response?.data || "Erro ao criar evento.");
     } finally {
       setSalvandoEvento(false);
+    }
+  }
+
+  async function salvarNovoCliente() {
+    if (!novoClienteNome || !novoClienteTelefone || !novoClienteCpf) {
+      setMensagem("Preencha nome, telefone e CPF antes de salvar o cliente.");
+      return;
+    }
+
+    setSalvandoCliente(true);
+    try {
+      const resposta = await api.post("/Clientes", {
+        nome: novoClienteNome,
+        telefone: novoClienteTelefone,
+        cpf: novoClienteCpf,
+      });
+
+      const clienteCriado: Cliente = resposta.data;
+      setClientes((atual) => [...atual, clienteCriado]);
+      setClienteId(clienteCriado.id);
+
+      setNovoClienteNome("");
+      setNovoClienteTelefone("");
+      setNovoClienteCpf("");
+      setMostrarNovoCliente(false);
+      setMensagem("Cliente cadastrado e já selecionado! Complete as medidas dele depois, em Clientes.");
+    } catch (erro: any) {
+      console.error(erro);
+      setMensagem(erro.response?.data || "Erro ao cadastrar cliente.");
+    } finally {
+      setSalvandoCliente(false);
     }
   }
 
@@ -267,13 +307,69 @@ export function Locacao() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Cliente</label>
-            <BuscaSelect
-              opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
-              valorSelecionado={clienteId}
-              onSelecionar={setClienteId}
-              placeholder="Buscar cliente..."
-            />
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div style={{ flex: 1 }}>
+                <BuscaSelect
+                  opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
+                  valorSelecionado={clienteId}
+                  onSelecionar={setClienteId}
+                  onAbrir={buscarClientes}
+                  placeholder="Buscar cliente..."
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setMostrarNovoCliente(!mostrarNovoCliente)}
+                style={{ display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", flexShrink: 0 }}
+              >
+                <Plus size={16} /> Novo
+              </button>
+            </div>
           </div>
+
+          {mostrarNovoCliente && (
+            <div className="card" style={{ marginTop: 12, background: "var(--chumbo-input)" }}>
+              <strong style={{ fontSize: 13 }}>Cadastro rápido de cliente</strong>
+              <div className="grid-3" style={{ marginTop: 8 }}>
+                <div>
+                  <label>Nome</label>
+                  <input
+                    value={novoClienteNome}
+                    onChange={(e) => setNovoClienteNome(e.target.value)}
+                    placeholder="Nome completo"
+                  />
+                </div>
+                <div>
+                  <label>Telefone</label>
+                  <input
+                    value={novoClienteTelefone}
+                    onChange={(e) => setNovoClienteTelefone(e.target.value)}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+                <div>
+                  <label>CPF</label>
+                  <input
+                    value={novoClienteCpf}
+                    onChange={(e) => setNovoClienteCpf(e.target.value)}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+              </div>
+              <p style={{ fontSize: 12, color: "var(--texto-suave)", marginTop: 8 }}>
+                As medidas e outros dados podem ser completados depois, na tela de Clientes.
+              </p>
+              <button
+                type="button"
+                onClick={salvarNovoCliente}
+                disabled={salvandoCliente}
+                style={{ marginTop: 8 }}
+              >
+                {salvandoCliente ? "Salvando..." : "Salvar cliente e selecionar"}
+              </button>
+            </div>
+          )}
+
           <div>
             <label>Consultor</label>
             <select value={consultor} onChange={(e) => setConsultor(e.target.value)}>
@@ -286,7 +382,7 @@ export function Locacao() {
 
           <div>
             <label>Evento (opcional)</label>
-            <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <div style={{ flex: 1 }}>
                 <BuscaSelect
                   opcoes={eventosFuturos.map((ev) => ({
@@ -302,9 +398,9 @@ export function Locacao() {
               <button
                 type="button"
                 onClick={() => setMostrarNovoEvento(!mostrarNovoEvento)}
-                style={{ whiteSpace: "nowrap" }}
+                style={{ display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", flexShrink: 0 }}
               >
-                {mostrarNovoEvento ? "Cancelar" : "+ Novo Evento"}
+                <Plus size={16} /> Novo
               </button>
             </div>
           </div>
