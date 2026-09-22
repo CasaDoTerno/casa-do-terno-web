@@ -307,7 +307,7 @@ export function Locacao() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Cliente</label>
-            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
+            <div style={{ marginBottom: 20, display: "flex", gap: 24, flexWrap: "wrap" }}>
               <div style={{ flex: 1 }}>
                 <BuscaSelect
                   opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
@@ -322,7 +322,7 @@ export function Locacao() {
                 onClick={() => setMostrarNovoCliente(!mostrarNovoCliente)}
                 style={{ display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", flexShrink: 0 }}
               >
-                <Plus size={16} /> Novo
+              <Plus size={16} /> Novo
               </button>
             </div>
           </div>
