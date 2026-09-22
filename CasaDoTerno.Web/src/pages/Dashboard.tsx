@@ -29,6 +29,7 @@ interface Locacao {
   dataRetiradaReal: string | null;
   dataDevolucaoPrevista: string;
   dataDevolucaoReal: string | null;
+  dataCancelamento: string | null;
   pronta: boolean;
   itens: ItemLocacao[];
 }
@@ -164,7 +165,7 @@ export function Dashboard() {
     .filter((e) => new Date(e.data) >= seteDiasAtras)
     .reduce((soma, e) => soma + e.total, 0);
 
-  const locacoesAbertas = locacoes.filter((l) => l.dataDevolucaoReal === null);
+  const locacoesAbertas = locacoes.filter((l) => l.dataDevolucaoReal === null && l.dataCancelamento === null);
 
   const retiradasHoje = locacoesAbertas.filter(
     (l) => l.dataRetirada.split("T")[0] === hojeISO && l.dataRetiradaReal === null
