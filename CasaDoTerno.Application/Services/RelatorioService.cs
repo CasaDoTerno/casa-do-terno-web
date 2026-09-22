@@ -51,6 +51,7 @@ public class RelatorioService
             Total = (vendasPorDia.FirstOrDefault(v => v.Data == dia)?.Total ?? 0)
                   + (entradaLocacaoPorDia.FirstOrDefault(e => e.Data == dia)?.Total ?? 0)
                   + (restantePorDia.FirstOrDefault(r => r.Data == dia)?.Total ?? 0)
+                  + (multaPorDia.FirstOrDefault(m => m.Data == dia)?.Total ?? 0)
         }).ToList();
     }
     private readonly ICasaDoTernoContext _context;
