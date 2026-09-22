@@ -30,5 +30,6 @@ public class CasaDoTernoContext : IdentityDbContext<IdentityUser>, ICasaDoTernoC
     public DbSet<Falta> Faltas { get; set; }
     public DbSet<LogAuditoria> LogsAuditoria { get; set; }
     public DbSet<DespesaRecorrente> DespesasRecorrentes { get; set; }
+    public DbSet<Vale> Vales { get; set; }
 
 }

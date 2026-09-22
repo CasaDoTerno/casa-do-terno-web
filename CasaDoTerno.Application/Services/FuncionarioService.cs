@@ -24,9 +24,44 @@ public class FuncionarioService
         public int QuantidadeFaltasAbonadas { get; set; }
         public decimal ValorPorDia { get; set; }
         public decimal ValorDescontado { get; set; }
+        public decimal TotalVales { get; set; }
         public decimal SalarioLiquido { get; set; }
     }
 
+
+    public Vale RegistrarVale(int funcionarioId, DateTime data, decimal valor, string? motivo)
+    {
+        var vale = new Vale
+        {
+            FuncionarioId = funcionarioId,
+            Data = data,
+            Valor = valor,
+            Motivo = motivo
+        };
+
+        _context.Vales.Add(vale);
+        _context.SaveChanges();
+        return vale;
+    }
+
+    public List<Vale> ListarVales(int funcionarioId, int mes, int ano)
+    {
+        return _context.Vales
+            .Where(v => v.FuncionarioId == funcionarioId && v.Data.Month == mes && v.Data.Year == ano)
+            .OrderBy(v => v.Data)
+            .ToList();
+    }
+
+    public (bool sucesso, string mensagem) RemoverVale(int valeId)
+    {
+        var vale = _context.Vales.Find(valeId);
+        if (vale == null)
+            return (false, "Vale não encontrado.");
+
+        _context.Vales.Remove(vale);
+        _context.SaveChanges();
+        return (true, "Vale removido com sucesso.");
+    }
     public FolhaPagamento? CalcularFolhaPagamento(int funcionarioId, int mes, int ano)
     {
         var funcionario = _context.Funcionarios.Find(funcionarioId);
@@ -74,7 +109,13 @@ public class FuncionarioService
         decimal valorPorDia = funcionario.SalarioBase / DIVISOR_DIAS_MES;
         decimal salarioProporcional = valorPorDia * diasTrabalhados;
         decimal valorDescontado = valorPorDia * faltasNaoAbonadas;
-        decimal salarioLiquido = salarioProporcional - valorDescontado;
+
+        var valesDoMes = _context.Vales
+            .Where(v => v.FuncionarioId == funcionarioId && v.Data.Month == mes && v.Data.Year == ano)
+            .ToList();
+        decimal totalVales = valesDoMes.Sum(v => v.Valor);
+
+        decimal salarioLiquido = salarioProporcional - valorDescontado - totalVales;
 
         return new FolhaPagamento
         {
@@ -87,6 +128,7 @@ public class FuncionarioService
             QuantidadeFaltasAbonadas = faltasAbonadas,
             ValorPorDia = valorPorDia,
             ValorDescontado = valorDescontado,
+            TotalVales = totalVales,
             SalarioLiquido = salarioLiquido
         };
     }

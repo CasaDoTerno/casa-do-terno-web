@@ -24,5 +24,6 @@ public interface ICasaDoTernoContext
     DbSet<Falta> Faltas { get; }
     DbSet<LogAuditoria> LogsAuditoria { get; }
     DbSet<DespesaRecorrente> DespesasRecorrentes { get; }
+    DbSet<Vale> Vales { get; }
     int SaveChanges();
 }

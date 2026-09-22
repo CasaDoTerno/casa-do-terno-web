@@ -26,6 +26,38 @@ public class FuncionariosController : ControllerBase
         return Ok(_context.Funcionarios.OrderBy(f => f.Nome).ToList());
     }
 
+    public class RegistrarValeRequest
+    {
+        public DateTime Data { get; set; }
+        public decimal Valor { get; set; }
+        public string? Motivo { get; set; }
+    }
+
+    [HttpPost("{id}/vales")]
+    public IActionResult RegistrarVale(int id, [FromBody] RegistrarValeRequest request)
+    {
+        var funcionario = _context.Funcionarios.Find(id);
+        if (funcionario == null) return NotFound("Funcionário não encontrado.");
+
+        var vale = _funcionarioService.RegistrarVale(id, request.Data, request.Valor, request.Motivo);
+        return Ok(vale);
+    }
+
+    [HttpGet("{id}/vales")]
+    public IActionResult ListarVales(int id, [FromQuery] int mes, [FromQuery] int ano)
+    {
+        var vales = _funcionarioService.ListarVales(id, mes, ano);
+        return Ok(vales);
+    }
+
+    [HttpDelete("vales/{valeId}")]
+    public IActionResult RemoverVale(int valeId)
+    {
+        var (sucesso, mensagem) = _funcionarioService.RemoverVale(valeId);
+        if (!sucesso) return BadRequest(mensagem);
+        return Ok(new { mensagem });
+    }
+
     [HttpGet("{id}")]
     public IActionResult BuscarPorId(int id)
     {
