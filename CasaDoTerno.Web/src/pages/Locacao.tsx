@@ -307,7 +307,7 @@ export function Locacao() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Cliente</label>
-            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "center" }}>
+            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
               <div style={{ flex: 1 }}>
                 <BuscaSelect
                   opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
@@ -382,7 +382,7 @@ export function Locacao() {
 
           <div>
             <label>Evento (opcional)</label>
-            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "center" }}>
+            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
               <div style={{ flex: 1 }}>
                 <BuscaSelect
                   opcoes={eventosFuturos.map((ev) => ({
@@ -447,7 +447,7 @@ export function Locacao() {
           )}
 
           {eventoId !== 0 && (
-            <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 }}>
+            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
               <input
                 type="checkbox"
                 checked={ehPrincipalDoEvento}
