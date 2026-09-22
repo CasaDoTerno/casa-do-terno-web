@@ -17,6 +17,7 @@ interface Produto {
 interface Evento {
   id: number;
   nome: string;
+  data: string;
 }
 
 interface Cliente {
@@ -40,6 +41,7 @@ interface PecaCarrinho {
 }
 
 const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
+const nomesTipoEvento = ["Casamento", "Formatura", "Aniversário"];
 
 export function Locacao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -58,6 +60,12 @@ export function Locacao() {
   const [eventoId, setEventoId] = useState(0);
   const [ehPrincipalDoEvento, setEhPrincipalDoEvento] = useState(false);
 
+  const [mostrarNovoEvento, setMostrarNovoEvento] = useState(false);
+  const [novoEventoTipo, setNovoEventoTipo] = useState(0);
+  const [novoEventoNome, setNovoEventoNome] = useState("");
+  const [novoEventoData, setNovoEventoData] = useState("");
+  const [salvandoEvento, setSalvandoEvento] = useState(false);
+
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [ajustesPeca, setAjustesPeca] = useState("");
   const [valorPeca, setValorPeca] = useState(0);
@@ -67,7 +75,7 @@ export function Locacao() {
   const [enviando, setEnviando] = useState(false);
 
   const [locacaoCriadaId, setLocacaoCriadaId] = useState<number | null>(null);
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
   function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) => {
@@ -78,10 +86,14 @@ const navigate = useNavigate();
     });
   }
 
+  function buscarEventos() {
+    api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
+  }
+
   useEffect(() => {
     buscarProdutos();
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-    api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
+    buscarEventos();
     api.get<Usuario[]>("/Usuarios/lista-simples").then((r) => setUsuarios(r.data));
   }, []);
 
@@ -91,6 +103,45 @@ const navigate = useNavigate();
       setValorPeca(produto.valorLocacao);
     }
   }, [produtoSelecionado, produtos]);
+
+  // só eventos de hoje pra frente — não faz sentido vincular a um evento que já passou
+  const hojeISO = new Date().toISOString().split("T")[0];
+  const eventosFuturos = eventos
+    .filter((ev) => ev.data.split("T")[0] >= hojeISO)
+    .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+
+  async function salvarNovoEvento() {
+    if (!novoEventoNome || !novoEventoData) {
+      setMensagem("Preencha nome e data do evento antes de salvar.");
+      return;
+    }
+
+    setSalvandoEvento(true);
+    try {
+      const resposta = await api.post("/Eventos", {
+        tipo: novoEventoTipo,
+        nome: novoEventoNome,
+        data: novoEventoData,
+        observacao: "",
+      });
+
+      const eventoCriado: Evento = resposta.data;
+      // atualiza a lista local na hora — sem precisar sair da página nem recarregar nada
+      setEventos((atual) => [...atual, eventoCriado]);
+      setEventoId(eventoCriado.id);
+
+      setNovoEventoNome("");
+      setNovoEventoData("");
+      setNovoEventoTipo(0);
+      setMostrarNovoEvento(false);
+      setMensagem("Evento criado e já selecionado!");
+    } catch (erro: any) {
+      console.error(erro);
+      setMensagem(erro.response?.data || "Erro ao criar evento.");
+    } finally {
+      setSalvandoEvento(false);
+    }
+  }
 
   async function adicionarPeca() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
@@ -149,57 +200,57 @@ const navigate = useNavigate();
   const valorTotal = subtotal - desconto;
   const valorRestante = valorTotal - valorEntrada;
 
-async function handleSubmit(evento: React.FormEvent) {
-  evento.preventDefault();
-  if (enviando) return;
+  async function handleSubmit(evento: React.FormEvent) {
+    evento.preventDefault();
+    if (enviando) return;
 
-  if (pecas.length === 0) {
-    setMensagem("Adicione pelo menos uma peça antes de confirmar.");
-    return;
-  }
+    if (pecas.length === 0) {
+      setMensagem("Adicione pelo menos uma peça antes de confirmar.");
+      return;
+    }
 
-  if (dataRetirada > dataEvento) {
-    setMensagem("A data de retirada não pode ser depois da data do evento.");
-    return;
-  }
+    if (dataRetirada > dataEvento) {
+      setMensagem("A data de retirada não pode ser depois da data do evento.");
+      return;
+    }
 
-  if (dataDevolucaoPrevista < dataRetirada) {
-    setMensagem("A data de devolução não pode ser antes da data de retirada.");
-    return;
-  }
+    if (dataDevolucaoPrevista < dataRetirada) {
+      setMensagem("A data de devolução não pode ser antes da data de retirada.");
+      return;
+    }
 
     const confirmar = window.confirm(
       `Confirmar a criação dessa locação?\n\nTotal: R$ ${valorTotal.toFixed(2)}\nPeças: ${pecas.length}`
     );
     if (!confirmar) return;
 
-setEnviando(true);
-try {
-  const resposta = await api.post("/Locacoes", {
-    clienteId,
-    dataEvento,
-    dataRetirada,
-    dataDevolucaoPrevista,
-    consultor,
-    desconto,
-    valorEntrada,
-    formaPagamentoEntrada,
-    eventoId: eventoId === 0 ? null : eventoId,
-    ehLocacaoPrincipalDoEvento: ehPrincipalDoEvento,
-    itens: pecas.map((p) => ({
-      produtoId: p.produtoId,
-      ajustes: p.ajustes,
-      valorItem: p.valorLocacao,
-    })),
-  });
-  setLocacaoCriadaId(resposta.data.id);
-  setMensagem("Locação criada com sucesso!");
-  setPecas([]);
-  setDesconto(0);
-  setValorEntrada(0);
-  setEventoId(0);
-  setEhPrincipalDoEvento(false);
-} catch (erro: any) {
+    setEnviando(true);
+    try {
+      const resposta = await api.post("/Locacoes", {
+        clienteId,
+        dataEvento,
+        dataRetirada,
+        dataDevolucaoPrevista,
+        consultor,
+        desconto,
+        valorEntrada,
+        formaPagamentoEntrada,
+        eventoId: eventoId === 0 ? null : eventoId,
+        ehLocacaoPrincipalDoEvento: ehPrincipalDoEvento,
+        itens: pecas.map((p) => ({
+          produtoId: p.produtoId,
+          ajustes: p.ajustes,
+          valorItem: p.valorLocacao,
+        })),
+      });
+      setLocacaoCriadaId(resposta.data.id);
+      setMensagem("Locação criada com sucesso!");
+      setPecas([]);
+      setDesconto(0);
+      setValorEntrada(0);
+      setEventoId(0);
+      setEhPrincipalDoEvento(false);
+    } catch (erro: any) {
       console.error(erro);
       setMensagem(erro.response?.data || "Erro ao criar locação.");
     } finally {
@@ -235,13 +286,69 @@ try {
 
           <div>
             <label>Evento (opcional)</label>
-            <select value={eventoId} onChange={(e) => setEventoId(Number(e.target.value))}>
-              <option value={0}>Nenhum</option>
-              {eventos.map((ev) => (
-                <option key={ev.id} value={ev.id}>{ev.nome}</option>
-              ))}
-            </select>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <div style={{ flex: 1 }}>
+                <BuscaSelect
+                  opcoes={eventosFuturos.map((ev) => ({
+                    id: ev.id,
+                    label: `${ev.nome} — ${new Date(ev.data).toLocaleDateString("pt-BR")}`,
+                  }))}
+                  valorSelecionado={eventoId}
+                  onSelecionar={setEventoId}
+                  onAbrir={buscarEventos}
+                  placeholder="Buscar evento (opcional)..."
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setMostrarNovoEvento(!mostrarNovoEvento)}
+                style={{ whiteSpace: "nowrap" }}
+              >
+                {mostrarNovoEvento ? "Cancelar" : "+ Novo Evento"}
+              </button>
+            </div>
           </div>
+
+          {mostrarNovoEvento && (
+            <div className="card" style={{ marginTop: 12, background: "var(--chumbo-input)" }}>
+              <strong style={{ fontSize: 13 }}>Cadastro rápido de evento</strong>
+              <div className="grid-3" style={{ marginTop: 8 }}>
+                <div>
+                  <label>Tipo</label>
+                  <select value={novoEventoTipo} onChange={(e) => setNovoEventoTipo(Number(e.target.value))}>
+                    {nomesTipoEvento.map((nome, index) => (
+                      <option key={index} value={index}>{nome}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label>Nome</label>
+                  <input
+                    value={novoEventoNome}
+                    onChange={(e) => setNovoEventoNome(e.target.value)}
+                    placeholder="ex: Casamento João e Maria"
+                  />
+                </div>
+                <div>
+                  <label>Data</label>
+                  <input
+                    type="date"
+                    value={novoEventoData}
+                    onChange={(e) => setNovoEventoData(e.target.value)}
+                    min={hojeISO}
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={salvarNovoEvento}
+                disabled={salvandoEvento}
+                style={{ marginTop: 12 }}
+              >
+                {salvandoEvento ? "Salvando..." : "Salvar evento e selecionar"}
+              </button>
+            </div>
+          )}
 
           {eventoId !== 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
@@ -290,7 +397,7 @@ try {
                 required
               />
             </div>
-</div>
+          </div>
         </div>
 
         <h2>Peças</h2>
@@ -383,28 +490,28 @@ try {
         <button type="submit" disabled={enviando}>
           {enviando ? "Salvando..." : "Confirmar locação"}
         </button>
-</form>
+      </form>
 
-{mensagem && <p>{mensagem}</p>}
+      {mensagem && <p>{mensagem}</p>}
 
-{locacaoCriadaId && (
-  <div className="card" style={{ marginTop: 20, borderLeft: "3px solid var(--verde)" }}>
-    <p style={{ fontWeight: 700, marginBottom: 12 }}>
-      Locação #{locacaoCriadaId} criada! Imprima o contrato agora pra colher a assinatura do cliente:
-    </p>
-    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-      <button type="button" onClick={() => navigate(`/locacoes/contrato/${locacaoCriadaId}`)}>
-        Ver Contrato (assinar agora)
-      </button>
-      <button type="button" onClick={() => navigate(`/locacoes/imprimir/${locacaoCriadaId}`)}>
-        Ver Recibo
-      </button>
-      <button type="button" onClick={() => setLocacaoCriadaId(null)} style={{ background: "var(--chumbo-input)" }}>
-        Fazer nova locação
-      </button>
+      {locacaoCriadaId && (
+        <div className="card" style={{ marginTop: 20, borderLeft: "3px solid var(--verde)" }}>
+          <p style={{ fontWeight: 700, marginBottom: 12 }}>
+            Locação #{locacaoCriadaId} criada! Imprima o contrato agora pra colher a assinatura do cliente:
+          </p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button type="button" onClick={() => navigate(`/locacoes/contrato/${locacaoCriadaId}`)}>
+              Ver Contrato (assinar agora)
+            </button>
+            <button type="button" onClick={() => navigate(`/locacoes/imprimir/${locacaoCriadaId}`)}>
+              Ver Recibo
+            </button>
+            <button type="button" onClick={() => setLocacaoCriadaId(null)} style={{ background: "var(--chumbo-input)" }}>
+              Fazer nova locação
+            </button>
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-)}
-</div>
   );
 }
