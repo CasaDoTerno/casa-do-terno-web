@@ -37,6 +37,7 @@ public class RelatorioService
         var restantePorDia = _context.Locacoes
             .Where(l => l.DataPagamentoRestante != null
                         && l.DataPagamentoRestante >= dataInicio.Date && l.DataPagamentoRestante <= fimAjustado)
+            .ToList()
             .GroupBy(l => l.DataPagamentoRestante!.Value.Date)
             .Select(g => new { Data = g.Key, Total = g.Sum(l => l.ValorRestante) })
             .ToList();
