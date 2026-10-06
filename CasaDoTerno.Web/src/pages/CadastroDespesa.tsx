@@ -2,13 +2,15 @@ import { useState } from "react";
 import api from "../Services/API";
 
 export function CadastroDespesa() {
-  
   const [descricao, setDescricao] = useState("");
   const [categoria, setCategoria] = useState("");
   const [valor, setValor] = useState(0);
   const [observacao, setObservacao] = useState("");
   const [formaPagamento, setFormaPagamento] = useState(0);
   const [numeroParcelas, setNumeroParcelas] = useState(1);
+
+  const [aPagar, setAPagar] = useState(false);
+  const [dataVencimento, setDataVencimento] = useState("");
 
   const [recorrente, setRecorrente] = useState(false);
   const [diaVencimento, setDiaVencimento] = useState(10);
@@ -21,6 +23,11 @@ export function CadastroDespesa() {
 
     if (enviando) return;
 
+    if (!recorrente && aPagar && !dataVencimento) {
+      setMensagem("Informe a data de vencimento.");
+      return;
+    }
+
     setEnviando(true);
     try {
       if (recorrente) {
@@ -29,7 +36,7 @@ export function CadastroDespesa() {
           valor,
           diaVencimento,
         });
-        setMensagem("Despesa recorrente cadastrada com sucesso! A primeira cobrança já foi gerada.");
+        setMensagem("Despesa recorrente cadastrada! A primeira cobrança já foi gerada, como pendente.");
       } else {
         await api.post("/Despesas", {
           descricao,
@@ -38,8 +45,14 @@ export function CadastroDespesa() {
           observacao,
           formaPagamento,
           numeroParcelas,
+          aguardandoPagamento: aPagar,
+          dataVencimento: aPagar ? dataVencimento : null,
         });
-        setMensagem("Despesa lançada com sucesso!");
+        setMensagem(
+          aPagar
+            ? "Despesa lançada como A PAGAR. Quando pagar, registre em Despesas do Mês."
+            : "Despesa lançada com sucesso!"
+        );
       }
 
       setDescricao("");
@@ -47,11 +60,14 @@ export function CadastroDespesa() {
       setValor(0);
       setObservacao("");
       setNumeroParcelas(1);
+      setAPagar(false);
+      setDataVencimento("");
       setRecorrente(false);
       setDiaVencimento(10);
-    } catch (erro) {
+    } catch (erro: any) {
       console.error(erro);
-      setMensagem("Erro ao lançar despesa.");
+      const detalhe = erro.response?.data;
+      setMensagem(typeof detalhe === "string" ? detalhe : "Erro ao lançar despesa.");
     } finally {
       setEnviando(false);
     }
@@ -92,12 +108,53 @@ export function CadastroDespesa() {
                 value={diaVencimento}
                 onChange={(e) => setDiaVencimento(Number(e.target.value))}
               />
+              <p style={{ fontSize: 12, color: "var(--texto-suave)", marginTop: 8 }}>
+                Cada cobrança nasce como boleto a pagar. Você registra o pagamento em Despesas do Mês.
+              </p>
             </div>
           )}
         </div>
 
         {!recorrente && (
           <>
+            <div className="card" style={{ marginBottom: 12 }}>
+              <strong>Situação do pagamento</strong>
+              <div style={{ display: "flex", flexDirection: "row", gap: 24, marginTop: 8, flexWrap: "wrap" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 400, margin: 0 }}>
+                  <input
+                    type="radio"
+                    name="situacao"
+                    checked={!aPagar}
+                    onChange={() => setAPagar(false)}
+                    style={{ width: "auto" }}
+                  />
+                  Já paguei
+                </label>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 400, margin: 0 }}>
+                  <input
+                    type="radio"
+                    name="situacao"
+                    checked={aPagar}
+                    onChange={() => setAPagar(true)}
+                    style={{ width: "auto" }}
+                  />
+                  Ainda vou pagar (boleto, conta a vencer)
+                </label>
+              </div>
+
+              {aPagar && (
+                <div style={{ marginTop: 12, maxWidth: 220 }}>
+                  <label>Vencimento (1ª parcela)</label>
+                  <input
+                    type="date"
+                    value={dataVencimento}
+                    onChange={(e) => setDataVencimento(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+            </div>
+
             <div>
               <label>Categoria: </label>
               <input
@@ -111,7 +168,7 @@ export function CadastroDespesa() {
               <input type="number" value={valor} onChange={(e) => setValor(Number(e.target.value))} required />
             </div>
             <div>
-              <label>Forma de pagamento: </label>
+              <label>{aPagar ? "Forma de pagamento prevista: " : "Forma de pagamento: "}</label>
               <select value={formaPagamento} onChange={(e) => setFormaPagamento(Number(e.target.value))}>
                 <option value={0}>Dinheiro</option>
                 <option value={1}>Cartão</option>
@@ -127,6 +184,11 @@ export function CadastroDespesa() {
                 value={numeroParcelas}
                 onChange={(e) => setNumeroParcelas(Number(e.target.value))}
               />
+              {aPagar && numeroParcelas > 1 && (
+                <p style={{ fontSize: 12, color: "var(--texto-suave)", marginTop: 4 }}>
+                  Os vencimentos seguintes caem no mesmo dia, nos meses seguintes.
+                </p>
+              )}
             </div>
             <div>
               <label>Observação: </label>

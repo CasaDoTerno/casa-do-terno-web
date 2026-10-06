@@ -23,7 +23,40 @@ public class DespesasController : ControllerBase
     [HttpGet]
     public IActionResult Listar()
     {
-        return Ok(_context.Despesas.ToList());
+        var despesas = _context.Despesas.ToList();
+        var ids = despesas.Select(d => d.Id).ToList();
+
+        var parcelas = _context.Parcelas
+            .Where(p => p.Origem == OrigemPagamento.Despesa && ids.Contains(p.OrigemId))
+            .ToList();
+
+        var resultado = despesas.Select(d => new
+        {
+            d.Id,
+            d.Descricao,
+            d.Categoria,
+            d.Valor,
+            d.DataLancamento,
+            d.Observacao,
+            d.CriadoPor,
+            d.EditadoPor,
+            d.DataEdicao,
+            d.DespesaRecorrenteId,
+            Parcelas = parcelas
+                .Where(p => p.OrigemId == d.Id)
+                .OrderBy(p => p.NumeroParcela)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.NumeroParcela,
+                    p.ValorParcela,
+                    p.FormaPagamento,
+                    p.DataVencimento,
+                    p.DataPagamento
+                })
+        });
+
+        return Ok(resultado);
     }
 
     public class NovaDespesaRequest
@@ -34,21 +67,30 @@ public class DespesasController : ControllerBase
         public string? Observacao { get; set; }
         public FormaPagamento FormaPagamento { get; set; }
         public int NumeroParcelas { get; set; } = 1;
-       
+        public bool AguardandoPagamento { get; set; }
+        public DateTime? DataVencimento { get; set; }
     }
 
     [HttpPost]
     public IActionResult Criar([FromBody] NovaDespesaRequest request)
     {
+        if (request.Valor <= 0)
+            return BadRequest("Informe um valor maior que zero.");
+
+        if (request.AguardandoPagamento && request.DataVencimento == null)
+            return BadRequest("Informe a data de vencimento.");
+
         var despesa = _despesaService.CriarDespesa(
             request.Descricao, request.Categoria, request.Valor, request.Observacao,
-            request.FormaPagamento, request.NumeroParcelas);
+            request.FormaPagamento, request.NumeroParcelas,
+            request.AguardandoPagamento, request.DataVencimento);
 
-        despesa!.CriadoPor = User.Identity?.Name;
+        despesa.CriadoPor = User.Identity?.Name;
         _context.SaveChanges();
 
         return Ok(despesa);
     }
+
     [HttpGet("{id}")]
     public IActionResult BuscarPorId(int id)
     {
@@ -102,7 +144,4 @@ public class DespesasController : ControllerBase
         _context.SaveChanges();
         return NoContent();
     }
-
-
-
 }

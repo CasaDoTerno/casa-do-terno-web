@@ -16,6 +16,14 @@ interface Vale {
   motivo: string | null;
 }
 
+interface Lancamento {
+  id: number;
+  tipo: number;
+  data: string;
+  valor: number;
+  descricao: string | null;
+}
+
 interface Folha {
   funcionarioId: number;
   nomeFuncionario: string;
@@ -27,7 +35,131 @@ interface Folha {
   valorPorDia: number;
   valorDescontado: number;
   totalVales: number;
+  totalComissoes: number;
+  totalInss: number;
   salarioLiquido: number;
+}
+
+const TIPO_COMISSAO = 0;
+const TIPO_INSS = 1;
+
+const nomesMeses = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+interface BlocoLancamentoProps {
+  titulo: string;
+  tituloLista: string;
+  tipo: number;
+  funcionarioId: string | undefined;
+  mes: number;
+  ano: number;
+  itens: Lancamento[];
+  placeholderDescricao: string;
+  corValor: string;
+  onMudou: () => void;
+  onErro: (mensagem: string) => void;
+}
+
+function BlocoLancamento({
+  titulo, tituloLista, tipo, funcionarioId, mes, ano, itens,
+  placeholderDescricao, corValor, onMudou, onErro,
+}: BlocoLancamentoProps) {
+  const [data, setData] = useState("");
+  const [valor, setValor] = useState(0);
+  const [descricao, setDescricao] = useState("");
+
+  // só deixa escolher datas dentro do mês que está sendo visto na folha,
+  // senão o lançamento "sumiria" (cairia em outro mês)
+  const mesTexto = String(mes).padStart(2, "0");
+  const ultimoDiaDoMes = String(new Date(ano, mes, 0).getDate()).padStart(2, "0");
+  const primeiroDia = `${ano}-${mesTexto}-01`;
+  const ultimoDia = `${ano}-${mesTexto}-${ultimoDiaDoMes}`;
+
+  async function registrar(evento: React.FormEvent) {
+    evento.preventDefault();
+    if (!data || valor <= 0) return;
+
+    try {
+      await api.post(`/Funcionarios/${funcionarioId}/lancamentos`, {
+        tipo,
+        data,
+        valor,
+        descricao,
+      });
+      setData("");
+      setValor(0);
+      setDescricao("");
+      onMudou();
+    } catch (erro: any) {
+      onErro(erro.response?.data || "Erro ao registrar lançamento.");
+    }
+  }
+
+  async function remover(lancamentoId: number) {
+    const confirmar = window.confirm("Remover esse lançamento?");
+    if (!confirmar) return;
+    await api.delete(`/Funcionarios/lancamentos/${lancamentoId}`);
+    onMudou();
+  }
+
+  return (
+    <div>
+      <h2>{titulo}</h2>
+      <form onSubmit={registrar} className="card" style={{ marginBottom: 20 }}>
+        <div>
+          <label>Data</label>
+          <input
+            type="date"
+            value={data}
+            min={primeiroDia}
+            max={ultimoDia}
+            onChange={(e) => setData(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label>Valor</label>
+          <input
+            type="number"
+            step="0.01"
+            value={valor}
+            onChange={(e) => setValor(Number(e.target.value))}
+            required
+          />
+        </div>
+        <div>
+          <label>Descrição (opcional)</label>
+          <input
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            placeholder={placeholderDescricao}
+          />
+        </div>
+        <button type="submit" style={{ marginTop: 12 }}>Registrar</button>
+      </form>
+
+      <h2>{tituloLista}</h2>
+      {itens.length === 0 && <p style={{ color: "var(--texto-suave)" }}>Nenhum lançamento.</p>}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {itens.map((item) => (
+          <div
+            key={item.id}
+            className="card"
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+          >
+            <div>
+              <strong>{item.data.split("T")[0]}</strong> —{" "}
+              <span style={{ color: corValor, fontWeight: 700 }}>R$ {item.valor.toFixed(2)}</span>
+              {item.descricao && ` — ${item.descricao}`}
+            </div>
+            <button type="button" onClick={() => remover(item.id)}>Remover</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function FolhaPagamento() {
@@ -39,6 +171,7 @@ export function FolhaPagamento() {
   const [folha, setFolha] = useState<Folha | null>(null);
   const [faltas, setFaltas] = useState<Falta[]>([]);
   const [vales, setVales] = useState<Vale[]>([]);
+  const [lancamentos, setLancamentos] = useState<Lancamento[]>([]);
 
   const [novaData, setNovaData] = useState("");
   const [novoMotivo, setNovoMotivo] = useState("");
@@ -54,6 +187,7 @@ export function FolhaPagamento() {
     api.get<Folha>(`/Funcionarios/${id}/folha-pagamento?mes=${mes}&ano=${ano}`).then((r) => setFolha(r.data));
     api.get<Falta[]>(`/Funcionarios/${id}/faltas?mes=${mes}&ano=${ano}`).then((r) => setFaltas(r.data));
     api.get<Vale[]>(`/Funcionarios/${id}/vales?mes=${mes}&ano=${ano}`).then((r) => setVales(r.data));
+    api.get<Lancamento[]>(`/Funcionarios/${id}/lancamentos?mes=${mes}&ano=${ano}`).then((r) => setLancamentos(r.data));
   }
 
   useEffect(() => {
@@ -112,11 +246,6 @@ export function FolhaPagamento() {
     carregar();
   }
 
-  const nomesMeses = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-  ];
-
   return (
     <div>
       <h1>Folha de Pagamento{folha && ` — ${folha.nomeFuncionario}`}</h1>
@@ -149,6 +278,13 @@ export function FolhaPagamento() {
           )}
 
           <p style={{ margin: "4px 0" }}>Valor por dia: R$ {folha.valorPorDia.toFixed(2)}</p>
+
+          {folha.totalComissoes > 0 && (
+            <p style={{ margin: "4px 0", color: "var(--verde)" }}>
+              Comissões: +R$ {folha.totalComissoes.toFixed(2)}
+            </p>
+          )}
+
           <p style={{ margin: "4px 0" }}>
             Faltas no mês: <strong>{folha.quantidadeFaltas}</strong>
             {folha.quantidadeFaltasAbonadas > 0 && ` (+ ${folha.quantidadeFaltasAbonadas} abonada(s), sem desconto)`}
@@ -159,6 +295,11 @@ export function FolhaPagamento() {
           {folha.totalVales > 0 && (
             <p style={{ margin: "4px 0", color: "#f87171" }}>
               Vales descontados: -R$ {folha.totalVales.toFixed(2)}
+            </p>
+          )}
+          {folha.totalInss > 0 && (
+            <p style={{ margin: "4px 0", color: "#f87171" }}>
+              Desconto INSS: -R$ {folha.totalInss.toFixed(2)}
             </p>
           )}
           <p style={{ fontSize: 20, fontWeight: 800, marginTop: 12, color: "var(--verde)" }}>
@@ -239,6 +380,35 @@ export function FolhaPagamento() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="grid-2" style={{ marginTop: 24 }}>
+        <BlocoLancamento
+          titulo="Registrar comissão"
+          tituloLista="Comissões do mês"
+          tipo={TIPO_COMISSAO}
+          funcionarioId={id}
+          mes={mes}
+          ano={ano}
+          itens={lancamentos.filter((l) => l.tipo === TIPO_COMISSAO)}
+          placeholderDescricao="ex: Comissão de vendas"
+          corValor="var(--verde)"
+          onMudou={carregar}
+          onErro={setMensagem}
+        />
+        <BlocoLancamento
+          titulo="Registrar desconto de INSS"
+          tituloLista="INSS do mês"
+          tipo={TIPO_INSS}
+          funcionarioId={id}
+          mes={mes}
+          ano={ano}
+          itens={lancamentos.filter((l) => l.tipo === TIPO_INSS)}
+          placeholderDescricao="ex: INSS do mês"
+          corValor="#f87171"
+          onMudou={carregar}
+          onErro={setMensagem}
+        />
       </div>
     </div>
   );

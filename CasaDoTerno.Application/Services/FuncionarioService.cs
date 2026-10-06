@@ -26,6 +26,8 @@ public class FuncionarioService
         public decimal ValorDescontado { get; set; }
         public decimal TotalVales { get; set; }
         public decimal SalarioLiquido { get; set; }
+        public decimal TotalComissoes { get; set; }
+        public decimal TotalInss { get; set; }
     }
 
 
@@ -62,6 +64,42 @@ public class FuncionarioService
         _context.SaveChanges();
         return (true, "Vale removido com sucesso.");
     }
+    public LancamentoFolha RegistrarLancamento(
+    int funcionarioId, TipoLancamentoFolha tipo, DateTime data, decimal valor, string? descricao)
+    {
+        var lancamento = new LancamentoFolha
+        {
+            FuncionarioId = funcionarioId,
+            Tipo = tipo,
+            Data = data,
+            Valor = valor,
+            Descricao = descricao
+        };
+
+        _context.LancamentosFolha.Add(lancamento);
+        _context.SaveChanges();
+        return lancamento;
+    }
+
+    public List<LancamentoFolha> ListarLancamentos(int funcionarioId, int mes, int ano)
+    {
+        return _context.LancamentosFolha
+            .Where(l => l.FuncionarioId == funcionarioId && l.Data.Month == mes && l.Data.Year == ano)
+            .OrderBy(l => l.Data)
+            .ToList();
+    }
+
+    public (bool sucesso, string mensagem) RemoverLancamento(int lancamentoId)
+    {
+        var lancamento = _context.LancamentosFolha.Find(lancamentoId);
+        if (lancamento == null)
+            return (false, "Lançamento não encontrado.");
+
+        _context.LancamentosFolha.Remove(lancamento);
+        _context.SaveChanges();
+        return (true, "Lançamento removido com sucesso.");
+    }
+
     public FolhaPagamento? CalcularFolhaPagamento(int funcionarioId, int mes, int ano)
     {
         var funcionario = _context.Funcionarios.Find(funcionarioId);
@@ -111,11 +149,21 @@ public class FuncionarioService
         decimal valorDescontado = valorPorDia * faltasNaoAbonadas;
 
         var valesDoMes = _context.Vales
-            .Where(v => v.FuncionarioId == funcionarioId && v.Data.Month == mes && v.Data.Year == ano)
-            .ToList();
+    .Where(v => v.FuncionarioId == funcionarioId && v.Data.Month == mes && v.Data.Year == ano)
+    .ToList();
         decimal totalVales = valesDoMes.Sum(v => v.Valor);
 
-        decimal salarioLiquido = salarioProporcional - valorDescontado - totalVales;
+        var lancamentosDoMes = _context.LancamentosFolha
+            .Where(l => l.FuncionarioId == funcionarioId && l.Data.Month == mes && l.Data.Year == ano)
+            .ToList();
+        decimal totalComissoes = lancamentosDoMes
+            .Where(l => l.Tipo == TipoLancamentoFolha.Comissao)
+            .Sum(l => l.Valor);
+        decimal totalInss = lancamentosDoMes
+            .Where(l => l.Tipo == TipoLancamentoFolha.Inss)
+            .Sum(l => l.Valor);
+
+        decimal salarioLiquido = salarioProporcional + totalComissoes - valorDescontado - totalVales - totalInss;
 
         return new FolhaPagamento
         {
@@ -129,6 +177,8 @@ public class FuncionarioService
             ValorPorDia = valorPorDia,
             ValorDescontado = valorDescontado,
             TotalVales = totalVales,
+            TotalComissoes = totalComissoes,
+            TotalInss = totalInss,
             SalarioLiquido = salarioLiquido
         };
     }

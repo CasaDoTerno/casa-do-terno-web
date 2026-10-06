@@ -42,11 +42,17 @@ public class ParcelasController : ControllerBase
 
         return Ok(parcelas);
     }
+    public class RegistrarPagamentoParcelaRequest
+    {
+        public FormaPagamento? FormaPagamento { get; set; }
+        public DateTime? DataPagamento { get; set; }
+    }
 
     [HttpPut("{id}/pagamento")]
-    public IActionResult RegistrarPagamento(int id)
+    public IActionResult RegistrarPagamento(int id, [FromBody] RegistrarPagamentoParcelaRequest? request)
     {
-        var (sucesso, mensagem) = _parcelaService.RegistrarPagamentoParcela(id);
+        var (sucesso, mensagem) = _parcelaService.RegistrarPagamentoParcela(
+            id, request?.FormaPagamento, request?.DataPagamento);
 
         if (!sucesso)
             return BadRequest(mensagem);

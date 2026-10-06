@@ -73,6 +73,7 @@ import { DebitosClientes } from "./pages/DebitosClientes";
 import { ConfiguracaoImpressora } from "./pages/ConfiguracaoImpressora";
 
 import { DespesasRecorrentes } from "./pages/DespesasRecorrentes";
+import { Rastreabilidade } from "./pages/Rastreabilidade";
 
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -163,6 +164,7 @@ function App() {
                     <Route path="/debitos-clientes" element={<DebitosClientes />} />
 <Route path="/configuracao-impressora" element={<ConfiguracaoImpressora />} />
 <Route path="/despesas-recorrentes" element={<DespesasRecorrentes />} />
+<Route path="/rastreabilidade" element={<Rastreabilidade />} />
 
 
                   </Routes>

@@ -1,5 +1,6 @@
 ﻿using CasaDoTerno.Domain.Entities;
 using CasaDoTerno.Application.Interfaces;
+using CasaDoTerno.Application.Utils;
 
 namespace CasaDoTerno.Application.Services;
 
@@ -14,7 +15,8 @@ public class ParcelaService
 
     public void GerarParcelas(
         OrigemPagamento origem, int origemId, decimal valorTotal,
-        int numeroParcelas, FormaPagamento formaPagamento, DateTime primeiroVencimento)
+        int numeroParcelas, FormaPagamento formaPagamento, DateTime primeiroVencimento,
+        bool forcarPendente = false)
     {
         if (numeroParcelas < 1) numeroParcelas = 1;
 
@@ -37,8 +39,10 @@ public class ParcelaService
                 DataVencimento = primeiroVencimento.AddMonths(i - 1)
             };
 
-            if (numeroParcelas == 1)
-                parcela.DataPagamento = DateTime.Now;
+            // parcela única nasce paga (comportamento de sempre), a menos que quem chamou
+            // peça pra ficar pendente (boleto a pagar, despesa recorrente...)
+            if (numeroParcelas == 1 && !forcarPendente)
+                parcela.DataPagamento = FusoHorario.AgoraBrasilia();
 
             _context.Parcelas.Add(parcela);
         }
@@ -46,7 +50,8 @@ public class ParcelaService
         _context.SaveChanges();
     }
 
-    public (bool sucesso, string mensagem) RegistrarPagamentoParcela(int parcelaId)
+    public (bool sucesso, string mensagem) RegistrarPagamentoParcela(
+        int parcelaId, FormaPagamento? formaPagamento = null, DateTime? dataPagamento = null)
     {
         var parcela = _context.Parcelas.Find(parcelaId);
         if (parcela == null)
@@ -55,7 +60,20 @@ public class ParcelaService
         if (parcela.Paga)
             return (false, "Essa parcela já foi paga.");
 
-        parcela.DataPagamento = DateTime.Now;
+        var agora = FusoHorario.AgoraBrasilia();
+
+        if (dataPagamento != null && dataPagamento.Value.Date > agora.Date)
+            return (false, "A data de pagamento não pode ser no futuro.");
+
+        // a forma pela qual realmente foi paga pode ser diferente da prevista
+        if (formaPagamento != null)
+            parcela.FormaPagamento = formaPagamento.Value;
+
+        // sem data (ou data de hoje): usa o momento exato. Data passada: usa a data escolhida.
+        parcela.DataPagamento = (dataPagamento == null || dataPagamento.Value.Date == agora.Date)
+            ? agora
+            : dataPagamento.Value.Date;
+
         _context.SaveChanges();
 
         return (true, "Pagamento registrado com sucesso.");

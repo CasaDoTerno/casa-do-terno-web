@@ -11,6 +11,42 @@ namespace CasaDoTerno.API.Controllers;
 [Route("api/[controller]")]
 public class FuncionariosController : ControllerBase
 {
+
+    public class RegistrarLancamentoFolhaRequest
+    {
+        public TipoLancamentoFolha Tipo { get; set; }
+        public DateTime Data { get; set; }
+        public decimal Valor { get; set; }
+        public string? Descricao { get; set; }
+    }
+
+    [HttpPost("{id}/lancamentos")]
+    public IActionResult RegistrarLancamento(int id, [FromBody] RegistrarLancamentoFolhaRequest request)
+    {
+        var funcionario = _context.Funcionarios.Find(id);
+        if (funcionario == null) return NotFound("Funcionário não encontrado.");
+
+        if (request.Valor <= 0)
+            return BadRequest("Informe um valor maior que zero.");
+
+        var lancamento = _funcionarioService.RegistrarLancamento(
+            id, request.Tipo, request.Data, request.Valor, request.Descricao);
+        return Ok(lancamento);
+    }
+
+    [HttpGet("{id}/lancamentos")]
+    public IActionResult ListarLancamentos(int id, [FromQuery] int mes, [FromQuery] int ano)
+    {
+        return Ok(_funcionarioService.ListarLancamentos(id, mes, ano));
+    }
+
+    [HttpDelete("lancamentos/{lancamentoId}")]
+    public IActionResult RemoverLancamento(int lancamentoId)
+    {
+        var (sucesso, mensagem) = _funcionarioService.RemoverLancamento(lancamentoId);
+        if (!sucesso) return BadRequest(mensagem);
+        return Ok(new { mensagem });
+    }
     private readonly CasaDoTernoContext _context;
     private readonly FuncionarioService _funcionarioService;
 

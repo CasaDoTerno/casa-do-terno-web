@@ -16,9 +16,11 @@ interface ItemLocacao {
 interface Locacao {
   id: number;
   clienteId: number;
+  dataEvento: string;
   dataRetirada: string;
   dataDevolucaoPrevista: string;
   dataDevolucaoReal: string | null;
+  dataCancelamento?: string | null;
   itens: ItemLocacao[];
 }
 
@@ -29,8 +31,14 @@ interface Cliente {
 
 interface Reserva {
   clienteNome: string;
+  dataEvento: string;
   dataRetirada: string;
   dataDevolucaoPrevista: string;
+}
+
+// "2026-09-18" vira "18/09/2026" (sem passar por new Date, que erraria o dia por causa do fuso)
+function formatarData(iso: string): string {
+  return iso.split("-").reverse().join("/");
 }
 
 export function Disponibilidade() {
@@ -45,7 +53,7 @@ export function Disponibilidade() {
   useEffect(() => {
     api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
     api.get<Locacao[]>("/Locacoes").then((r) =>
-      setLocacoes(r.data.filter((l) => l.dataDevolucaoReal === null))
+      setLocacoes(r.data.filter((l) => l.dataDevolucaoReal === null && !l.dataCancelamento))
     );
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
   }, []);
@@ -54,15 +62,17 @@ export function Disponibilidade() {
     return clientes.find((c) => c.id === clienteId)?.nome ?? `Cliente #${clienteId}`;
   }
 
-  // monta, pra cada produto, a lista de reservas ativas (não devolvidas)
+  // monta, pra cada produto, a lista de reservas ativas (não devolvidas), em ordem de data do evento
   function reservasDoProduto(produtoId: number): Reserva[] {
     return locacoes
       .filter((l) => l.itens.some((item) => item.produtoId === produtoId))
       .map((l) => ({
         clienteNome: nomeCliente(l.clienteId),
+        dataEvento: l.dataEvento.split("T")[0],
         dataRetirada: l.dataRetirada.split("T")[0],
         dataDevolucaoPrevista: l.dataDevolucaoPrevista.split("T")[0],
-      }));
+      }))
+      .sort((a, b) => a.dataEvento.localeCompare(b.dataEvento));
   }
 
   const produtosComReservas = produtos.map((p) => ({
@@ -76,7 +86,7 @@ export function Disponibilidade() {
     const palavras = busca.toLowerCase().split(" ").filter((p) => p.length > 0);
     const bateBusca = palavras.every((palavra) => textoProduto.includes(palavra));
 
-    // filtro de data: só produtos com alguma reserva cobrindo essa data
+    // filtro de data: só produtos que estão fora da loja nessa data (da retirada até a devolução)
     const bateData =
       !filtroData ||
       reservas.some((r) => filtroData >= r.dataRetirada && filtroData <= r.dataDevolucaoPrevista);
@@ -119,11 +129,22 @@ export function Disponibilidade() {
               <p style={{ color: "var(--verde)", margin: "6px 0 0 0" }}>Livre — sem reservas ativas</p>
             ) : (
               <div style={{ marginTop: 6 }}>
-                {reservas.map((r, index) => (
-                  <div key={index} style={{ fontSize: 13, color: "var(--texto-suave)" }}>
-                    Locado com <strong>{r.clienteNome}</strong> ({r.dataRetirada} a {r.dataDevolucaoPrevista})
-                  </div>
-                ))}
+                {reservas.map((r, index) => {
+                  const foraNaDataEscolhida =
+                    filtroData !== "" && filtroData >= r.dataRetirada && filtroData <= r.dataDevolucaoPrevista;
+
+                  return (
+                    <div key={index} style={{ fontSize: 13, color: "var(--texto-suave)" }}>
+                      Locado com <strong>{r.clienteNome}</strong> — evento em{" "}
+                      <strong>{formatarData(r.dataEvento)}</strong>
+                      {foraNaDataEscolhida && (
+                        <span style={{ color: "#facc15", marginLeft: 6 }}>
+                          (peça fora da loja de {formatarData(r.dataRetirada)} a {formatarData(r.dataDevolucaoPrevista)})
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

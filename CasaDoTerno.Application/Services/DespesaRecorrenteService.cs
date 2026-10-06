@@ -73,7 +73,7 @@ public class DespesaRecorrenteService
 
         _parcelaService.GerarParcelas(
             OrigemPagamento.Despesa, despesa.Id, recorrente.Valor,
-            1, FormaPagamento.Boleto, vencimento);
+            1, FormaPagamento.Boleto, vencimento, forcarPendente: true);
 
         recorrente.UltimoMesGerado = referencia.Month;
         recorrente.UltimoAnoGerado = referencia.Year;

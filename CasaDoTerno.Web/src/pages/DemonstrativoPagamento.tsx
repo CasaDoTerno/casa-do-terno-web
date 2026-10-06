@@ -13,6 +13,9 @@ interface Folha {
   quantidadeFaltasAbonadas: number;
   valorPorDia: number;
   valorDescontado: number;
+  totalVales: number;
+  totalComissoes: number;
+  totalInss: number;
   salarioLiquido: number;
 }
 
@@ -33,6 +36,9 @@ export function DemonstrativoPagamento() {
   }, [id, mes, ano]);
 
   if (!folha) return <p>Carregando...</p>;
+
+  const totalProventos = folha.salarioProporcional + folha.totalComissoes;
+  const totalDescontos = folha.valorDescontado + folha.totalVales + folha.totalInss;
 
   return (
     <div className="conteudo" style={{ maxWidth: 500, margin: "0 auto" }}>
@@ -61,22 +67,34 @@ export function DemonstrativoPagamento() {
         </div>
 
         <div className="recibo-linha">
-          <span>Salário base</span>
-          <span>R$ {folha.salarioBase.toFixed(2)}</span>
-        </div>
-        {folha.diasTrabalhados < 30 && (
-          <div className="recibo-linha">
-            <span>Dias trabalhados / Salário proporcional</span>
-            <span>{folha.diasTrabalhados}/30 — R$ {folha.salarioProporcional.toFixed(2)}</span>
-          </div>
-        )}
-        <div className="recibo-linha">
           <span>Valor por dia</span>
           <span>R$ {folha.valorPorDia.toFixed(2)}</span>
         </div>
+
+        <div style={{ fontWeight: 800, marginTop: 16 }}>PROVENTOS</div>
         <div className="recibo-linha">
-          <span>Faltas (não abonadas)</span>
-          <span>{folha.quantidadeFaltas}</span>
+          <span>
+            {folha.diasTrabalhados < 30
+              ? `Salário proporcional (${folha.diasTrabalhados}/30 dias)`
+              : "Salário base"}
+          </span>
+          <span>R$ {folha.salarioProporcional.toFixed(2)}</span>
+        </div>
+        {folha.totalComissoes > 0 && (
+          <div className="recibo-linha">
+            <span>Comissões</span>
+            <span>R$ {folha.totalComissoes.toFixed(2)}</span>
+          </div>
+        )}
+        <div className="recibo-linha" style={{ fontWeight: 700 }}>
+          <span>Total de proventos</span>
+          <span>R$ {totalProventos.toFixed(2)}</span>
+        </div>
+
+        <div style={{ fontWeight: 800, marginTop: 16 }}>DESCONTOS</div>
+        <div className="recibo-linha" style={{ color: "#b91c1c" }}>
+          <span>Faltas não abonadas ({folha.quantidadeFaltas})</span>
+          <span>- R$ {folha.valorDescontado.toFixed(2)}</span>
         </div>
         {folha.quantidadeFaltasAbonadas > 0 && (
           <div className="recibo-linha">
@@ -84,11 +102,24 @@ export function DemonstrativoPagamento() {
             <span>{folha.quantidadeFaltasAbonadas}</span>
           </div>
         )}
-        <div className="recibo-linha" style={{ color: "#b91c1c" }}>
-          <span>Desconto por faltas</span>
-          <span>- R$ {folha.valorDescontado.toFixed(2)}</span>
+        {folha.totalVales > 0 && (
+          <div className="recibo-linha" style={{ color: "#b91c1c" }}>
+            <span>Vales</span>
+            <span>- R$ {folha.totalVales.toFixed(2)}</span>
+          </div>
+        )}
+        {folha.totalInss > 0 && (
+          <div className="recibo-linha" style={{ color: "#b91c1c" }}>
+            <span>INSS</span>
+            <span>- R$ {folha.totalInss.toFixed(2)}</span>
+          </div>
+        )}
+        <div className="recibo-linha" style={{ fontWeight: 700 }}>
+          <span>Total de descontos</span>
+          <span>- R$ {totalDescontos.toFixed(2)}</span>
         </div>
-        <div className="recibo-linha" style={{ fontWeight: 800, fontSize: 18, border: "none", marginTop: 8 }}>
+
+        <div className="recibo-linha" style={{ fontWeight: 800, fontSize: 18, border: "none", marginTop: 12 }}>
           <span>Salário líquido</span>
           <span>R$ {folha.salarioLiquido.toFixed(2)}</span>
         </div>

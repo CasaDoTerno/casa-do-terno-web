@@ -100,6 +100,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
             { to: "/retiradas/imprimir", label: "Imprimir Retiradas da Semana" },
             { to: "/cadastro-evento", label: "Cadastrar Evento" },
             { to: "/eventos", label: "Listar Eventos" },
+            { to: "/rastreabilidade", label: "Rastreabilidade" },
           ]}
           onFechar={onFechar}
         />
