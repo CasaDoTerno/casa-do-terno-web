@@ -2,10 +2,11 @@ using CasaDoTerno.Application.Interfaces;
 using CasaDoTerno.Application.Services;
 using CasaDoTerno.Infrastructure;
 using CasaDoTerno.Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication.BearerToken;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using Microsoft.AspNetCore.Identity;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -21,7 +22,6 @@ builder.Services.AddDbContext<CasaDoTernoContext>(options =>
 builder.Services.AddScoped<ICasaDoTernoContext>(sp => sp.GetRequiredService<CasaDoTernoContext>());
 builder.Services.AddScoped<LocacaoService>();
 builder.Services.AddScoped<VendaService>();
-builder.Services.AddScoped<LocacaoService>();
 builder.Services.AddScoped<CompraService>();
 builder.Services.AddScoped<RelatorioService>();
 builder.Services.AddScoped<ParcelaService>();
@@ -32,12 +32,24 @@ builder.Services.AddScoped<DespesaRecorrenteService>();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<CasaDoTernoContext>();
+
+// chaves de assinatura dos tokens ficam no Neon: sobrevivem a deploy e reinício do Render
+builder.Services.AddDataProtection()
+    .SetApplicationName("CasaDoTerno")
+    .PersistKeysToDbContext<CasaDoTernoContext>();
+
+// validade da sessão
+builder.Services.Configure<BearerTokenOptions>(IdentityConstants.BearerScheme, opcoes =>
+{
+    opcoes.BearerTokenExpiration = TimeSpan.FromHours(12);   // token de acesso (antes: 1 hora)
+    opcoes.RefreshTokenExpiration = TimeSpan.FromDays(30);   // por quanto tempo dá pra renovar sozinho (antes: 14 dias)
+});
+
 builder.Services.AddSingleton(new EmailService(
     builder.Configuration["Brevo:ApiKey"]!,
     builder.Configuration["Brevo:RemetenteEmail"]!,
     builder.Configuration["Brevo:RemetenteNome"]!
 ));
-
 
 builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
@@ -52,7 +64,6 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
-
 
 var app = builder.Build();
 
@@ -81,34 +92,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.MapControllers(); 
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
-

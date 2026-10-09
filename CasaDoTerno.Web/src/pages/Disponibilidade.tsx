@@ -50,12 +50,48 @@ export function Disponibilidade() {
   const [filtroData, setFiltroData] = useState("");
   const [filtroCliente, setFiltroCliente] = useState("");
 
+  const [atualizando, setAtualizando] = useState(false);
+  const [atualizadoEm, setAtualizadoEm] = useState<Date | null>(null);
+  const [erroCarga, setErroCarga] = useState("");
+
+  function carregar() {
+    setAtualizando(true);
+
+    Promise.all([
+      api.get<Produto[]>("/Produtos"),
+      api.get<Locacao[]>("/Locacoes"),
+      api.get<Cliente[]>("/Clientes"),
+    ])
+      .then(([resProdutos, resLocacoes, resClientes]) => {
+        // só troca os dados se as TRÊS buscas deram certo
+        setProdutos(resProdutos.data);
+        setLocacoes(resLocacoes.data.filter((l) => l.dataDevolucaoReal === null && !l.dataCancelamento));
+        setClientes(resClientes.data);
+        setErroCarga("");
+        setAtualizadoEm(new Date());
+      })
+      .catch((erro: any) => {
+        console.error(erro);
+        // sem dados confiáveis, a lista some: melhor mostrar o erro do que mostrar "Livre" sem saber
+        setAtualizadoEm(null);
+        setErroCarga(
+          erro.response?.status === 401
+            ? "Sua sessão expirou. Saia do sistema e entre de novo."
+            : "Não foi possível carregar as reservas."
+        );
+      })
+      .finally(() => setAtualizando(false));
+  }
+
   useEffect(() => {
-    api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
-    api.get<Locacao[]>("/Locacoes").then((r) =>
-      setLocacoes(r.data.filter((l) => l.dataDevolucaoReal === null && !l.dataCancelamento))
-    );
-    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+    carregar();
+
+    // ao voltar pra essa aba (ex: tablet que ficou aberto), busca de novo
+    function aoVoltarParaAba() {
+      if (document.visibilityState === "visible") carregar();
+    }
+    document.addEventListener("visibilitychange", aoVoltarParaAba);
+    return () => document.removeEventListener("visibilitychange", aoVoltarParaAba);
   }, []);
 
   function nomeCliente(clienteId: number) {
@@ -118,38 +154,71 @@ export function Disponibilidade() {
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {produtosFiltrados.map(({ produto, reservas }) => (
-          <div key={produto.id} className="card">
-            <strong>
-              {produto.referencia ? `${produto.referencia} — ` : ""}{produto.modelo} — {produto.cor} — Tam. {produto.tamanho}
-            </strong>
+      {/* ---- falhou: não mostra NENHUMA peça como livre ---- */}
+      {erroCarga && (
+        <div className="card" style={{ marginBottom: 16, borderLeft: "3px solid #f87171" }}>
+          <p style={{ color: "#f87171", fontWeight: 700, margin: "0 0 6px 0" }}>{erroCarga}</p>
+          <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "0 0 12px 0" }}>
+            Sem as reservas, essa tela não consegue dizer se uma peça está livre. Não use ela agora
+            pra decidir nada.
+          </p>
+          <button type="button" onClick={carregar} disabled={atualizando}>
+            {atualizando ? "Tentando..." : "Tentar de novo"}
+          </button>
+        </div>
+      )}
 
-            {reservas.length === 0 ? (
-              <p style={{ color: "var(--verde)", margin: "6px 0 0 0" }}>Livre — sem reservas ativas</p>
-            ) : (
-              <div style={{ marginTop: 6 }}>
-                {reservas.map((r, index) => {
-                  const foraNaDataEscolhida =
-                    filtroData !== "" && filtroData >= r.dataRetirada && filtroData <= r.dataDevolucaoPrevista;
+      {/* ---- primeira carga ---- */}
+      {!erroCarga && atualizadoEm === null && (
+        <p style={{ color: "var(--texto-suave)" }}>Carregando reservas...</p>
+      )}
 
-                  return (
-                    <div key={index} style={{ fontSize: 13, color: "var(--texto-suave)" }}>
-                      Locado com <strong>{r.clienteNome}</strong> — evento em{" "}
-                      <strong>{formatarData(r.dataEvento)}</strong>
-                      {foraNaDataEscolhida && (
-                        <span style={{ color: "#facc15", marginLeft: 6 }}>
-                          (peça fora da loja de {formatarData(r.dataRetirada)} a {formatarData(r.dataDevolucaoPrevista)})
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+      {/* ---- carregou: lista normal ---- */}
+      {!erroCarga && atualizadoEm !== null && (
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
+            <span style={{ color: "var(--texto-suave)", fontSize: 13 }}>
+              Atualizado às {atualizadoEm.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+            <button type="button" onClick={carregar} disabled={atualizando} style={{ fontSize: 12 }}>
+              {atualizando ? "Atualizando..." : "Atualizar"}
+            </button>
           </div>
-        ))}
-      </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {produtosFiltrados.map(({ produto, reservas }) => (
+              <div key={produto.id} className="card">
+                <strong>
+                  {produto.referencia ? `${produto.referencia} — ` : ""}{produto.modelo} — {produto.cor} — Tam. {produto.tamanho}
+                </strong>
+
+                {reservas.length === 0 ? (
+                  <p style={{ color: "var(--verde)", margin: "6px 0 0 0" }}>Livre — sem reservas ativas</p>
+                ) : (
+                  <div style={{ marginTop: 6 }}>
+                    {reservas.map((r, index) => {
+                      const foraNaDataEscolhida =
+                        filtroData !== "" && filtroData >= r.dataRetirada && filtroData <= r.dataDevolucaoPrevista;
+
+                      return (
+                        <div key={index} style={{ fontSize: 13, color: "var(--texto-suave)" }}>
+                          Locado com <strong>{r.clienteNome}</strong> — evento em{" "}
+                          <strong>{formatarData(r.dataEvento)}</strong>
+                          {foraNaDataEscolhida && (
+                            <span style={{ color: "#facc15", marginLeft: 6 }}>
+                              (peça fora da loja de {formatarData(r.dataRetirada)} a {formatarData(r.dataDevolucaoPrevista)})
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

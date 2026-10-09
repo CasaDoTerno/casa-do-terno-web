@@ -4,10 +4,12 @@ using CasaDoTerno.Application.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+
 
 namespace CasaDoTerno.Infrastructure.Data;
 
-public class CasaDoTernoContext : IdentityDbContext<IdentityUser>, ICasaDoTernoContext
+public class CasaDoTernoContext : IdentityDbContext<IdentityUser>, ICasaDoTernoContext, IDataProtectionKeyContext
 {
     public CasaDoTernoContext(DbContextOptions<CasaDoTernoContext> options) : base(options) { }
 
@@ -32,5 +34,6 @@ public class CasaDoTernoContext : IdentityDbContext<IdentityUser>, ICasaDoTernoC
     public DbSet<DespesaRecorrente> DespesasRecorrentes { get; set; }
     public DbSet<Vale> Vales { get; set; }
     public DbSet<LancamentoFolha> LancamentosFolha { get; set; }
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
 
 }

@@ -15,7 +15,7 @@ interface Locacao {
   dataDevolucaoPrevista: string;
   dataRetiradaReal: string | null;
   dataDevolucaoReal: string | null;
-  dataCancelamento: string | null;
+  dataCancelamento?: string | null;
   itens: ItemLocacao[];
 }
 
@@ -79,7 +79,7 @@ function combina(texto: string, digitos: string, termo: string): boolean {
 }
 
 function statusLocacao(l: Locacao, hojeISO: string): { texto: string; cor: string } {
-  if (l.dataCancelamento !== null) return { texto: "Cancelada", cor: "#9ca3af" };
+  if (l.dataCancelamento) return { texto: "Cancelada", cor: "#9ca3af" };
   if (l.dataDevolucaoReal !== null) {
     return { texto: `Devolvida em ${dia(l.dataDevolucaoReal)}`, cor: "var(--verde)" };
   }
@@ -102,16 +102,42 @@ export function Rastreabilidade() {
   const [busca, setBusca] = useState("");
   const [selecionado, setSelecionado] = useState<Alvo | null>(null);
   const [incluirCanceladas, setIncluirCanceladas] = useState(false);
+  const [carregando, setCarregando] = useState(true);
+  const [erroCarga, setErroCarga] = useState("");
+
+  function carregar() {
+    setCarregando(true);
+    Promise.all([
+      api.get<Locacao[]>("/Locacoes"),
+      api.get<Cliente[]>("/Clientes"),
+      api.get<Produto[]>("/Produtos"),
+    ])
+      .then(([l, c, p]) => {
+        setLocacoes(l.data);
+        setClientes(c.data);
+        setProdutos(p.data);
+        setErroCarga("");
+      })
+      .catch((erro: any) => {
+        setErroCarga(
+          erro.response?.status === 401
+            ? "Sua sessão expirou. Saia do sistema e entre de novo."
+            : "Não foi possível carregar o histórico. Nenhum resultado abaixo é confiável."
+        );
+      })
+      .finally(() => setCarregando(false));
+  }
 
   useEffect(() => {
-    api.get<Locacao[]>("/Locacoes").then((r) => setLocacoes(r.data));
-    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-    api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+    carregar();
   }, []);
 
   const hojeISO = paraISO(new Date());
   const termo = busca.trim();
-  const buscaValida = termo.length >= 2;
+  const termoValido = termo.length >= 2;
+  const dadosOk = !carregando && !erroCarga;
+  // só pesquisa quando os dados carregaram de verdade: nunca mostra "nada encontrado" por falha de carga
+  const buscaValida = termoValido && dadosOk;
 
   function rotuloProduto(p: Produto): string {
     const codigo = p.referencia ? `${p.referencia} — ` : "";
@@ -163,7 +189,7 @@ export function Rastreabilidade() {
         : { tipo: "cliente", id: clientesEncontrados[0].id };
   }
 
-  const alvo = selecionado ?? unico;
+  const alvo = dadosOk ? selecionado ?? unico : null;
 
   const produtoAlvo = alvo?.tipo === "produto" ? produtos.find((p) => p.id === alvo.id) ?? null : null;
   const clienteAlvo = alvo?.tipo === "cliente" ? clientes.find((c) => c.id === alvo.id) ?? null : null;
@@ -171,7 +197,7 @@ export function Rastreabilidade() {
   // ---- histórico, do mais antigo pro mais novo (pela data do evento) ----
 
   const locacoesOrdenadas = locacoes
-    .filter((l) => incluirCanceladas || l.dataCancelamento === null)
+    .filter((l) => incluirCanceladas || !l.dataCancelamento)
     .sort((a, b) => {
       const porEvento = new Date(a.dataEvento).getTime() - new Date(b.dataEvento).getTime();
       if (porEvento !== 0) return porEvento;
@@ -221,7 +247,16 @@ export function Rastreabilidade() {
         </label>
       </div>
 
-      {!buscaValida && (
+      {carregando && <p style={{ color: "var(--texto-suave)" }}>Carregando histórico...</p>}
+
+      {erroCarga && (
+        <div className="card" style={{ borderColor: "#f87171", marginBottom: 20 }}>
+          <p style={{ color: "#f87171", margin: "0 0 8px 0" }}>{erroCarga}</p>
+          <button type="button" onClick={carregar}>Tentar de novo</button>
+        </div>
+      )}
+
+      {!termoValido && dadosOk && (
         <p style={{ color: "var(--texto-suave)" }}>Digite pelo menos 2 caracteres pra começar.</p>
       )}
 

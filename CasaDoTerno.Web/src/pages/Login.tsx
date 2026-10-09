@@ -8,6 +8,15 @@ export function Login() {
   const [senha, setSenha] = useState("");
   const [mensagem, setMensagem] = useState("");
   const navigate = useNavigate();
+  const [aviso] = useState(() => {
+  try {
+    const texto = sessionStorage.getItem("avisoLogin") ?? "";
+    sessionStorage.removeItem("avisoLogin");
+    return texto;
+  } catch {
+    return "";
+  }
+});
 
   async function handleSubmit(evento: React.FormEvent) {
     evento.preventDefault();
@@ -19,6 +28,7 @@ export function Login() {
       );
 
 localStorage.setItem("token", resposta.data.accessToken);
+localStorage.setItem("refreshToken", resposta.data.refreshToken);
 localStorage.setItem("emailUsuario", email);
 
 const perfilResposta = await api.get("/Usuarios/perfil");
@@ -28,6 +38,7 @@ localStorage.setItem("modulosPermitidos", perfilResposta.data.modulosPermitidos 
       navigate("/");
     } catch (erro) {
       console.error(erro);
+      {aviso && <p style={{ color: "#facc15", marginBottom: 12 }}>{aviso}</p>}
       setMensagem("E-mail ou senha inválidos.");
     }
   }

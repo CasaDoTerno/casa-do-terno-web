@@ -8,6 +8,10 @@ public class LocacaoService
 {
     private readonly ICasaDoTernoContext _context;
 
+    // trava para que dois salvamentos simultâneos não passem juntos pela checagem
+    // (vale enquanto o Render rodar uma única instância, que é o caso do plano free)
+    private static readonly object _travaReserva = new();
+
     public LocacaoService(ICasaDoTernoContext context)
     {
         _context = context;
@@ -20,7 +24,60 @@ public class LocacaoService
         public decimal? ValorItem { get; set; }
     }
 
+    private record ConflitoReserva(int LocacaoId, string Cliente, DateTime Retirada, DateTime Devolucao);
+
+    // regra única de "esses dois períodos se sobrepõem?"
+    // - compara só o DIA (ignora hora)
+    // - período de zero dias (retirada == devolução) conta como 1 dia inteiro
+    // - devolver num dia e outro cliente retirar no mesmo dia continua permitido
+    private static bool PeriodosSeSobrepoem(DateTime aIni, DateTime aFim, DateTime bIni, DateTime bFim)
+    {
+        static DateTime FimEfetivo(DateTime ini, DateTime fim) =>
+            fim.Date > ini.Date ? fim.Date : ini.Date.AddDays(1);
+
+        return aIni.Date < FimEfetivo(bIni, bFim) && bIni.Date < FimEfetivo(aIni, aFim);
+    }
+
+    // todas as locações ATIVAS que ocupam essa peça nesse período
+    private List<ConflitoReserva> BuscarConflitos(int produtoId, DateTime ini, DateTime fim, int? locacaoIdExcluir)
+    {
+        var candidatas = (
+            from item in _context.ItensLocacao
+            join loc in _context.Locacoes on item.LocacaoId equals loc.Id
+            join cli in _context.Clientes on loc.ClienteId equals cli.Id
+            where item.ProdutoId == produtoId
+                  && loc.DataDevolucaoReal == null
+                  && loc.DataCancelamento == null
+                  && (!locacaoIdExcluir.HasValue || loc.Id != locacaoIdExcluir.Value)
+            select new { loc.Id, cli.Nome, loc.DataRetirada, loc.DataDevolucaoPrevista }
+        ).ToList(); // traz para a memória: a regra de datas roda em C#, não no SQL
+
+        return candidatas
+            .Where(c => PeriodosSeSobrepoem(ini, fim, c.DataRetirada, c.DataDevolucaoPrevista))
+            .Select(c => new ConflitoReserva(c.Id, c.Nome, c.DataRetirada, c.DataDevolucaoPrevista))
+            .ToList();
+    }
+
+    private static string DescreverConflitos(IEnumerable<ConflitoReserva> conflitos) =>
+        string.Join("; ", conflitos.Select(c =>
+            $"{c.Cliente} (retirada {c.Retirada:dd/MM}, devolução prevista {c.Devolucao:dd/MM})"));
+
+    // ---------------------------------------------------------------- CRIAR
+
     public (bool sucesso, string mensagem, Locacao? locacao) CriarLocacao(
+        int clienteId, DateTime dataEvento, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
+        string? consultor, decimal desconto, decimal valorEntrada, FormaPagamento formaPagamentoEntrada,
+        int? eventoId, bool ehLocacaoPrincipalDoEvento, List<ItemLocacaoEntrada> itensEntrada)
+    {
+        lock (_travaReserva)
+        {
+            return CriarLocacaoInterno(clienteId, dataEvento, dataRetirada, dataDevolucaoPrevista,
+                consultor, desconto, valorEntrada, formaPagamentoEntrada,
+                eventoId, ehLocacaoPrincipalDoEvento, itensEntrada);
+        }
+    }
+
+    private (bool sucesso, string mensagem, Locacao? locacao) CriarLocacaoInterno(
         int clienteId, DateTime dataEvento, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
         string? consultor, decimal desconto, decimal valorEntrada, FormaPagamento formaPagamentoEntrada,
         int? eventoId, bool ehLocacaoPrincipalDoEvento, List<ItemLocacaoEntrada> itensEntrada)
@@ -69,37 +126,15 @@ public class LocacaoService
             if (!produto.DisponivelParaLocacao)
                 return (false, $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não está disponível para locação.", null);
 
-            int unidadesReservadas = (
-                from item in _context.ItensLocacao
-                join loc in _context.Locacoes on item.LocacaoId equals loc.Id
-                where item.ProdutoId == entrada.ProdutoId
-                      && loc.DataDevolucaoReal == null
-                      && dataRetirada < loc.DataDevolucaoPrevista
-                      && loc.DataRetirada < dataDevolucaoPrevista
-                select item
-            ).Count();
+            var conflitos = BuscarConflitos(entrada.ProdutoId, dataRetirada, dataDevolucaoPrevista, null);
 
             contagemNoPedido.TryGetValue(entrada.ProdutoId, out int jaNoPedido);
-            int totalNecessario = unidadesReservadas + jaNoPedido + 1;
+            int totalNecessario = conflitos.Count + jaNoPedido + 1;
 
             if (totalNecessario > produto.Quantidade)
             {
-                var conflitantes = (
-                    from item in _context.ItensLocacao
-                    join loc in _context.Locacoes on item.LocacaoId equals loc.Id
-                    join cli in _context.Clientes on loc.ClienteId equals cli.Id
-                    where item.ProdutoId == entrada.ProdutoId
-                          && loc.DataDevolucaoReal == null
-                          && dataRetirada < loc.DataDevolucaoPrevista
-                          && loc.DataRetirada < dataDevolucaoPrevista
-                    select new { cli.Nome, loc.DataRetirada, loc.DataDevolucaoPrevista }
-                ).ToList();
-
-                var detalhes = string.Join("; ", conflitantes.Select(c =>
-                    $"{c.Nome} (retirada {c.DataRetirada:dd/MM}, devolução prevista {c.DataDevolucaoPrevista:dd/MM})"));
-
                 return (false,
-                    $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não tem unidades suficientes disponíveis nesse período. Reservado com: {detalhes}",
+                    $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não tem unidades suficientes disponíveis nesse período. Reservado com: {DescreverConflitos(conflitos)}",
                     null);
             }
 
@@ -138,6 +173,144 @@ public class LocacaoService
         return (true, "Locação criada com sucesso.", locacao);
     }
 
+    // ---------------------------------------------------------------- ATUALIZAR
+
+    public (bool sucesso, string mensagem, Locacao? locacao) AtualizarLocacao(
+        int locacaoId, int clienteId, DateTime dataEvento, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
+        string? consultor, decimal desconto, decimal valorEntrada, FormaPagamento formaPagamentoEntrada,
+        int? eventoId, bool ehLocacaoPrincipalDoEvento, List<ItemLocacaoEntrada> itensEntrada)
+    {
+        lock (_travaReserva)
+        {
+            return AtualizarLocacaoInterno(locacaoId, clienteId, dataEvento, dataRetirada, dataDevolucaoPrevista,
+                consultor, desconto, valorEntrada, formaPagamentoEntrada,
+                eventoId, ehLocacaoPrincipalDoEvento, itensEntrada);
+        }
+    }
+
+    private (bool sucesso, string mensagem, Locacao? locacao) AtualizarLocacaoInterno(
+        int locacaoId, int clienteId, DateTime dataEvento, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
+        string? consultor, decimal desconto, decimal valorEntrada, FormaPagamento formaPagamentoEntrada,
+        int? eventoId, bool ehLocacaoPrincipalDoEvento, List<ItemLocacaoEntrada> itensEntrada)
+    {
+        var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.", null);
+
+        if (locacao.DataRetiradaReal != null)
+            return (false, "Não é possível editar uma locação que já foi retirada.", null);
+
+        if (itensEntrada == null || itensEntrada.Count == 0)
+            return (false, "A locação precisa ter pelo menos uma peça.", null);
+        if (dataRetirada.Date > dataEvento.Date)
+            return (false, "A data de retirada não pode ser depois da data do evento.", null);
+
+        if (dataDevolucaoPrevista.Date < dataRetirada.Date)
+            return (false, "A data de devolução não pode ser antes da data de retirada.", null);
+
+        _context.ItensLocacao.RemoveRange(locacao.Itens);
+        locacao.Itens.Clear();
+
+        decimal valorTotal = 0;
+        var contagemNoPedido = new Dictionary<int, int>();
+
+        foreach (var entrada in itensEntrada)
+        {
+            var produto = _context.Produtos.Find(entrada.ProdutoId);
+            if (produto == null)
+                return (false, $"Produto {entrada.ProdutoId} não encontrado.", null);
+
+            if (!produto.DisponivelParaLocacao)
+                return (false, $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não está disponível para locação.", null);
+
+            // exclui a própria locação: ela não pode conflitar consigo mesma
+            var conflitos = BuscarConflitos(entrada.ProdutoId, dataRetirada, dataDevolucaoPrevista, locacaoId);
+
+            contagemNoPedido.TryGetValue(entrada.ProdutoId, out int jaNoPedido);
+            int totalNecessario = conflitos.Count + jaNoPedido + 1;
+
+            if (totalNecessario > produto.Quantidade)
+            {
+                return (false,
+                    $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não tem unidades suficientes disponíveis nesse período. Reservado com: {DescreverConflitos(conflitos)}",
+                    null);
+            }
+
+            contagemNoPedido[entrada.ProdutoId] = jaNoPedido + 1;
+
+            var item2 = new ItemLocacao
+            {
+                ProdutoId = produto.Id,
+                Ajustes = entrada.Ajustes,
+                ValorItem = entrada.ValorItem ?? produto.ValorLocacao
+            };
+
+            locacao.Itens.Add(item2);
+            valorTotal += item2.ValorItem;
+        }
+
+        locacao.ClienteId = clienteId;
+        locacao.DataEvento = dataEvento;
+        locacao.DataRetirada = dataRetirada;
+        locacao.DataDevolucaoPrevista = dataDevolucaoPrevista;
+        locacao.Consultor = consultor;
+        locacao.Desconto = desconto;
+        locacao.EventoId = eventoId;
+        locacao.ValorEntrada = valorEntrada;
+        locacao.FormaPagamentoEntrada = formaPagamentoEntrada;
+        locacao.ValorTotal = valorTotal - desconto;
+
+        _context.SaveChanges();
+
+        if (eventoId.HasValue)
+        {
+            var evento = _context.Eventos.Find(eventoId.Value);
+            if (evento != null)
+            {
+                if (ehLocacaoPrincipalDoEvento)
+                {
+                    DefinirLocacaoPrincipal(evento.Id, locacao.Id);
+                }
+                else if (evento.LocacaoPrincipalId.HasValue)
+                {
+                    AtualizarDescontoDoEvento(evento.Id);
+                }
+            }
+        }
+
+        return (true, "Locação atualizada com sucesso.", locacao);
+    }
+
+    // ---------------------------------------------------------------- VERIFICAR DISPONIBILIDADE
+
+    public (bool disponivel, string mensagem, int unidadesDisponiveis) VerificarDisponibilidade(
+        int produtoId, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
+        int? locacaoIdExcluir, int unidadesJaNoCarrinho)
+    {
+        var produto = _context.Produtos.Find(produtoId);
+        if (produto == null)
+            return (false, "Produto não encontrado.", 0);
+
+        if (!produto.DisponivelParaLocacao)
+            return (false, $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não está disponível para locação.", 0);
+
+        var conflitantes = BuscarConflitos(produtoId, dataRetirada, dataDevolucaoPrevista, locacaoIdExcluir);
+
+        int unidadesReservadas = conflitantes.Count;
+        int unidadesDisponiveis = produto.Quantidade - unidadesReservadas - unidadesJaNoCarrinho;
+
+        if (unidadesDisponiveis <= 0)
+        {
+            return (false,
+                $"'{produto.Modelo}' (Tam. {produto.Tamanho}) sem unidades disponíveis nesse período. Reservado com: {DescreverConflitos(conflitantes)}",
+                0);
+        }
+
+        return (true, "Disponível.", unidadesDisponiveis);
+    }
+
+    // ---------------------------------------------------------------- PAGAMENTOS
+
     public (bool sucesso, string mensagem) RegistrarPagamentoRestante(int locacaoId, FormaPagamento formaPagamento)
     {
         var locacao = _context.Locacoes.Find(locacaoId);
@@ -153,6 +326,45 @@ public class LocacaoService
 
         return (true, "Pagamento do restante registrado com sucesso.");
     }
+
+    public (bool sucesso, string mensagem) RegistrarPagamentoMulta(int locacaoId, FormaPagamento formaPagamento)
+    {
+        var locacao = _context.Locacoes.Find(locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.");
+
+        if (locacao.MultaAtraso <= 0)
+            return (false, "Essa locação não tem multa de atraso pendente.");
+
+        if (locacao.FormaPagamentoMulta != null)
+            return (false, "O pagamento da multa já foi registrado.");
+
+        locacao.FormaPagamentoMulta = formaPagamento;
+        locacao.DataPagamentoMulta = DateTime.Now;
+        _context.SaveChanges();
+
+        return (true, "Pagamento da multa registrado com sucesso.");
+    }
+
+    public (bool sucesso, string mensagem) IsentarMulta(int locacaoId)
+    {
+        var locacao = _context.Locacoes.Find(locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.");
+
+        if (locacao.MultaAtraso <= 0)
+            return (false, "Essa locação não tem multa de atraso pra isentar.");
+
+        if (locacao.FormaPagamentoMulta != null)
+            return (false, "Essa multa já foi paga — não é possível isentar depois de paga.");
+
+        locacao.MultaAtraso = 0;
+        _context.SaveChanges();
+
+        return (true, "Multa isentada com sucesso.");
+    }
+
+    // ---------------------------------------------------------------- RETIRADA / DEVOLUÇÃO
 
     public (bool sucesso, string mensagem) RegistrarRetirada(int locacaoId)
     {
@@ -217,197 +429,6 @@ public class LocacaoService
         return (true, "Retirada registrada com sucesso.");
     }
 
-    public (bool sucesso, string mensagem, Locacao? locacao) AtualizarLocacao(
-        int locacaoId, int clienteId, DateTime dataEvento, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
-        string? consultor, decimal desconto, decimal valorEntrada, FormaPagamento formaPagamentoEntrada,
-        int? eventoId, bool ehLocacaoPrincipalDoEvento, List<ItemLocacaoEntrada> itensEntrada)
-    {
-        var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);
-        if (locacao == null)
-            return (false, "Locação não encontrada.", null);
-
-        if (locacao.DataRetiradaReal != null)
-            return (false, "Não é possível editar uma locação que já foi retirada.", null);
-
-        if (itensEntrada == null || itensEntrada.Count == 0)
-            return (false, "A locação precisa ter pelo menos uma peça.", null);
-        if (dataRetirada.Date > dataEvento.Date)
-            return (false, "A data de retirada não pode ser depois da data do evento.", null);
-
-        if (dataDevolucaoPrevista.Date < dataRetirada.Date)
-            return (false, "A data de devolução não pode ser antes da data de retirada.", null);
-
-        _context.ItensLocacao.RemoveRange(locacao.Itens);
-        locacao.Itens.Clear();
-
-        decimal valorTotal = 0;
-        var contagemNoPedido = new Dictionary<int, int>();
-
-        foreach (var entrada in itensEntrada)
-        {
-            var produto = _context.Produtos.Find(entrada.ProdutoId);
-            if (produto == null)
-                return (false, $"Produto {entrada.ProdutoId} não encontrado.", null);
-
-            if (!produto.DisponivelParaLocacao)
-                return (false, $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não está disponível para locação.", null);
-
-            int unidadesReservadas = (
-                from item in _context.ItensLocacao
-                join loc in _context.Locacoes on item.LocacaoId equals loc.Id
-                where item.ProdutoId == entrada.ProdutoId
-                      && loc.Id != locacaoId
-                      && loc.DataDevolucaoReal == null
-                      && dataRetirada < loc.DataDevolucaoPrevista
-                      && loc.DataRetirada < dataDevolucaoPrevista
-                select item
-            ).Count();
-
-            contagemNoPedido.TryGetValue(entrada.ProdutoId, out int jaNoPedido);
-            int totalNecessario = unidadesReservadas + jaNoPedido + 1;
-
-            if (totalNecessario > produto.Quantidade)
-            {
-                var conflitantes = (
-                    from item in _context.ItensLocacao
-                    join loc in _context.Locacoes on item.LocacaoId equals loc.Id
-                    join cli in _context.Clientes on loc.ClienteId equals cli.Id
-                    where item.ProdutoId == entrada.ProdutoId
-                          && loc.Id != locacaoId
-                          && loc.DataDevolucaoReal == null
-                          && dataRetirada < loc.DataDevolucaoPrevista
-                          && loc.DataRetirada < dataDevolucaoPrevista
-                    select new { cli.Nome, loc.DataRetirada, loc.DataDevolucaoPrevista }
-                ).ToList();
-
-                var detalhes = string.Join("; ", conflitantes.Select(c =>
-                    $"{c.Nome} (retirada {c.DataRetirada:dd/MM}, devolução prevista {c.DataDevolucaoPrevista:dd/MM})"));
-
-                return (false,
-                    $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não tem unidades suficientes disponíveis nesse período. Reservado com: {detalhes}",
-                    null);
-            }
-
-            contagemNoPedido[entrada.ProdutoId] = jaNoPedido + 1;
-
-            var item2 = new ItemLocacao
-            {
-                ProdutoId = produto.Id,
-                Ajustes = entrada.Ajustes,
-                ValorItem = entrada.ValorItem ?? produto.ValorLocacao
-            };
-
-            locacao.Itens.Add(item2);
-            valorTotal += item2.ValorItem;
-        }
-
-        locacao.ClienteId = clienteId;
-        locacao.DataEvento = dataEvento;
-        locacao.DataRetirada = dataRetirada;
-        locacao.DataDevolucaoPrevista = dataDevolucaoPrevista;
-        locacao.Consultor = consultor;
-        locacao.Desconto = desconto;
-        locacao.EventoId = eventoId;
-        locacao.ValorEntrada = valorEntrada;
-        locacao.FormaPagamentoEntrada = formaPagamentoEntrada;
-        locacao.ValorTotal = valorTotal - desconto;
-
-        _context.SaveChanges();
-
-        if (eventoId.HasValue)
-        {
-            var evento = _context.Eventos.Find(eventoId.Value);
-            if (evento != null)
-            {
-                if (ehLocacaoPrincipalDoEvento)
-                {
-                    DefinirLocacaoPrincipal(evento.Id, locacao.Id);
-                }
-                else if (evento.LocacaoPrincipalId.HasValue)
-                {
-                    AtualizarDescontoDoEvento(evento.Id);
-                }
-            }
-        }
-
-        return (true, "Locação atualizada com sucesso.", locacao);
-    }
-
-    public (bool disponivel, string mensagem, int unidadesDisponiveis) VerificarDisponibilidade(
-    int produtoId, DateTime dataRetirada, DateTime dataDevolucaoPrevista,
-    int? locacaoIdExcluir, int unidadesJaNoCarrinho)
-    {
-        var produto = _context.Produtos.Find(produtoId);
-        if (produto == null)
-            return (false, "Produto não encontrado.", 0);
-
-        if (!produto.DisponivelParaLocacao)
-            return (false, $"'{produto.Modelo}' (Tam. {produto.Tamanho}) não está disponível para locação.", 0);
-
-        var conflitantes = (
-            from item in _context.ItensLocacao
-            join loc in _context.Locacoes on item.LocacaoId equals loc.Id
-            join cli in _context.Clientes on loc.ClienteId equals cli.Id
-            where item.ProdutoId == produtoId
-                  && loc.DataDevolucaoReal == null
-                  && dataRetirada < loc.DataDevolucaoPrevista
-                  && loc.DataRetirada < dataDevolucaoPrevista
-                  && (!locacaoIdExcluir.HasValue || loc.Id != locacaoIdExcluir.Value)
-            select new { cli.Nome, loc.DataRetirada, loc.DataDevolucaoPrevista }
-        ).ToList();
-
-        int unidadesReservadas = conflitantes.Count;
-        int unidadesDisponiveis = produto.Quantidade - unidadesReservadas - unidadesJaNoCarrinho;
-
-        if (unidadesDisponiveis <= 0)
-        {
-            var detalhes = string.Join("; ", conflitantes.Select(c =>
-                $"{c.Nome} (retirada {c.DataRetirada:dd/MM}, devolução prevista {c.DataDevolucaoPrevista:dd/MM})"));
-
-            return (false,
-                $"'{produto.Modelo}' (Tam. {produto.Tamanho}) sem unidades disponíveis nesse período. Reservado com: {detalhes}",
-                0);
-        }
-
-        return (true, "Disponível.", unidadesDisponiveis);
-    }
-    public (bool sucesso, string mensagem) RegistrarPagamentoMulta(int locacaoId, FormaPagamento formaPagamento)
-    {
-        var locacao = _context.Locacoes.Find(locacaoId);
-        if (locacao == null)
-            return (false, "Locação não encontrada.");
-
-        if (locacao.MultaAtraso <= 0)
-            return (false, "Essa locação não tem multa de atraso pendente.");
-
-        if (locacao.FormaPagamentoMulta != null)
-            return (false, "O pagamento da multa já foi registrado.");
-
-        locacao.FormaPagamentoMulta = formaPagamento;
-        locacao.DataPagamentoMulta = DateTime.Now;
-        _context.SaveChanges();
-
-        return (true, "Pagamento da multa registrado com sucesso.");
-    }
-    public (bool sucesso, string mensagem) DesfazerDevolucao(int locacaoId)
-    {
-        var locacao = _context.Locacoes.Find(locacaoId);
-        if (locacao == null)
-            return (false, "Locação não encontrada.");
-
-        if (locacao.DataDevolucaoReal == null)
-            return (false, "Essa locação não tem devolução registrada pra desfazer.");
-
-        if (locacao.FormaPagamentoMulta != null)
-            return (false, "Essa locação já tem uma multa paga registrada — desfazer a devolução deixaria isso inconsistente. Ajuste manualmente pelo Neon, se necessário.");
-
-        locacao.DataDevolucaoReal = null;
-        locacao.MultaAtraso = 0;
-        _context.SaveChanges();
-
-        return (true, "Devolução desfeita com sucesso.");
-    }
-
     public (bool sucesso, string mensagem) DesfazerRetirada(int locacaoId)
     {
         var locacao = _context.Locacoes.Find(locacaoId);
@@ -424,54 +445,6 @@ public class LocacaoService
         _context.SaveChanges();
 
         return (true, "Retirada desfeita com sucesso.");
-    }
-    public (bool sucesso, string mensagem) CancelarLocacao(int locacaoId)
-    {
-        var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);
-        if (locacao == null)
-            return (false, "Locação não encontrada.");
-
-        if (locacao.DataCancelamento != null)
-            return (false, "Essa locação já foi cancelada.");
-
-        if (locacao.DataRetiradaReal != null)
-            return (false, "Não é possível cancelar uma locação que já foi retirada. Se as peças não vão ser usadas, registre a devolução.");
-
-        var eventoId = locacao.EventoId;
-
-        // remove os itens — como as consultas de trava/disponibilidade sempre juntam com ItensLocacao,
-        // uma locação sem itens simplesmente para de "contar" pra qualquer travamento
-        _context.ItensLocacao.RemoveRange(locacao.Itens);
-        locacao.Itens.Clear();
-        locacao.DataCancelamento = DateTime.Now;
-
-        _context.SaveChanges();
-
-        // se essa locação estava vinculada a um evento, recalcula o desconto da peça principal
-        // (um padrinho a menos pode significar menos desconto pro noivo)
-        if (eventoId.HasValue)
-        {
-            AtualizarDescontoDoEvento(eventoId.Value);
-        }
-
-        return (true, "Locação cancelada com sucesso.");
-    }
-    public (bool sucesso, string mensagem) IsentarMulta(int locacaoId)
-    {
-        var locacao = _context.Locacoes.Find(locacaoId);
-        if (locacao == null)
-            return (false, "Locação não encontrada.");
-
-        if (locacao.MultaAtraso <= 0)
-            return (false, "Essa locação não tem multa de atraso pra isentar.");
-
-        if (locacao.FormaPagamentoMulta != null)
-            return (false, "Essa multa já foi paga — não é possível isentar depois de paga.");
-
-        locacao.MultaAtraso = 0;
-        _context.SaveChanges();
-
-        return (true, "Multa isentada com sucesso.");
     }
 
     public (bool sucesso, string mensagem, decimal multa) RegistrarDevolucao(int locacaoId)
@@ -506,6 +479,61 @@ public class LocacaoService
 
         return (true, mensagem, multa);
     }
+
+    public (bool sucesso, string mensagem) DesfazerDevolucao(int locacaoId)
+    {
+        var locacao = _context.Locacoes.Find(locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.");
+
+        if (locacao.DataDevolucaoReal == null)
+            return (false, "Essa locação não tem devolução registrada pra desfazer.");
+
+        if (locacao.FormaPagamentoMulta != null)
+            return (false, "Essa locação já tem uma multa paga registrada — desfazer a devolução deixaria isso inconsistente. Ajuste manualmente pelo Neon, se necessário.");
+
+        locacao.DataDevolucaoReal = null;
+        locacao.MultaAtraso = 0;
+        _context.SaveChanges();
+
+        return (true, "Devolução desfeita com sucesso.");
+    }
+
+    // ---------------------------------------------------------------- CANCELAR
+
+    public (bool sucesso, string mensagem) CancelarLocacao(int locacaoId)
+    {
+        var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.");
+
+        if (locacao.DataCancelamento != null)
+            return (false, "Essa locação já foi cancelada.");
+
+        if (locacao.DataRetiradaReal != null)
+            return (false, "Não é possível cancelar uma locação que já foi retirada. Se as peças não vão ser usadas, registre a devolução.");
+
+        var eventoId = locacao.EventoId;
+
+        // remove os itens e marca o cancelamento (a regra de conflito também ignora locações canceladas)
+        _context.ItensLocacao.RemoveRange(locacao.Itens);
+        locacao.Itens.Clear();
+        locacao.DataCancelamento = DateTime.Now;
+
+        _context.SaveChanges();
+
+        // se essa locação estava vinculada a um evento, recalcula o desconto da peça principal
+        // (um padrinho a menos pode significar menos desconto pro noivo)
+        if (eventoId.HasValue)
+        {
+            AtualizarDescontoDoEvento(eventoId.Value);
+        }
+
+        return (true, "Locação cancelada com sucesso.");
+    }
+
+    // ---------------------------------------------------------------- EVENTO
+
     // marca uma locação como a "principal" de um evento — se já existia outra principal, ela é desmarcada
     private void DefinirLocacaoPrincipal(int eventoId, int novaLocacaoPrincipalId)
     {
