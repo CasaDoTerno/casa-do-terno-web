@@ -38,6 +38,10 @@ public class AgendaService
             .ToList();
     }
 
+    // período cadastrado em "Dias sem atendimento" que cobre esse dia (feriado, férias...)
+    private DiaSemAtendimento? DiaSemAtendimentoEm(DateTime dia) =>
+        _context.DiasSemAtendimento.FirstOrDefault(d => d.DataInicio <= dia && d.DataFim >= dia);
+
     private static string NomeDoDia(DateTime data) => data.DayOfWeek switch
     {
         DayOfWeek.Sunday => "domingo",
@@ -49,11 +53,15 @@ public class AgendaService
         _ => "sábado"
     };
 
-    // lista os horários do dia com as vagas que sobraram (alimenta a caixa de horas da tela)
+    // lista os horários do dia com as vagas que sobraram (alimenta o modal de horários)
     public (bool aberto, string? mensagem, List<HorarioAgenda> horarios) ListarHorarios(DateTime data, int? ignorarId)
     {
         var dia = data.Date;
         var lista = new List<HorarioAgenda>();
+
+        var bloqueio = DiaSemAtendimentoEm(dia);
+        if (bloqueio != null)
+            return (false, $"A loja não atende em {dia:dd/MM/yyyy}: {bloqueio.Motivo}. Escolha outro dia de retirada.", lista);
 
         if (!_opcoes.DiasEfetivos.Contains((int)dia.DayOfWeek))
             return (false, $"A loja não atende em {NomeDoDia(dia)}. Escolha outro dia de retirada.", lista);
@@ -80,10 +88,14 @@ public class AgendaService
         return (true, null, lista);
     }
 
-    // todas as regras de um horário: expediente, passado, grade de 30 min e vagas
+    // todas as regras de um horário: dia sem atendimento, expediente, passado, grade de 30 min e vagas
     public (bool ok, string mensagem) ValidarHorario(DateTime inicio, int? ignorarId)
     {
         var fim = inicio + Duracao;
+
+        var bloqueio = DiaSemAtendimentoEm(inicio.Date);
+        if (bloqueio != null)
+            return (false, $"A loja não atende em {inicio:dd/MM/yyyy}: {bloqueio.Motivo}. Escolha outro dia de retirada.");
 
         if (!_opcoes.DiasEfetivos.Contains((int)inicio.DayOfWeek))
             return (false, $"A loja não atende em {NomeDoDia(inicio)}. Escolha outro dia de retirada.");
@@ -146,9 +158,9 @@ public class AgendaService
         agendamento.LocacaoId = locacaoId;
         _context.SaveChanges();
     }
-    // ---------------------------------------------------------------- reservas feitas pelo link do Google
 
-    // reservas dos clientes que ainda não viraram locação (alimenta a caixa "Reserva do cliente" da tela de locação)
+    // ---------------------------------------------------------------- reservas feitas pelo link do Google (não usado se o Google estiver desligado)
+
     public List<Agendamento> ReservasSemLocacao()
     {
         var hoje = FusoHorario.HojeBrasilia();
@@ -161,7 +173,6 @@ public class AgendaService
             .ToList();
     }
 
-    // confere se a reserva ainda existe, ainda está livre e bate com a data de retirada digitada
     public (bool ok, string mensagem, Agendamento? reserva) ValidarReservaParaVincular(int agendamentoId, DateTime dataRetirada)
     {
         var reserva = _context.Agendamentos.Find(agendamentoId);
@@ -186,7 +197,7 @@ public class AgendaService
         if (reserva == null) return;
         reserva.ClienteId = clienteId;
         reserva.LocacaoId = locacaoId;
-        reserva.PrecisaSincronizar = true; // escreve os dados da locação na descrição do evento
+        reserva.PrecisaSincronizar = true;
         _context.SaveChanges();
     }
 

@@ -9,8 +9,8 @@ public class AgendaOpcoes
     // conteúdo do arquivo .json da conta de serviço, em uma linha só
     public string CredenciaisJson { get; set; } = "";
 
-    public string HoraAbertura { get; set; } = "09:00";
-    public string HoraFechamento { get; set; } = "18:00";
+    public string HoraAbertura { get; set; } = "08:30";
+    public string HoraFechamento { get; set; } = "17:00";
     public int DuracaoMinutos { get; set; } = 30;
     public int VagasPorHorario { get; set; } = 2;
 

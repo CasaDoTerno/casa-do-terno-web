@@ -27,5 +27,6 @@ public interface ICasaDoTernoContext
     DbSet<Vale> Vales { get; }
     DbSet<LancamentoFolha> LancamentosFolha { get; }
     DbSet<Agendamento> Agendamentos { get; }
+    DbSet<DiaSemAtendimento> DiasSemAtendimento { get; }
     int SaveChanges();
 }
