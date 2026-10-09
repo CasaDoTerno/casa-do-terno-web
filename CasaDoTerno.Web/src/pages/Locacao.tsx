@@ -4,6 +4,7 @@ import { BuscaSelect } from "../components/BuscaSelect";
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { ModalAviso } from "../components/ModalAviso";
+import { ModalHorarios } from "../components/ModalHorarios";
 
 interface Produto {
   id: number;
@@ -105,6 +106,7 @@ export function Locacao() {
   const [agendaAberta, setAgendaAberta] = useState(true);
   const [agendaMensagem, setAgendaMensagem] = useState("");
   const [carregandoHorarios, setCarregandoHorarios] = useState(false);
+  const [mostrarModalHorarios, setMostrarModalHorarios] = useState(false);
 
   // Caixa de aviso no meio da tela
   const [aviso, setAviso] = useState<AvisoModal | null>(null);
@@ -171,6 +173,15 @@ export function Locacao() {
   useEffect(() => {
     setHoraRetirada("");
     buscarHorarios(dataRetirada);
+
+    // abre a grade de horários assim que a data de retirada é preenchida
+    // (espera um pouco pra não abrir enquanto a data ainda está sendo digitada)
+    const agora = new Date();
+    const hoje = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
+    if (!dataRetirada || dataRetirada < hoje) return;
+
+    const espera = setTimeout(() => setMostrarModalHorarios(true), 400);
+    return () => clearTimeout(espera);
   }, [dataRetirada]);
 
   useEffect(() => {
@@ -672,27 +683,30 @@ export function Locacao() {
           {dataRetirada && (
             <div style={{ marginTop: 12 }}>
               <label>Hora da retirada (agenda)</label>
-              <select
-                value={horaRetirada}
-                onChange={(e) => setHoraRetirada(e.target.value)}
-                onFocus={() => buscarHorarios(dataRetirada)}
-                disabled={carregandoHorarios || !agendaAberta}
-              >
-                <option value="">Sem horário marcado (não vai para a agenda)</option>
-                {horarios.map((h) => (
-                  <option key={h.hora} value={h.hora} disabled={!h.disponivel}>
-                    {h.hora} —{" "}
-                    {h.disponivel
-                      ? `${h.vagasRestantes} vaga${h.vagasRestantes === 1 ? "" : "s"}`
-                      : h.motivo || "indisponível"}
-                  </option>
-                ))}
-              </select>
-              {carregandoHorarios && (
-                <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "4px 0 0 0" }}>Consultando agenda...</p>
-              )}
-              {!carregandoHorarios && agendaMensagem && (
-                <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "4px 0 0 0" }}>{agendaMensagem}</p>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    buscarHorarios(dataRetirada);
+                    setMostrarModalHorarios(true);
+                  }}
+                >
+                  {horaRetirada ? `Retirada às ${horaRetirada} — alterar` : "Escolher horário"}
+                </button>
+                {horaRetirada && (
+                  <button
+                    type="button"
+                    onClick={() => setHoraRetirada("")}
+                    style={{ background: "var(--chumbo-input)" }}
+                  >
+                    Remover horário
+                  </button>
+                )}
+              </div>
+              {!horaRetirada && (
+                <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "4px 0 0 0" }}>
+                  Sem horário marcado — a retirada não entra na agenda.
+                </p>
               )}
             </div>
           )}
@@ -791,6 +805,22 @@ export function Locacao() {
       </form>
 
       {mensagem && <p>{mensagem}</p>}
+
+      {mostrarModalHorarios && dataRetirada && (
+        <ModalHorarios
+          data={dataRetirada}
+          horarios={horarios}
+          carregando={carregandoHorarios}
+          agendaAberta={agendaAberta}
+          mensagem={agendaMensagem}
+          horaSelecionada={horaRetirada}
+          onEscolher={(hora) => {
+            setHoraRetirada(hora);
+            setMostrarModalHorarios(false);
+          }}
+          onFechar={() => setMostrarModalHorarios(false)}
+        />
+      )}
 
       {aviso && (
         <ModalAviso
