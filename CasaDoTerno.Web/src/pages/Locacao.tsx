@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
+import { ModalAviso } from "../components/ModalAviso";
+import { ModalNovoCliente } from "../components/ModalNovoCliente";
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
 
 interface Produto {
   id: number;
@@ -18,7 +19,6 @@ interface Produto {
 interface Evento {
   id: number;
   nome: string;
-  data: string;
 }
 
 interface Cliente {
@@ -41,8 +41,25 @@ interface PecaCarrinho {
   valorLocacao: number;
 }
 
+interface HorarioAgenda {
+  hora: string;
+  vagasRestantes: number;
+  disponivel: boolean;
+  motivo: string | null;
+}
+
+interface AvisoTela {
+  titulo: string;
+  mensagem: string;
+  dica?: string;
+}
+
 const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
-const nomesTipoEvento = ["Casamento", "Formatura", "Aniversário"];
+
+function textoDoErro(erro: any, padrao: string): string {
+  const dados = erro?.response?.data;
+  return typeof dados === "string" && dados ? dados : padrao;
+}
 
 export function Locacao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -53,6 +70,7 @@ export function Locacao() {
   const [clienteId, setClienteId] = useState(0);
   const [dataEvento, setDataEvento] = useState("");
   const [dataRetirada, setDataRetirada] = useState("");
+  const [horaRetirada, setHoraRetirada] = useState("");
   const [dataDevolucaoPrevista, setDataDevolucaoPrevista] = useState("");
   const [consultor, setConsultor] = useState(localStorage.getItem("emailUsuario") ?? "");
   const [desconto, setDesconto] = useState(0);
@@ -61,22 +79,18 @@ export function Locacao() {
   const [eventoId, setEventoId] = useState(0);
   const [ehPrincipalDoEvento, setEhPrincipalDoEvento] = useState(false);
 
-  const [mostrarNovoEvento, setMostrarNovoEvento] = useState(false);
-  const [novoEventoTipo, setNovoEventoTipo] = useState(0);
-  const [novoEventoNome, setNovoEventoNome] = useState("");
-  const [novoEventoData, setNovoEventoData] = useState("");
-  const [salvandoEvento, setSalvandoEvento] = useState(false);
-
-  const [mostrarNovoCliente, setMostrarNovoCliente] = useState(false);
-  const [novoClienteNome, setNovoClienteNome] = useState("");
-  const [novoClienteTelefone, setNovoClienteTelefone] = useState("");
-  const [novoClienteCpf, setNovoClienteCpf] = useState("");
-  const [salvandoCliente, setSalvandoCliente] = useState(false);
-
   const [produtoSelecionado, setProdutoSelecionado] = useState(0);
   const [ajustesPeca, setAjustesPeca] = useState("");
   const [valorPeca, setValorPeca] = useState(0);
   const [pecas, setPecas] = useState<PecaCarrinho[]>([]);
+
+  const [horarios, setHorarios] = useState<HorarioAgenda[]>([]);
+  const [agendaAberta, setAgendaAberta] = useState(true);
+  const [agendaMensagem, setAgendaMensagem] = useState("");
+  const [carregandoHorarios, setCarregandoHorarios] = useState(false);
+
+  const [aviso, setAviso] = useState<AvisoTela | null>(null);
+  const [novoClienteAberto, setNovoClienteAberto] = useState(false);
 
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -93,18 +107,14 @@ export function Locacao() {
     });
   }
 
-  function buscarEventos() {
-    api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
-  }
-
   function buscarClientes() {
-    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+    return api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
   }
 
   useEffect(() => {
     buscarProdutos();
     buscarClientes();
-    buscarEventos();
+    api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
     api.get<Usuario[]>("/Usuarios/lista-simples").then((r) => setUsuarios(r.data));
   }, []);
 
@@ -115,72 +125,43 @@ export function Locacao() {
     }
   }, [produtoSelecionado, produtos]);
 
-  const hojeISO = new Date().toISOString().split("T")[0];
-  const eventosFuturos = eventos
-    .filter((ev) => ev.data.split("T")[0] >= hojeISO)
-    .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+  // ---- horários da agenda: recarrega quando a data de retirada muda ----
 
-  async function salvarNovoEvento() {
-    if (!novoEventoNome || !novoEventoData) {
-      setMensagem("Preencha nome e data do evento antes de salvar.");
+  function buscarHorarios(data: string) {
+    if (!data) {
+      setHorarios([]);
       return;
     }
-
-    setSalvandoEvento(true);
-    try {
-      const resposta = await api.post("/Eventos", {
-        tipo: novoEventoTipo,
-        nome: novoEventoNome,
-        data: novoEventoData,
-        observacao: "",
-      });
-
-      const eventoCriado: Evento = resposta.data;
-      setEventos((atual) => [...atual, eventoCriado]);
-      setEventoId(eventoCriado.id);
-
-      setNovoEventoNome("");
-      setNovoEventoData("");
-      setNovoEventoTipo(0);
-      setMostrarNovoEvento(false);
-      setMensagem("Evento criado e já selecionado!");
-    } catch (erro: any) {
-      console.error(erro);
-      setMensagem(erro.response?.data || "Erro ao criar evento.");
-    } finally {
-      setSalvandoEvento(false);
-    }
+    setCarregandoHorarios(true);
+    api
+      .get<{ aberto: boolean; mensagem: string | null; horarios: HorarioAgenda[] }>("/Agendamentos/horarios", {
+        params: { data },
+      })
+      .then((r) => {
+        setAgendaAberta(r.data.aberto);
+        setAgendaMensagem(r.data.mensagem ?? "");
+        setHorarios(r.data.horarios);
+        // se o horário que estava escolhido ficou lotado, limpa
+        setHoraRetirada((atual) => {
+          const h = r.data.horarios.find((x) => x.hora === atual);
+          return h && h.disponivel ? atual : "";
+        });
+      })
+      .catch(() => {
+        setHorarios([]);
+        setAgendaAberta(true);
+        setAgendaMensagem("Não foi possível consultar a agenda agora. Você pode salvar sem horário marcado.");
+      })
+      .finally(() => setCarregandoHorarios(false));
   }
 
-  async function salvarNovoCliente() {
-    if (!novoClienteNome || !novoClienteTelefone || !novoClienteCpf) {
-      setMensagem("Preencha nome, telefone e CPF antes de salvar o cliente.");
-      return;
-    }
+  useEffect(() => {
+    setHoraRetirada("");
+    buscarHorarios(dataRetirada);
+  }, [dataRetirada]);
 
-    setSalvandoCliente(true);
-    try {
-      const resposta = await api.post("/Clientes", {
-        nome: novoClienteNome,
-        telefone: novoClienteTelefone,
-        cpf: novoClienteCpf,
-      });
-
-      const clienteCriado: Cliente = resposta.data;
-      setClientes((atual) => [...atual, clienteCriado]);
-      setClienteId(clienteCriado.id);
-
-      setNovoClienteNome("");
-      setNovoClienteTelefone("");
-      setNovoClienteCpf("");
-      setMostrarNovoCliente(false);
-      setMensagem("Cliente cadastrado e já selecionado! Complete as medidas dele depois, em Clientes.");
-    } catch (erro: any) {
-      console.error(erro);
-      setMensagem(erro.response?.data || "Erro ao cadastrar cliente.");
-    } finally {
-      setSalvandoCliente(false);
-    }
+  function avisar(titulo: string, texto: string, dica?: string) {
+    setAviso({ titulo, mensagem: texto, dica });
   }
 
   async function adicionarPeca() {
@@ -188,7 +169,11 @@ export function Locacao() {
     if (!produto) return;
 
     if (!dataRetirada || !dataDevolucaoPrevista) {
-      setMensagem("Preencha as datas de retirada e devolução antes de adicionar peças.");
+      avisar(
+        "Faltam as datas",
+        "Preencha as datas de retirada e devolução antes de adicionar peças.",
+        "A disponibilidade da peça depende desse período."
+      );
       return;
     }
 
@@ -205,12 +190,16 @@ export function Locacao() {
       });
 
       if (!resposta.data.disponivel) {
-        setMensagem(resposta.data.mensagem);
+        avisar(
+          "Peça indisponível",
+          resposta.data.mensagem,
+          "Ajuste a data de retirada ou de devolução, ou escolha outra peça."
+        );
         return;
       }
     } catch (erro) {
       console.error(erro);
-      setMensagem("Erro ao verificar disponibilidade dessa peça.");
+      avisar("Erro ao verificar a peça", "Não foi possível verificar a disponibilidade dessa peça.", "Tente de novo.");
       return;
     }
 
@@ -236,6 +225,16 @@ export function Locacao() {
     setPecas(pecas.filter((_, i) => i !== index));
   }
 
+  async function clienteCriado(novoId: number) {
+    try {
+      await buscarClientes();
+    } catch (erro) {
+      console.error(erro);
+    }
+    setClienteId(novoId);
+    setNovoClienteAberto(false);
+  }
+
   const subtotal = pecas.reduce((soma, peca) => soma + peca.valorLocacao, 0);
   const valorTotal = subtotal - desconto;
   const valorRestante = valorTotal - valorEntrada;
@@ -244,23 +243,29 @@ export function Locacao() {
     evento.preventDefault();
     if (enviando) return;
 
+    if (clienteId === 0) {
+      avisar("Falta o cliente", "Escolha um cliente ou clique em \"+ Novo cliente\" para cadastrar.");
+      return;
+    }
+
     if (pecas.length === 0) {
-      setMensagem("Adicione pelo menos uma peça antes de confirmar.");
+      avisar("Nenhuma peça", "Adicione pelo menos uma peça antes de confirmar.");
       return;
     }
 
     if (dataRetirada > dataEvento) {
-      setMensagem("A data de retirada não pode ser depois da data do evento.");
+      avisar("Datas incorretas", "A data de retirada não pode ser depois da data do evento.");
       return;
     }
 
     if (dataDevolucaoPrevista < dataRetirada) {
-      setMensagem("A data de devolução não pode ser antes da data de retirada.");
+      avisar("Datas incorretas", "A data de devolução não pode ser antes da data de retirada.");
       return;
     }
 
+    const textoHora = horaRetirada ? `\nRetirada: ${horaRetirada} (vai para a agenda)` : "\nSem horário marcado na agenda";
     const confirmar = window.confirm(
-      `Confirmar a criação dessa locação?\n\nTotal: R$ ${valorTotal.toFixed(2)}\nPeças: ${pecas.length}`
+      `Confirmar a criação dessa locação?\n\nTotal: R$ ${valorTotal.toFixed(2)}\nPeças: ${pecas.length}${textoHora}`
     );
     if (!confirmar) return;
 
@@ -270,6 +275,7 @@ export function Locacao() {
         clienteId,
         dataEvento,
         dataRetirada,
+        horaRetirada: horaRetirada || null,
         dataDevolucaoPrevista,
         consultor,
         desconto,
@@ -284,15 +290,32 @@ export function Locacao() {
         })),
       });
       setLocacaoCriadaId(resposta.data.id);
-      setMensagem("Locação criada com sucesso!");
+      setMensagem(
+        horaRetirada
+          ? `Locação criada com sucesso! Retirada agendada para ${horaRetirada}.`
+          : "Locação criada com sucesso!"
+      );
       setPecas([]);
       setDesconto(0);
       setValorEntrada(0);
       setEventoId(0);
       setEhPrincipalDoEvento(false);
+      setHoraRetirada("");
+      buscarHorarios(dataRetirada);
     } catch (erro: any) {
       console.error(erro);
-      setMensagem(erro.response?.data || "Erro ao criar locação.");
+      if (erro.response?.status === 409) {
+        // horário da agenda lotado ou fora do expediente
+        avisar(
+          "Horário indisponível",
+          textoDoErro(erro, "Esse horário não está disponível."),
+          "Escolha outro horário de retirada e confirme de novo."
+        );
+        setHoraRetirada("");
+        buscarHorarios(dataRetirada);
+      } else {
+        avisar("Não foi possível salvar a locação", textoDoErro(erro, "Erro ao criar locação."));
+      }
     } finally {
       setEnviando(false);
     }
@@ -306,70 +329,19 @@ export function Locacao() {
         <h2>Dados gerais</h2>
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
-            <label>Cliente</label>
-            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
-              <div style={{ flex: 1 }}>
-                <BuscaSelect
-                  opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
-                  valorSelecionado={clienteId}
-                  onSelecionar={setClienteId}
-                  onAbrir={buscarClientes}
-                  placeholder="Buscar cliente..."
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => setMostrarNovoCliente(!mostrarNovoCliente)}
-                style={{ display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", flexShrink: 0 }}
-              >
-              <Plus size={16} /> Novo
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+              <label style={{ margin: 0 }}>Cliente</label>
+              <button type="button" onClick={() => setNovoClienteAberto(true)}>
+                + Novo cliente
               </button>
             </div>
+            <BuscaSelect
+              opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
+              valorSelecionado={clienteId}
+              onSelecionar={setClienteId}
+              placeholder="Buscar cliente..."
+            />
           </div>
-
-          {mostrarNovoCliente && (
-            <div className="card" style={{ marginTop: 12, background: "var(--chumbo-input)" }}>
-              <strong style={{ fontSize: 13 }}>Cadastro rápido de cliente</strong>
-              <div className="grid-3" style={{ marginTop: 8 }}>
-                <div>
-                  <label>Nome</label>
-                  <input
-                    value={novoClienteNome}
-                    onChange={(e) => setNovoClienteNome(e.target.value)}
-                    placeholder="Nome completo"
-                  />
-                </div>
-                <div>
-                  <label>Telefone</label>
-                  <input
-                    value={novoClienteTelefone}
-                    onChange={(e) => setNovoClienteTelefone(e.target.value)}
-                    placeholder="(00) 00000-0000"
-                  />
-                </div>
-                <div>
-                  <label>CPF</label>
-                  <input
-                    value={novoClienteCpf}
-                    onChange={(e) => setNovoClienteCpf(e.target.value)}
-                    placeholder="000.000.000-00"
-                  />
-                </div>
-              </div>
-              <p style={{ fontSize: 12, color: "var(--texto-suave)", marginTop: 8 }}>
-                As medidas e outros dados podem ser completados depois, na tela de Clientes.
-              </p>
-              <button
-                type="button"
-                onClick={salvarNovoCliente}
-                disabled={salvandoCliente}
-                style={{ marginTop: 8 }}
-              >
-                {salvandoCliente ? "Salvando..." : "Salvar cliente e selecionar"}
-              </button>
-            </div>
-          )}
-
           <div>
             <label>Consultor</label>
             <select value={consultor} onChange={(e) => setConsultor(e.target.value)}>
@@ -382,72 +354,16 @@ export function Locacao() {
 
           <div>
             <label>Evento (opcional)</label>
-            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
-              <div style={{ flex: 1 }}>
-                <BuscaSelect
-                  opcoes={eventosFuturos.map((ev) => ({
-                    id: ev.id,
-                    label: `${ev.nome} — ${new Date(ev.data).toLocaleDateString("pt-BR")}`,
-                  }))}
-                  valorSelecionado={eventoId}
-                  onSelecionar={setEventoId}
-                  onAbrir={buscarEventos}
-                  placeholder="Buscar evento (opcional)..."
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => setMostrarNovoEvento(!mostrarNovoEvento)}
-                style={{ display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", flexShrink: 0 }}
-              >
-                <Plus size={16} /> Novo
-              </button>
-            </div>
+            <select value={eventoId} onChange={(e) => setEventoId(Number(e.target.value))}>
+              <option value={0}>Nenhum</option>
+              {eventos.map((ev) => (
+                <option key={ev.id} value={ev.id}>{ev.nome}</option>
+              ))}
+            </select>
           </div>
 
-          {mostrarNovoEvento && (
-            <div className="card" style={{ marginTop: 12, background: "var(--chumbo-input)" }}>
-              <strong style={{ fontSize: 13 }}>Cadastro rápido de evento</strong>
-              <div className="grid-3" style={{ marginTop: 8 }}>
-                <div>
-                  <label>Tipo</label>
-                  <select value={novoEventoTipo} onChange={(e) => setNovoEventoTipo(Number(e.target.value))}>
-                    {nomesTipoEvento.map((nome, index) => (
-                      <option key={index} value={index}>{nome}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label>Nome</label>
-                  <input
-                    value={novoEventoNome}
-                    onChange={(e) => setNovoEventoNome(e.target.value)}
-                    placeholder="ex: Casamento João e Maria"
-                  />
-                </div>
-                <div>
-                  <label>Data</label>
-                  <input
-                    type="date"
-                    value={novoEventoData}
-                    onChange={(e) => setNovoEventoData(e.target.value)}
-                    min={hojeISO}
-                  />
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={salvarNovoEvento}
-                disabled={salvandoEvento}
-                style={{ marginTop: 12 }}
-              >
-                {salvandoEvento ? "Salvando..." : "Salvar evento e selecionar"}
-              </button>
-            </div>
-          )}
-
           {eventoId !== 0 && (
-            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
               <input
                 type="checkbox"
                 checked={ehPrincipalDoEvento}
@@ -474,7 +390,7 @@ export function Locacao() {
               <input type="date" value={dataEvento} onChange={(e) => setDataEvento(e.target.value)} required />
             </div>
             <div>
-              <label>Retirada</label>
+              <label>Retirada (dia)</label>
               <input
                 type="date"
                 value={dataRetirada}
@@ -493,6 +409,44 @@ export function Locacao() {
                 required
               />
             </div>
+          </div>
+
+          <div style={{ marginTop: 12 }}>
+            <label>Hora da retirada (agenda da loja)</label>
+            <select
+              value={horaRetirada}
+              onChange={(e) => setHoraRetirada(e.target.value)}
+              onFocus={() => buscarHorarios(dataRetirada)}
+              disabled={!dataRetirada || carregandoHorarios || !agendaAberta}
+            >
+              <option value="">
+                {!dataRetirada
+                  ? "Escolha o dia da retirada primeiro"
+                  : carregandoHorarios
+                  ? "Consultando agenda..."
+                  : "Sem horário marcado (não vai para a agenda)"}
+              </option>
+              {horarios.map((h) => (
+                <option key={h.hora} value={h.hora} disabled={!h.disponivel}>
+                  {h.hora}
+                  {h.disponivel
+                    ? ` — ${h.vagasRestantes} ${h.vagasRestantes === 1 ? "vaga" : "vagas"}`
+                    : h.motivo === "passou"
+                    ? " — já passou"
+                    : " — lotado"}
+                </option>
+              ))}
+            </select>
+            {agendaMensagem && (
+              <p style={{ color: agendaAberta ? "var(--texto-suave)" : "#f87171", fontSize: 13, margin: "6px 0 0 0" }}>
+                {agendaMensagem}
+              </p>
+            )}
+            {horaRetirada && (
+              <p style={{ color: "var(--verde)", fontSize: 13, margin: "6px 0 0 0" }}>
+                Vai para a agenda com nome, telefone e e-mail do cliente. Cada horário aceita até 2 clientes.
+              </p>
+            )}
           </div>
         </div>
 
@@ -607,6 +561,20 @@ export function Locacao() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* os dois pop-ups ficam FORA do <form>, senão o Enter dentro deles enviaria a locação */}
+      {novoClienteAberto && (
+        <ModalNovoCliente onFechar={() => setNovoClienteAberto(false)} onCriado={clienteCriado} />
+      )}
+
+      {aviso && (
+        <ModalAviso
+          titulo={aviso.titulo}
+          mensagem={aviso.mensagem}
+          dica={aviso.dica}
+          onFechar={() => setAviso(null)}
+        />
       )}
     </div>
   );

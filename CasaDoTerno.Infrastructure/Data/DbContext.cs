@@ -35,5 +35,6 @@ public class CasaDoTernoContext : IdentityDbContext<IdentityUser>, ICasaDoTernoC
     public DbSet<Vale> Vales { get; set; }
     public DbSet<LancamentoFolha> LancamentosFolha { get; set; }
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
+    public DbSet<Agendamento> Agendamentos { get; set; } = null!;
 
 }

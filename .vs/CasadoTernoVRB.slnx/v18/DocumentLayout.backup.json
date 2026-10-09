@@ -3,12 +3,56 @@
   "WorkspaceRootPath": "C:\\CasadoTernoVRB\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\locacaoservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\locacaoservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\controllers\\locacoescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|solutionrelative:casadoterno.api\\controllers\\locacoescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|solutionrelative:casadoterno.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\agendasincronizacaoworker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|solutionrelative:casadoterno.api\\agendasincronizacaoworker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\casadoterno.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|solutionrelative:casadoterno.api\\casadoterno.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\controllers\\agendamentoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|solutionrelative:casadoterno.api\\controllers\\agendamentoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\locacaoservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\locacaoservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\agendasincronizacao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\agendasincronizacao.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\googleagendaclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\googleagendaclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\agendaservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\agendaservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\agendaopcoes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\agendaopcoes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B277A485-73C7-EE61-8DB8-A3D76EF2C22B}|CasaDoTerno.Infrastructure\\CasaDoTerno.Infrastructure.csproj|c:\\casadoternovrb\\casadoterno.infrastructure\\data\\dbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B277A485-73C7-EE61-8DB8-A3D76EF2C22B}|CasaDoTerno.Infrastructure\\CasaDoTerno.Infrastructure.csproj|solutionrelative:casadoterno.infrastructure\\data\\dbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\interfaces\\icasadoternocontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\interfaces\\icasadoternocontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|c:\\casadoternovrb\\casadoterno.domain\\entities\\agendamento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|solutionrelative:casadoterno.domain\\entities\\agendamento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\controllers\\despesascontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -37,14 +81,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\funcionarioservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\funcionarioservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B277A485-73C7-EE61-8DB8-A3D76EF2C22B}|CasaDoTerno.Infrastructure\\CasaDoTerno.Infrastructure.csproj|c:\\casadoternovrb\\casadoterno.infrastructure\\data\\dbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B277A485-73C7-EE61-8DB8-A3D76EF2C22B}|CasaDoTerno.Infrastructure\\CasaDoTerno.Infrastructure.csproj|solutionrelative:casadoterno.infrastructure\\data\\dbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\interfaces\\icasadoternocontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\interfaces\\icasadoternocontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|c:\\casadoternovrb\\casadoterno.domain\\entities\\lancamentofolha.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -111,20 +147,12 @@
       "RelativeMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|solutionrelative:casadoterno.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\casadoterno.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|solutionrelative:casadoterno.api\\casadoterno.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\emailservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|c:\\casadoternovrb\\casadoterno.domain\\entities\\cliente.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|solutionrelative:casadoterno.domain\\entities\\cliente.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\controllers\\locacoescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|solutionrelative:casadoterno.api\\controllers\\locacoescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\controllers\\produtoscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -277,55 +305,124 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "FuncionariosController.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\FuncionariosController.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\FuncionariosController.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\FuncionariosController.cs",
-              "RelativeToolTip": "CasaDoTerno.API\\Controllers\\FuncionariosController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAADAAAAAFAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "AgendaSincronizacaoWorker.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\AgendaSincronizacaoWorker.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.API\\AgendaSincronizacaoWorker.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\AgendaSincronizacaoWorker.cs",
+              "RelativeToolTip": "CasaDoTerno.API\\AgendaSincronizacaoWorker.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-25T15:38:30.353Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "ParcelaController.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\ParcelaController.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\ParcelaController.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\ParcelaController.cs",
-              "RelativeToolTip": "CasaDoTerno.API\\Controllers\\ParcelaController.cs",
-              "ViewState": "AgIAABwAAAAAAAAAAAAYwDwAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-02T10:11:40.543Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "ParcelaService.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\ParcelaService.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\ParcelaService.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\ParcelaService.cs",
-              "RelativeToolTip": "CasaDoTerno.Application\\Services\\ParcelaService.cs",
-              "ViewState": "AgIAACQAAAAAAAAAAAAswFAAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-02T10:07:36.614Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "DespesaService.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\DespesaService.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\DespesaService.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\DespesaService.cs",
-              "RelativeToolTip": "CasaDoTerno.Application\\Services\\DespesaService.cs",
-              "ViewState": "AgIAAAgAAAAAAAAAAAA7wDQAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-02T10:29:05.529Z"
+              "WhenOpened": "2026-10-09T03:22:24.717Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
+              "Title": "AgendamentosController.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\AgendamentosController.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\AgendamentosController.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\AgendamentosController.cs",
+              "RelativeToolTip": "CasaDoTerno.API\\Controllers\\AgendamentosController.cs",
+              "ViewState": "AgIAACwAAAAAAAAAAAAswFgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-09T03:21:43.025Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "AgendaSincronizacao.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaSincronizacao.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\AgendaSincronizacao.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaSincronizacao.cs",
+              "RelativeToolTip": "CasaDoTerno.Application\\Services\\AgendaSincronizacao.cs",
+              "ViewState": "AgIAAOYAAAAAAAAAAAAiwCcBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-09T03:19:29.729Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "GoogleAgendaClient.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\GoogleAgendaClient.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\GoogleAgendaClient.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\GoogleAgendaClient.cs",
+              "RelativeToolTip": "CasaDoTerno.Application\\Services\\GoogleAgendaClient.cs",
+              "ViewState": "AgIAAFYAAAAAAAAAAAAswIIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-09T03:19:11.515Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "AgendaService.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaService.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\AgendaService.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaService.cs",
+              "RelativeToolTip": "CasaDoTerno.Application\\Services\\AgendaService.cs",
+              "ViewState": "AgIAAIkAAAAAAAAAAAAswLUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-09T03:18:50.356Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "AgendaOpcoes.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaOpcoes.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\AgendaOpcoes.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaOpcoes.cs",
+              "RelativeToolTip": "CasaDoTerno.Application\\Services\\AgendaOpcoes.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-09T03:18:26.27Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Program.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.API\\Program.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Program.cs",
+              "RelativeToolTip": "CasaDoTerno.API\\Program.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAAACUAAAA/AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-30T10:26:10.975Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "LocacoesController.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\LocacoesController.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\LocacoesController.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\LocacoesController.cs",
+              "RelativeToolTip": "CasaDoTerno.API\\Controllers\\LocacoesController.cs",
+              "ViewState": "AgIAAFwBAAAAAAAAAAAswIgBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-07-30T16:24:24.717Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "Agendamento.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Agendamento.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Agendamento.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Agendamento.cs",
+              "RelativeToolTip": "CasaDoTerno.Domain\\Entities\\Agendamento.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-09T03:16:08.149Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
               "Title": "DespesaRecorrenteService.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\DespesaRecorrenteService.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\DespesaRecorrenteService.cs",
@@ -337,7 +434,57 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
+              "Title": "CasaDoTerno.API.csproj",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\CasaDoTerno.API.csproj",
+              "RelativeDocumentMoniker": "CasaDoTerno.API\\CasaDoTerno.API.csproj",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\CasaDoTerno.API.csproj",
+              "RelativeToolTip": "CasaDoTerno.API\\CasaDoTerno.API.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAjwBoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-07-30T12:54:08.279Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "DespesaService.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\DespesaService.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\DespesaService.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\DespesaService.cs",
+              "RelativeToolTip": "CasaDoTerno.Application\\Services\\DespesaService.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAA7wDQAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-02T10:29:05.529Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "LocacaoService.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\LocacaoService.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\LocacaoService.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\LocacaoService.cs",
+              "RelativeToolTip": "CasaDoTerno.Application\\Services\\LocacaoService.cs",
+              "ViewState": "AgIAABwCAAAAAAAAAAAswEgCAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-10T23:31:07.401Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "ParcelaService.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\ParcelaService.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\ParcelaService.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\ParcelaService.cs",
+              "RelativeToolTip": "CasaDoTerno.Application\\Services\\ParcelaService.cs",
+              "ViewState": "AgIAACQAAAAAAAAAAAAswFAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-02T10:07:36.614Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
               "Title": "DespesasController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\DespesasController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\DespesasController.cs",
@@ -345,38 +492,61 @@
               "RelativeToolTip": "CasaDoTerno.API\\Controllers\\DespesasController.cs",
               "ViewState": "AgIAAHoAAAAAAAAAAAAQwJIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-02T10:39:33.265Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-02T10:39:33.265Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Program.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.API\\Program.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Program.cs",
-              "RelativeToolTip": "CasaDoTerno.API\\Program.cs",
-              "ViewState": "AgIAAEgAAAAAAAAAAAAYwHIAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 11,
+              "Title": "ICasaDoTernoContext.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
+              "RelativeToolTip": "CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
+              "ViewState": "AgIAAA4AAAAAAAAAAAAuwBwAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T10:26:10.975Z",
+              "WhenOpened": "2026-07-30T18:12:55.194Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "LocacaoService.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\LocacaoService.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\LocacaoService.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\LocacaoService.cs",
-              "RelativeToolTip": "CasaDoTerno.Application\\Services\\LocacaoService.cs",
-              "ViewState": "AgIAAP8BAAAAAAAAAAAowBYCAABeAAAAAAAAAA==",
+              "DocumentIndex": 10,
+              "Title": "DbContext.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
+              "RelativeToolTip": "CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
+              "ViewState": "AgIAABQAAAAAAAAAAAA8wCUAAABBAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-08-10T23:31:07.401Z",
+              "WhenOpened": "2026-07-30T09:37:21.776Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 16,
+              "Title": "ParcelaController.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\ParcelaController.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\ParcelaController.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\ParcelaController.cs",
+              "RelativeToolTip": "CasaDoTerno.API\\Controllers\\ParcelaController.cs",
+              "ViewState": "AgIAABwAAAAAAAAAAAAYwDwAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-02T10:11:40.543Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "FuncionariosController.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\FuncionariosController.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\FuncionariosController.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\FuncionariosController.cs",
+              "RelativeToolTip": "CasaDoTerno.API\\Controllers\\FuncionariosController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADAAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-08-25T15:38:30.353Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
               "Title": "FuncionarioService.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\FuncionarioService.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\FuncionarioService.cs",
@@ -388,31 +558,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "DbContext.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
-              "RelativeToolTip": "CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAA9wCEAAABAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T09:37:21.776Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "ICasaDoTernoContext.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
-              "RelativeToolTip": "CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
-              "ViewState": "AgIAAA4AAAAAAAAAAAAuwBsAAAA0AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T18:12:55.194Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 20,
               "Title": "LancamentoFolha.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\LancamentoFolha.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\LancamentoFolha.cs",
@@ -424,7 +570,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 21,
               "Title": "RelatorioService.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\RelatorioService.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\RelatorioService.cs",
@@ -436,7 +582,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 23,
               "Title": "RelatoriosController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\RelatoriosController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\RelatoriosController.cs",
@@ -448,7 +594,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 27,
               "Title": "ClientesController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\ClientesController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\ClientesController.cs",
@@ -460,7 +606,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 22,
               "Title": "Vale.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Vale.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Vale.cs",
@@ -472,7 +618,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 30,
               "Title": "ItemVenda.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\ItemVenda.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\ItemVenda.cs",
@@ -484,7 +630,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 32,
               "Title": "MetasController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\MetasController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\MetasController.cs",
@@ -496,7 +642,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 26,
               "Title": "DespesaRecorrente.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\DespesaRecorrente.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\DespesaRecorrente.cs",
@@ -508,7 +654,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 24,
               "Title": "DespesasRecorrentesController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\DespesasRecorrentesController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\DespesasRecorrentesController.cs",
@@ -520,7 +666,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 33,
               "Title": "NotificacoesController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\NotificacoesController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\NotificacoesController.cs",
@@ -532,7 +678,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 25,
               "Title": "Despesa.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Despesa.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Despesa.cs",
@@ -544,7 +690,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 29,
               "Title": "Venda.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Venda.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Venda.cs",
@@ -556,7 +702,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 28,
               "Title": "VendaService.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\VendaService.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\VendaService.cs",
@@ -568,7 +714,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 31,
               "Title": "VendasController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\VendasController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\VendasController.cs",
@@ -580,7 +726,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 34,
               "Title": "FusoHorario.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Utils\\FusoHorario.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Utils\\FusoHorario.cs",
@@ -592,7 +738,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 35,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\appsettings.json",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\appsettings.json",
@@ -604,19 +750,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
-              "Title": "CasaDoTerno.API.csproj",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\CasaDoTerno.API.csproj",
-              "RelativeDocumentMoniker": "CasaDoTerno.API\\CasaDoTerno.API.csproj",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\CasaDoTerno.API.csproj",
-              "RelativeToolTip": "CasaDoTerno.API\\CasaDoTerno.API.csproj",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAjwBoAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2026-07-30T12:54:08.279Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 36,
               "Title": "EmailService.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\EmailService.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\EmailService.cs",
@@ -628,7 +762,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 37,
               "Title": "Cliente.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Cliente.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Cliente.cs",
@@ -640,7 +774,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 38,
               "Title": "ProdutosController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\ProdutosController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\ProdutosController.cs",
@@ -652,19 +786,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
-              "Title": "LocacoesController.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\LocacoesController.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\LocacoesController.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\LocacoesController.cs",
-              "RelativeToolTip": "CasaDoTerno.API\\Controllers\\LocacoesController.cs",
-              "ViewState": "AgIAAOwAAAAAAAAAAAAYwBABAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T16:24:24.717Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 36,
+              "DocumentIndex": 43,
               "Title": "Falta.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Falta.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Falta.cs",
@@ -676,7 +798,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 34,
+              "DocumentIndex": 41,
               "Title": "LogAuditoria.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\LogAuditoria.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\LogAuditoria.cs",
@@ -688,7 +810,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 32,
+              "DocumentIndex": 39,
               "Title": "AuditoriaController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\AuditoriaController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\AuditoriaController.cs",
@@ -700,7 +822,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 33,
+              "DocumentIndex": 40,
               "Title": "AuditoriaService.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AuditoriaService.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\AuditoriaService.cs",
@@ -712,7 +834,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 44,
               "Title": "UsuariosController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\UsuariosController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\UsuariosController.cs",
@@ -724,7 +846,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 42,
               "Title": "Funcionario.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Funcionario.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Funcionario.cs",
@@ -736,7 +858,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 39,
+              "DocumentIndex": 46,
               "Title": "Microsoft.Common.CurrentVersion.targets",
               "DocumentMoniker": "C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
               "RelativeDocumentMoniker": "..\\Program Files\\Microsoft Visual Studio\\18\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
@@ -748,7 +870,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 45,
               "Title": "Locacao.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Locacao.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Locacao.cs",
@@ -760,7 +882,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 41,
+              "DocumentIndex": 48,
               "Title": "ContextoDeTeste.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Tests\\ContextoDeTeste.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Tests\\ContextoDeTeste.cs",
@@ -772,7 +894,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 40,
+              "DocumentIndex": 47,
               "Title": "LocacaoServiceTrava.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Tests\\LocacaoServiceTrava.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Tests\\LocacaoServiceTrava.cs",
@@ -784,7 +906,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 43,
+              "DocumentIndex": 50,
               "Title": "LocacaoServiceEvento.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Tests\\LocacaoServiceEvento.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Tests\\LocacaoServiceEvento.cs",
@@ -796,7 +918,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 42,
+              "DocumentIndex": 49,
               "Title": "LocacaoServiceMulta.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Tests\\LocacaoServiceMulta.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Tests\\LocacaoServiceMulta.cs",
@@ -808,7 +930,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 44,
+              "DocumentIndex": 51,
               "Title": "EventosController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\EventosController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\EventosController.cs",
@@ -820,7 +942,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 45,
+              "DocumentIndex": 52,
               "Title": "appsettings.Development.json",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\appsettings.Development.json",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\appsettings.Development.json",
@@ -832,7 +954,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 46,
+              "DocumentIndex": 53,
               "Title": "MetaMensal.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\MetaMensal.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\MetaMensal.cs",
@@ -844,7 +966,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 50,
+              "DocumentIndex": 57,
               "Title": "Produto.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Produto.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Produto.cs",
@@ -856,7 +978,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 49,
+              "DocumentIndex": 56,
               "Title": "Perfil.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Perfil.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Perfil.cs",
@@ -868,7 +990,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 48,
+              "DocumentIndex": 55,
               "Title": "UsuarioPerfil.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\UsuarioPerfil.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\UsuarioPerfil.cs",
@@ -880,7 +1002,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 47,
+              "DocumentIndex": 54,
               "Title": "PerfisController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\PerfisController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\PerfisController.cs",
@@ -892,7 +1014,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 51,
+              "DocumentIndex": 58,
               "Title": "Evento.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Evento.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Evento.cs",
@@ -904,7 +1026,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 52,
+              "DocumentIndex": 59,
               "Title": "FornecedorController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\FornecedorController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\FornecedorController.cs",
@@ -916,7 +1038,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 53,
+              "DocumentIndex": 60,
               "Title": "CompraController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\CompraController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\CompraController.cs",
@@ -928,7 +1050,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 56,
+              "DocumentIndex": 63,
               "Title": "CompraService.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\CompraService.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\CompraService.cs",
@@ -940,7 +1062,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 54,
+              "DocumentIndex": 61,
               "Title": "CasaDoTerno.Infrastructure.csproj",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Infrastructure\\CasaDoTerno.Infrastructure.csproj",
               "RelativeDocumentMoniker": "CasaDoTerno.Infrastructure\\CasaDoTerno.Infrastructure.csproj",
@@ -952,7 +1074,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 55,
+              "DocumentIndex": 62,
               "Title": "Compra.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Compra.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Compra.cs",
@@ -964,7 +1086,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 57,
+              "DocumentIndex": 64,
               "Title": "FechamentoCaixaResultado.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\FechamentoCaixaResultado.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\FechamentoCaixaResultado.cs",
@@ -976,7 +1098,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 58,
+              "DocumentIndex": 65,
               "Title": "Parcela.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Parcela.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Parcela.cs",
@@ -988,7 +1110,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 60,
+              "DocumentIndex": 67,
               "Title": "Fornecedor.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Fornecedor.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Fornecedor.cs",
@@ -1000,7 +1122,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 59,
+              "DocumentIndex": 66,
               "Title": "ItemCompra.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\ItemCompra.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\ItemCompra.cs",
@@ -1012,7 +1134,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 61,
+              "DocumentIndex": 68,
               "Title": "ItemLocacao.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\ItemLocacao.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\ItemLocacao.cs",
@@ -1024,7 +1146,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 62,
+              "DocumentIndex": 69,
               "Title": "FormaPagamento.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\FormaPagamento.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\FormaPagamento.cs",
@@ -1036,7 +1158,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 63,
+              "DocumentIndex": 70,
               "Title": "launchSettings.json",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Properties\\launchSettings.json",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Properties\\launchSettings.json",
@@ -1048,7 +1170,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 64,
+              "DocumentIndex": 71,
               "Title": "CasaDoTerno.API.http",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\CasaDoTerno.API.http",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\CasaDoTerno.API.http",
@@ -1060,7 +1182,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 65,
+              "DocumentIndex": 72,
               "Title": "Class1.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Infrastructure\\Class1.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Infrastructure\\Class1.cs",

@@ -1,3 +1,4 @@
+using CasaDoTerno.API;
 using CasaDoTerno.Application.Interfaces;
 using CasaDoTerno.Application.Services;
 using CasaDoTerno.Infrastructure;
@@ -29,7 +30,15 @@ builder.Services.AddScoped<DespesaService>();
 builder.Services.AddScoped<AuditoriaService>();
 builder.Services.AddScoped<FuncionarioService>();
 builder.Services.AddScoped<DespesaRecorrenteService>();
+// agenda do Google
+builder.Services.AddSingleton(builder.Configuration.GetSection("Agenda").Get<AgendaOpcoes>() ?? new AgendaOpcoes());
+builder.Services.AddSingleton<GoogleAgendaClient>();
+builder.Services.AddScoped<AgendaService>();
+builder.Services.AddScoped<AgendaSincronizacao>();
+builder.Services.AddHostedService<AgendaSincronizacaoWorker>();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+
+
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<CasaDoTernoContext>();
 

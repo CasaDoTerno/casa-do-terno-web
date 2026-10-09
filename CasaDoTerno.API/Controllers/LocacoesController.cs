@@ -6,36 +6,24 @@ using CasaDoTerno.Infrastructure.Data;
 
 namespace CasaDoTerno.API.Controllers;
 
-[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class LocacoesController : ControllerBase
 {
     private readonly CasaDoTernoContext _context;
     private readonly LocacaoService _locacaoService;
-    private readonly AuditoriaService _auditoriaService;
+    private readonly AgendaService _agenda;
+    private readonly AgendaSincronizacao _sync;
 
-    public LocacoesController(CasaDoTernoContext context, LocacaoService locacaoService, AuditoriaService auditoriaService)
+    public LocacoesController(
+        CasaDoTernoContext context, LocacaoService locacaoService,
+        AgendaService agenda, AgendaSincronizacao sync)
     {
         _context = context;
         _locacaoService = locacaoService;
-        _auditoriaService = auditoriaService;
+        _agenda = agenda;
+        _sync = sync;
     }
-
-
-    [HttpPut("{id}/cancelar")]
-    public IActionResult Cancelar(int id)
-    {
-        var (sucesso, mensagem) = _locacaoService.CancelarLocacao(id);
-
-        if (!sucesso)
-            return BadRequest(mensagem);
-
-        _auditoriaService.Registrar(User.Identity?.Name, "Cancelou", "Locacao", id);
-
-        return Ok(new { mensagem });
-    }
-
 
     [HttpGet]
     public IActionResult Listar()
@@ -52,25 +40,33 @@ public class LocacoesController : ControllerBase
             l.DataDevolucaoReal,
             l.Consultor,
             l.Desconto,
+            l.DescontoEvento,
             l.ValorTotal,
             l.ValorEntrada,
             l.FormaPagamentoEntrada,
+            l.DataPagamentoEntrada,
             l.FormaPagamentoRestante,
             l.DataPagamentoRestante,
             l.ValorRestante,
+            l.MultaAtraso,
+            l.FormaPagamentoMulta,
+            l.DataPagamentoMulta,
             l.Pronta,
             l.DataCancelamento,
+            l.EventoId,
             l.CriadoPor,
             l.EditadoPor,
             l.DataEdicao,
             Itens = l.Itens
         }).ToList());
     }
+
     public class NovaLocacaoRequest
     {
         public int ClienteId { get; set; }
         public DateTime DataEvento { get; set; }
         public DateTime DataRetirada { get; set; }
+        public string? HoraRetirada { get; set; }   // "14:30". Vazio/nulo = não agenda.
         public DateTime DataDevolucaoPrevista { get; set; }
         public string? Consultor { get; set; }
         public decimal Desconto { get; set; }
@@ -82,20 +78,55 @@ public class LocacoesController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult Criar([FromBody] NovaLocacaoRequest request)
+    public async Task<IActionResult> Criar([FromBody] NovaLocacaoRequest request)
     {
-        var (sucesso, mensagem, locacao) = _locacaoService.CriarLocacao(
-            request.ClienteId, request.DataEvento, request.DataRetirada, request.DataDevolucaoPrevista,
-            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada, request.EventoId, request.EhLocacaoPrincipalDoEvento,
-            request.Itens);
+        Agendamento? agendamento = null;
 
-        if (!sucesso)
-            return BadRequest(mensagem);
+        if (!string.IsNullOrWhiteSpace(request.HoraRetirada))
+        {
+            if (!TimeSpan.TryParse(request.HoraRetirada, out var hora))
+                return BadRequest("Hora de retirada inválida.");
 
-        locacao!.CriadoPor = User.Identity?.Name;
+            // traz o que foi mexido direto no Google Agenda antes de conferir a vaga
+            await _sync.SincronizarAsync();
+
+            var inicio = request.DataRetirada.Date + hora;
+            var (okHorario, mensagemHorario, reservado) = _agenda.Reservar(request.ClienteId, inicio, User.Identity?.Name);
+            if (!okHorario)
+                return Conflict(mensagemHorario); // 409 = horário indisponível (a tela mostra a caixa de aviso)
+
+            agendamento = reservado;
+        }
+
+        (bool sucesso, string mensagem, Locacao? locacao) resultado;
+        try
+        {
+            resultado = _locacaoService.CriarLocacao(
+                request.ClienteId, request.DataEvento, request.DataRetirada, request.DataDevolucaoPrevista,
+                request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada,
+                request.EventoId, request.EhLocacaoPrincipalDoEvento, request.Itens);
+        }
+        catch
+        {
+            if (agendamento != null) _agenda.Descartar(agendamento.Id);
+            throw;
+        }
+
+        if (!resultado.sucesso)
+        {
+            if (agendamento != null) _agenda.Descartar(agendamento.Id); // devolve a vaga
+            return BadRequest(resultado.mensagem);
+        }
+
+        var locacao = resultado.locacao!;
+        locacao.CriadoPor = User.Identity?.Name;
         _context.SaveChanges();
 
-        _auditoriaService.Registrar(User.Identity?.Name, "Criou", "Locacao", locacao.Id, $"Total: R$ {locacao.ValorTotal:F2}");
+        if (agendamento != null)
+        {
+            _agenda.VincularLocacao(agendamento.Id, locacao.Id);
+            await _sync.PublicarAsync(agendamento.Id); // cria o evento no Google; se falhar, a rotina tenta de novo
+        }
 
         return Ok(locacao);
     }
@@ -113,26 +144,22 @@ public class LocacoesController : ControllerBase
 
         locacao.Pronta = request.Pronta;
         _context.SaveChanges();
-
-        _auditoriaService.Registrar(User.Identity?.Name, request.Pronta ? "Marcou pronta" : "Desmarcou pronta", "Locacao", locacao.Id);
-
         return Ok(locacao);
     }
 
     [HttpGet("verificar-disponibilidade")]
     public IActionResult VerificarDisponibilidade(
-    [FromQuery] int produtoId,
-    [FromQuery] DateTime dataRetirada,
-    [FromQuery] DateTime dataDevolucaoPrevista,
-    [FromQuery] int? locacaoIdExcluir,
-    [FromQuery] int unidadesJaNoCarrinho = 0)
+        [FromQuery] int produtoId,
+        [FromQuery] DateTime dataRetirada,
+        [FromQuery] DateTime dataDevolucaoPrevista,
+        [FromQuery] int? locacaoIdExcluir,
+        [FromQuery] int unidadesJaNoCarrinho = 0)
     {
         var (disponivel, mensagem, unidadesDisponiveis) = _locacaoService.VerificarDisponibilidade(
             produtoId, dataRetirada, dataDevolucaoPrevista, locacaoIdExcluir, unidadesJaNoCarrinho);
 
         return Ok(new { disponivel, mensagem, unidadesDisponiveis });
     }
-
 
     [HttpGet("{id}")]
     public IActionResult BuscarPorId(int id)
@@ -143,6 +170,7 @@ public class LocacoesController : ControllerBase
             {
                 l.Id,
                 l.ClienteId,
+                l.DataReserva,
                 l.DataEvento,
                 l.DataRetirada,
                 l.DataDevolucaoPrevista,
@@ -150,9 +178,19 @@ public class LocacoesController : ControllerBase
                 l.DataDevolucaoReal,
                 l.Consultor,
                 l.Desconto,
+                l.DescontoEvento,
                 l.ValorTotal,
                 l.ValorEntrada,
                 l.FormaPagamentoEntrada,
+                l.DataPagamentoEntrada,
+                l.FormaPagamentoRestante,
+                l.DataPagamentoRestante,
+                l.MultaAtraso,
+                l.FormaPagamentoMulta,
+                l.DataPagamentoMulta,
+                l.Pronta,
+                l.DataCancelamento,
+                l.EventoId,
                 l.CriadoPor,
                 l.EditadoPor,
                 l.DataEdicao,
@@ -171,6 +209,7 @@ public class LocacoesController : ControllerBase
         public int ClienteId { get; set; }
         public DateTime DataEvento { get; set; }
         public DateTime DataRetirada { get; set; }
+        public string? HoraRetirada { get; set; }   // nulo = não mexe na agenda; "" = tirar da agenda
         public DateTime DataDevolucaoPrevista { get; set; }
         public string? Consultor { get; set; }
         public decimal Desconto { get; set; }
@@ -182,12 +221,41 @@ public class LocacoesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public IActionResult Atualizar(int id, [FromBody] EditarLocacaoRequest request)
+    public async Task<IActionResult> Atualizar(int id, [FromBody] EditarLocacaoRequest request)
     {
+        var atual = _agenda.PorLocacao(id);
+        DateTime? novoInicio = null;
+        bool tirarDaAgenda = false;
+
+        if (request.HoraRetirada != null)
+        {
+            if (request.HoraRetirada.Trim() == "")
+                tirarDaAgenda = true;
+            else if (TimeSpan.TryParse(request.HoraRetirada, out var hora))
+                novoInicio = request.DataRetirada.Date + hora;
+            else
+                return BadRequest("Hora de retirada inválida.");
+        }
+        else if (atual != null && atual.Inicio.Date != request.DataRetirada.Date)
+        {
+            // trocou só o dia da retirada: o agendamento acompanha, mantendo a mesma hora
+            novoInicio = request.DataRetirada.Date + atual.Inicio.TimeOfDay;
+        }
+
+        bool mudouHorario = novoInicio.HasValue && (atual == null || atual.Inicio != novoInicio.Value);
+
+        if (mudouHorario)
+        {
+            await _sync.SincronizarAsync();
+            var (okHorario, mensagemHorario) = _agenda.ValidarHorario(novoInicio!.Value, atual?.Id);
+            if (!okHorario)
+                return Conflict(mensagemHorario);
+        }
+
         var (sucesso, mensagem, locacao) = _locacaoService.AtualizarLocacao(
             id, request.ClienteId, request.DataEvento, request.DataRetirada, request.DataDevolucaoPrevista,
-            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada, request.EventoId, request.EhLocacaoPrincipalDoEvento,
-            request.Itens);
+            request.Consultor, request.Desconto, request.ValorEntrada, request.FormaPagamentoEntrada,
+            request.EventoId, request.EhLocacaoPrincipalDoEvento, request.Itens);
 
         if (!sucesso)
             return BadRequest(mensagem);
@@ -196,14 +264,32 @@ public class LocacoesController : ControllerBase
         locacao.DataEdicao = DateTime.Now;
         _context.SaveChanges();
 
-        _auditoriaService.Registrar(User.Identity?.Name, "Editou", "Locacao", locacao.Id, $"Total: R$ {locacao.ValorTotal:F2}");
+        // agenda acompanha a locação
+        int? agendamentoId = atual?.Id;
+
+        if (tirarDaAgenda && atual != null)
+        {
+            _agenda.Cancelar(atual.Id);
+        }
+        else if (mudouHorario && atual != null)
+        {
+            _agenda.Reagendar(atual.Id, novoInicio!.Value);
+        }
+        else if (mudouHorario && atual == null)
+        {
+            var (okNovo, _, criado) = _agenda.Reservar(locacao.ClienteId, novoInicio!.Value, User.Identity?.Name);
+            if (okNovo && criado != null)
+            {
+                _agenda.VincularLocacao(criado.Id, locacao.Id);
+                agendamentoId = criado.Id;
+            }
+        }
+
+        // reescreve o evento com os dados novos (cliente, datas, peças)
+        if (agendamentoId.HasValue)
+            await _sync.PublicarAsync(agendamentoId.Value);
 
         return Ok(locacao);
-    }
-
-    public class RetiradaRequest
-    {
-        public FormaPagamento FormaPagamentoRestante { get; set; }
     }
 
     public class PagamentoRestanteRequest
@@ -221,6 +307,7 @@ public class LocacoesController : ControllerBase
 
         return Ok(mensagem);
     }
+
     [HttpPut("{id}/retirada")]
     public IActionResult RegistrarRetirada(int id)
     {
@@ -229,36 +316,9 @@ public class LocacoesController : ControllerBase
         if (!sucesso)
             return BadRequest(mensagem);
 
-        _auditoriaService.Registrar(User.Identity?.Name, "Confirmou retirada", "Locacao", id);
-
         return Ok(mensagem);
     }
 
-    [HttpPut("{id}/isentar-multa")]
-    public IActionResult IsentarMulta(int id)
-    {
-        var (sucesso, mensagem) = _locacaoService.IsentarMulta(id);
-
-        if (!sucesso)
-            return BadRequest(mensagem);
-
-        return Ok(new { mensagem });
-    }
-    [Authorize(Roles = "Admin")]
-    [HttpPut("{id}/desfazer-devolucao")]
-    public IActionResult DesfazerDevolucao(int id)
-    {
-        var (sucesso, mensagem) = _locacaoService.DesfazerDevolucao(id);
-
-        if (!sucesso)
-            return BadRequest(mensagem);
-
-        _auditoriaService.Registrar(User.Identity?.Name, "Desfez devolução", "Locacao", id);
-
-        return Ok(new { mensagem });
-    }
-
-    [Authorize(Roles = "Admin")]
     [HttpPut("{id}/desfazer-retirada")]
     public IActionResult DesfazerRetirada(int id)
     {
@@ -266,8 +326,6 @@ public class LocacoesController : ControllerBase
 
         if (!sucesso)
             return BadRequest(mensagem);
-
-        _auditoriaService.Registrar(User.Identity?.Name, "Desfez retirada", "Locacao", id);
 
         return Ok(new { mensagem });
     }
@@ -280,13 +338,43 @@ public class LocacoesController : ControllerBase
         if (!sucesso)
             return BadRequest(mensagem);
 
-        _auditoriaService.Registrar(
-            User.Identity?.Name, "Confirmou devolução", "Locacao", id,
-            multa > 0 ? $"Multa calculada: R$ {multa:F2}" : null
-        );
-
         return Ok(new { mensagem, multa });
     }
+
+    [HttpPut("{id}/desfazer-devolucao")]
+    public IActionResult DesfazerDevolucao(int id)
+    {
+        var (sucesso, mensagem) = _locacaoService.DesfazerDevolucao(id);
+
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        return Ok(new { mensagem });
+    }
+
+    [HttpPut("{id}/cancelar")]
+    public IActionResult Cancelar(int id)
+    {
+        var (sucesso, mensagem) = _locacaoService.CancelarLocacao(id);
+
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        // o agendamento da agenda é cancelado e o evento some do Google na próxima rotina (até 3 min)
+        return Ok(new { mensagem });
+    }
+
+    [HttpPut("{id}/isentar-multa")]
+    public IActionResult IsentarMulta(int id)
+    {
+        var (sucesso, mensagem) = _locacaoService.IsentarMulta(id);
+
+        if (!sucesso)
+            return BadRequest(mensagem);
+
+        return Ok(new { mensagem });
+    }
+
     public class PagamentoMultaRequest
     {
         public FormaPagamento FormaPagamento { get; set; }
