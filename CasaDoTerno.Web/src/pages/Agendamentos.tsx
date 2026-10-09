@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../Services/API";
 
 interface Agendamento {
@@ -6,20 +7,13 @@ interface Agendamento {
   locacaoId: number | null;
   inicio: string;
   fim: string;
-  cancelado: boolean;
-  origem: "google" | "sistema";
+  cancelado?: boolean;
   cliente: string;
-  clienteCadastrado: boolean;
   telefone: string | null;
   email: string | null;
-  noGoogle: boolean;
-  observacaoSync: string | null;
 }
 
-const CHAVE_LINK = "linkAgendamentoGoogle";
-
-function hojeISO() {
-  const d = new Date();
+function paraISO(d: Date) {
   const mes = String(d.getMonth() + 1).padStart(2, "0");
   const dia = String(d.getDate()).padStart(2, "0");
   return `${d.getFullYear()}-${mes}-${dia}`;
@@ -28,28 +22,27 @@ function hojeISO() {
 function somarDias(iso: string, dias: number) {
   const d = new Date(iso + "T12:00:00");
   d.setDate(d.getDate() + dias);
-  const mes = String(d.getMonth() + 1).padStart(2, "0");
-  const dia = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${mes}-${dia}`;
+  return paraISO(d);
 }
 
-function lerLink() {
-  try {
-    return localStorage.getItem(CHAVE_LINK) ?? "";
-  } catch {
-    return "";
-  }
+function linkWhatsApp(telefone: string | null) {
+  if (!telefone) return null;
+  let digitos = telefone.replace(/\D/g, "");
+  if (digitos.length < 10) return null;
+  if (digitos.length <= 11) digitos = "55" + digitos;
+  return `https://wa.me/${digitos}`;
 }
 
 export function Agendamentos() {
-  const [de, setDe] = useState(hojeISO());
-  const [ate, setAte] = useState(somarDias(hojeISO(), 30));
+  const hoje = paraISO(new Date());
+  const [de, setDe] = useState(hoje);
+  const [ate, setAte] = useState(somarDias(hoje, 7));
   const [incluirCancelados, setIncluirCancelados] = useState(false);
   const [lista, setLista] = useState<Agendamento[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
-  const [link, setLink] = useState(lerLink());
+  const navigate = useNavigate();
 
   function carregar() {
     setCarregando(true);
@@ -59,7 +52,7 @@ export function Agendamentos() {
       .then((r) => setLista(r.data))
       .catch((e) => {
         console.error(e);
-        setErro("Não foi possível carregar os agendamentos. Tente atualizar.");
+        setErro("Não foi possível carregar os agendamentos. Tente novamente.");
       })
       .finally(() => setCarregando(false));
   }
@@ -68,25 +61,15 @@ export function Agendamentos() {
     carregar();
   }, [de, ate, incluirCancelados]);
 
-  async function atualizarAgenda() {
-    setMensagem("Consultando o Google Agenda...");
-    try {
-      const r = await api.post("/Agendamentos/sincronizar");
-      const d = r.data;
-      setMensagem(
-        `Agenda atualizada. Novas reservas: ${d.importados}. Remarcados: ${d.remarcados}. Cancelados: ${d.cancelados}.`
-      );
-      carregar();
-    } catch (e) {
-      console.error(e);
-      setMensagem("Não foi possível atualizar a agenda agora.");
-    }
+  function periodo(dias: number, inicio = hoje) {
+    setDe(inicio);
+    setAte(somarDias(inicio, dias));
   }
 
   async function cancelar(a: Agendamento) {
     const aviso = a.locacaoId
-      ? `Cancelar o agendamento de ${a.cliente}? A locação #${a.locacaoId} continua; só o horário é liberado e o evento some do Google Agenda.`
-      : `Cancelar o agendamento de ${a.cliente}? O evento some do Google Agenda.`;
+      ? `Cancelar o agendamento de ${a.cliente}? A locação #${a.locacaoId} continua; só o horário é liberado.`
+      : `Cancelar o agendamento de ${a.cliente}? O horário é liberado.`;
     if (!window.confirm(aviso)) return;
 
     try {
@@ -99,27 +82,7 @@ export function Agendamentos() {
     }
   }
 
-  function salvarLink(valor: string) {
-    setLink(valor);
-    try {
-      localStorage.setItem(CHAVE_LINK, valor);
-    } catch {
-      // sem armazenamento: o campo continua funcionando nesta sessão
-    }
-  }
-
-  async function copiarLink() {
-    try {
-      await navigator.clipboard.writeText(link);
-      setMensagem("Link copiado!");
-    } catch {
-      setMensagem("Não consegui copiar. Selecione o link e copie manualmente.");
-    }
-  }
-
-  const textoWhats = encodeURIComponent(
-    `Olá! Para agendar a retirada do seu terno na Casa do Terno, escolha o melhor dia e horário aqui: ${link}`
-  );
+  const ativos = lista.filter((a) => !a.cancelado);
 
   // agrupa por dia
   const porDia = new Map<string, Agendamento[]>();
@@ -132,38 +95,14 @@ export function Agendamentos() {
     <div>
       <h1>Agendamentos</h1>
 
-      <h2>Link para o cliente agendar</h2>
       <div className="card" style={{ marginBottom: 20, maxWidth: 720 }}>
-        <label>Link da sua página de agendamento do Google Agenda</label>
-        <input
-          value={link}
-          onChange={(e) => salvarLink(e.target.value)}
-          placeholder="Cole aqui o link que o Google Agenda gerou"
-        />
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 8 }}>
-          <button type="button" onClick={copiarLink} disabled={!link}>
-            Copiar link
-          </button>
-          <a
-            href={link ? `https://wa.me/?text=${textoWhats}` : undefined}
-            target="_blank"
-            rel="noreferrer"
-            style={{ pointerEvents: link ? "auto" : "none", opacity: link ? 1 : 0.4 }}
-          >
-            <button type="button" disabled={!link}>
-              Enviar por WhatsApp
-            </button>
-          </a>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+          <button type="button" onClick={() => periodo(0)}>Hoje</button>
+          <button type="button" onClick={() => periodo(0, somarDias(hoje, 1))}>Amanhã</button>
+          <button type="button" onClick={() => periodo(7)}>Próximos 7 dias</button>
+          <button type="button" onClick={() => periodo(30)}>Próximos 30 dias</button>
         </div>
-        <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "8px 0 0 0" }}>
-          O cliente escolhe o horário, recebe a confirmação por e-mail e pode remarcar ou cancelar pelo próprio Google.
-          Tudo aparece aqui e na sua agenda.
-        </p>
-      </div>
-
-      <h2>Consulta</h2>
-      <div className="card" style={{ marginBottom: 20 }}>
-        <div className="grid-3">
+        <div className="grid-2">
           <div>
             <label>De</label>
             <input type="date" value={de} onChange={(e) => setDe(e.target.value)} />
@@ -171,11 +110,6 @@ export function Agendamentos() {
           <div>
             <label>Até</label>
             <input type="date" value={ate} min={de} onChange={(e) => setAte(e.target.value)} />
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
-            <button type="button" onClick={atualizarAgenda}>
-              Atualizar agenda
-            </button>
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 12 }}>
@@ -192,6 +126,11 @@ export function Agendamentos() {
         </div>
       </div>
 
+      {!carregando && !erro && (
+        <p style={{ fontWeight: 600 }}>
+          {ativos.length} retirada{ativos.length === 1 ? "" : "s"} agendada{ativos.length === 1 ? "" : "s"} no período
+        </p>
+      )}
       {mensagem && <p>{mensagem}</p>}
       {erro && <p style={{ color: "#f87171" }}>{erro}</p>}
       {carregando && <p style={{ color: "var(--texto-suave)" }}>Carregando...</p>}
@@ -201,7 +140,7 @@ export function Agendamentos() {
 
       {[...porDia.entries()].map(([dia, itens]) => (
         <div key={dia} style={{ marginBottom: 20 }}>
-          <h2>
+          <h2 style={{ textTransform: "capitalize" }}>
             {new Date(dia + "T12:00:00").toLocaleDateString("pt-BR", {
               weekday: "long",
               day: "2-digit",
@@ -209,49 +148,52 @@ export function Agendamentos() {
               year: "numeric",
             })}
           </h2>
-          {itens.map((a) => (
-            <div
-              key={a.id}
-              className="card"
-              style={{
-                marginBottom: 8,
-                opacity: a.cancelado ? 0.55 : 1,
-                borderLeft: `3px solid ${a.cancelado ? "#f87171" : a.locacaoId ? "var(--verde)" : "#fbbf24"}`,
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                <div>
-                  <p style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-                    {a.inicio.split("T")[1].slice(0, 5)} — {a.cliente}
-                  </p>
-                  <p style={{ color: "var(--texto-suave)", margin: "4px 0 0 0" }}>
-                    {[a.telefone, a.email].filter(Boolean).join(" · ") || "Sem contato informado"}
-                  </p>
-                  <p style={{ margin: "6px 0 0 0", fontSize: 13 }}>
-                    {a.cancelado
-                      ? "Cancelado"
-                      : a.locacaoId
-                      ? `Locação #${a.locacaoId}`
-                      : "Ainda sem locação — crie a locação e escolha esta reserva"}
-                    {" · "}
-                    {a.origem === "google" ? "Marcado pelo cliente (link do Google)" : "Marcado pelo atendente"}
-                    {!a.cancelado && !a.noGoogle && " · ainda não enviado ao Google"}
-                    {a.origem === "google" && !a.clienteCadastrado && " · cliente sem cadastro"}
-                  </p>
-                  {a.observacaoSync && (
-                    <p style={{ color: "#fbbf24", fontSize: 13, margin: "6px 0 0 0" }}>⚠ {a.observacaoSync}</p>
-                  )}
-                </div>
-                {!a.cancelado && (
+          {itens.map((a) => {
+            const whats = linkWhatsApp(a.telefone);
+            return (
+              <div
+                key={a.id}
+                className="card"
+                style={{
+                  marginBottom: 8,
+                  maxWidth: 720,
+                  opacity: a.cancelado ? 0.55 : 1,
+                  borderLeft: `3px solid ${a.cancelado ? "#f87171" : "var(--verde)"}`,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <div>
-                    <button type="button" onClick={() => cancelar(a)}>
-                      Cancelar agendamento
-                    </button>
+                    <p style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
+                      {a.inicio.split("T")[1].slice(0, 5)} — {a.cliente}
+                    </p>
+                    <p style={{ color: "var(--texto-suave)", margin: "4px 0 0 0" }}>
+                      {[a.telefone, a.email].filter(Boolean).join(" · ") || "Sem contato informado"}
+                    </p>
+                    <p style={{ margin: "6px 0 0 0", fontSize: 13 }}>
+                      {a.cancelado ? "Cancelado" : a.locacaoId ? `Locação #${a.locacaoId}` : "Sem locação ligada"}
+                    </p>
                   </div>
-                )}
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-start" }}>
+                    {whats && (
+                      <a href={whats} target="_blank" rel="noreferrer">
+                        <button type="button">WhatsApp</button>
+                      </a>
+                    )}
+                    {a.locacaoId && !a.cancelado && (
+                      <button type="button" onClick={() => navigate(`/locacoes/contrato/${a.locacaoId}`)}>
+                        Ver contrato
+                      </button>
+                    )}
+                    {!a.cancelado && (
+                      <button type="button" onClick={() => cancelar(a)}>
+                        Cancelar
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ))}
     </div>

@@ -55,21 +55,6 @@ interface HorarioAgenda {
   motivo: string | null;
 }
 
-interface ReservaCliente {
-  id: number;
-  data: string; // yyyy-MM-dd
-  hora: string; // HH:mm
-  clienteId: number | null;
-  nome: string | null;
-  email: string | null;
-  telefone: string | null;
-}
-
-function dataBR(iso: string) {
-  const [a, m, d] = iso.split("-");
-  return `${d}/${m}/${a}`;
-}
-
 interface AvisoModal {
   titulo: string;
   mensagem: string;
@@ -121,10 +106,6 @@ export function Locacao() {
   const [agendaMensagem, setAgendaMensagem] = useState("");
   const [carregandoHorarios, setCarregandoHorarios] = useState(false);
 
-  // Reservas que os clientes fizeram pelo link do Google Agenda
-  const [reservas, setReservas] = useState<ReservaCliente[]>([]);
-  const [reservaId, setReservaId] = useState(0);
-
   // Caixa de aviso no meio da tela
   const [aviso, setAviso] = useState<AvisoModal | null>(null);
 
@@ -160,39 +141,8 @@ export function Locacao() {
     buscarProdutos();
     buscarClientes();
     buscarEventos();
-    buscarReservas();
     api.get<Usuario[]>("/Usuarios/lista-simples").then((r) => setUsuarios(r.data));
   }, []);
-
-  function buscarReservas() {
-    api
-      .get<ReservaCliente[]>("/Agendamentos/reservas-pendentes")
-      .then((r) => setReservas(r.data))
-      .catch((erro) => console.error(erro));
-  }
-
-  function escolherReserva(id: number) {
-    setReservaId(id);
-    if (id === 0) return;
-
-    const reserva = reservas.find((r) => r.id === id);
-    if (!reserva) return;
-
-    setDataRetirada(reserva.data);
-
-    if (clienteId === 0) {
-      if (reserva.clienteId) {
-        // o e-mail da reserva já é de um cliente cadastrado
-        setClienteId(reserva.clienteId);
-      } else {
-        // cliente novo: abre o cadastro rápido já com o que ele digitou na página do Google
-        setNovoClienteNome(reserva.nome ?? "");
-        setNovoClienteEmail(reserva.email ?? "");
-        setNovoClienteTelefone(reserva.telefone ?? "");
-        setMostrarNovoCliente(true);
-      }
-    }
-  }
 
   function buscarHorarios(data: string) {
     if (!data) {
@@ -417,15 +367,9 @@ export function Locacao() {
       return;
     }
 
-    const reservaEscolhida = reservas.find((r) => r.id === reservaId);
-
     const confirmar = window.confirm(
       `Confirmar a criação dessa locação?\n\nTotal: R$ ${valorTotal.toFixed(2)}\nPeças: ${pecas.length}` +
-        (reservaEscolhida
-          ? `\nRetirada: ${dataBR(reservaEscolhida.data)} às ${reservaEscolhida.hora} (reserva do cliente)`
-          : horaRetirada
-          ? `\nRetirada às ${horaRetirada}`
-          : "")
+        (horaRetirada ? `\nRetirada às ${horaRetirada}` : "")
     );
     if (!confirmar) return;
 
@@ -435,8 +379,7 @@ export function Locacao() {
         clienteId,
         dataEvento,
         dataRetirada,
-        horaRetirada: reservaId ? null : horaRetirada || null,
-        agendamentoId: reservaId || null,
+        horaRetirada: horaRetirada || null,
         dataDevolucaoPrevista,
         consultor,
         desconto,
@@ -452,14 +395,10 @@ export function Locacao() {
       });
       setLocacaoCriadaId(resposta.data.id);
       setMensagem(
-        reservaEscolhida
-          ? `Locação criada e ligada à reserva do cliente (${dataBR(reservaEscolhida.data)} às ${reservaEscolhida.hora}).`
-          : horaRetirada
+        horaRetirada
           ? `Locação criada com sucesso! Retirada agendada às ${horaRetirada}.`
           : "Locação criada com sucesso!"
       );
-      setReservaId(0);
-      buscarReservas();
       setHoraRetirada("");
       buscarHorarios(dataRetirada);
       setPecas([]);
@@ -477,8 +416,6 @@ export function Locacao() {
           dica: "Escolha outro horário de retirada. A locação NÃO foi criada.",
         });
         setHoraRetirada("");
-        setReservaId(0);
-        buscarReservas();
         buscarHorarios(dataRetirada);
       } else {
         setAviso({ titulo: "Não foi possível criar a locação", mensagem: texto });
@@ -548,7 +485,7 @@ export function Locacao() {
               </div>
               <div className="grid-2" style={{ marginTop: 8 }}>
                 <div>
-                  <label>E-mail (vai no agendamento do Google Agenda)</label>
+                  <label>E-mail</label>
                   <input
                     type="email"
                     value={novoClienteEmail}
@@ -705,27 +642,6 @@ export function Locacao() {
             </p>
           )}
 
-          <div style={{ marginTop: 12 }}>
-            <label>Reserva do cliente (link de agendamento do Google)</label>
-            <select
-              value={reservaId}
-              onChange={(e) => escolherReserva(Number(e.target.value))}
-              onFocus={buscarReservas}
-            >
-              <option value={0}>Sem reserva — escolher data e hora aqui</option>
-              {reservas.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {dataBR(r.data)} às {r.hora} — {r.nome ?? r.email ?? "cliente"}
-                </option>
-              ))}
-            </select>
-            {reservas.length === 0 && (
-              <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "4px 0 0 0" }}>
-                Nenhuma reserva de cliente pendente.
-              </p>
-            )}
-          </div>
-
           <div className="grid-3" style={{ marginTop: 12 }}>
             <div>
               <label>Data do evento</label>
@@ -738,7 +654,6 @@ export function Locacao() {
                 value={dataRetirada}
                 onChange={(e) => setDataRetirada(e.target.value)}
                 max={dataEvento || undefined}
-                disabled={reservaId !== 0}
                 required
               />
             </div>
@@ -754,14 +669,7 @@ export function Locacao() {
             </div>
           </div>
 
-          {reservaId !== 0 && (
-            <p style={{ color: "var(--verde)", fontWeight: 600, margin: "8px 0 0 0" }}>
-              Retirada marcada pelo cliente: {dataBR(dataRetirada)} às {reservas.find((r) => r.id === reservaId)?.hora}.
-              Para mudar o horário, o cliente remarca pelo link ou desmarque a reserva acima.
-            </p>
-          )}
-
-          {dataRetirada && reservaId === 0 && (
+          {dataRetirada && (
             <div style={{ marginTop: 12 }}>
               <label>Hora da retirada (agenda)</label>
               <select
