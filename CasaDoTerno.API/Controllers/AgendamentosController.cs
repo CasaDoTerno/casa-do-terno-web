@@ -33,6 +33,32 @@ public class AgendamentosController : ControllerBase
         return Ok(new { aberto, mensagem, horarios });
     }
 
+    // reservas feitas pelos clientes no link do Google que ainda não viraram locação
+    [HttpGet("reservas-pendentes")]
+    public async Task<IActionResult> ReservasPendentes()
+    {
+        await _sync.SincronizarAsync();
+
+        var reservas = _agenda.ReservasSemLocacao();
+        var clienteIds = reservas.Where(r => r.ClienteId.HasValue).Select(r => r.ClienteId!.Value).Distinct().ToList();
+        var clientes = _context.Clientes.Where(c => clienteIds.Contains(c.Id)).ToDictionary(c => c.Id);
+
+        return Ok(reservas.Select(r =>
+        {
+            clientes.TryGetValue(r.ClienteId ?? 0, out var cliente);
+            return new
+            {
+                r.Id,
+                Data = r.Inicio.ToString("yyyy-MM-dd"),
+                Hora = r.Inicio.ToString("HH:mm"),
+                ClienteId = r.ClienteId,
+                Nome = cliente?.Nome ?? r.NomeExterno,
+                Email = cliente?.Email ?? r.EmailExterno,
+                Telefone = cliente?.Telefone ?? r.TelefoneExterno
+            };
+        }));
+    }
+
     // o agendamento ativo de uma locação (a tela de edição usa pra mostrar a hora já marcada)
     [HttpGet("por-locacao/{locacaoId}")]
     public IActionResult PorLocacao(int locacaoId)
@@ -46,37 +72,57 @@ public class AgendamentosController : ControllerBase
             Data = agendamento.Inicio.ToString("yyyy-MM-dd"),
             Hora = agendamento.Inicio.ToString("HH:mm"),
             NoGoogle = agendamento.GoogleEventId != null,
+            DoLinkDoGoogle = agendamento.Origem == OrigemAgendamento.Google,
             agendamento.ObservacaoSync
         });
     }
 
-    // lista simples para consulta
+    // consulta de agendamentos (tela "Agendamentos")
     [HttpGet]
-    public IActionResult Listar([FromQuery] DateTime? de, [FromQuery] DateTime? ate)
+    public IActionResult Listar([FromQuery] DateTime? de, [FromQuery] DateTime? ate, [FromQuery] bool incluirCancelados = false)
     {
         var inicio = (de ?? CasaDoTerno.Application.Utils.FusoHorario.HojeBrasilia()).Date;
         var fim = (ate ?? inicio.AddDays(30)).Date.AddDays(1);
 
-        var lista = (
-            from a in _context.Agendamentos
-            join c in _context.Clientes on a.ClienteId equals c.Id
-            where a.Status == StatusAgendamento.Ativo && a.Inicio >= inicio && a.Inicio < fim
-            orderby a.Inicio
-            select new
+        var consulta = _context.Agendamentos.Where(a => a.Inicio >= inicio && a.Inicio < fim);
+        if (!incluirCancelados) consulta = consulta.Where(a => a.Status == StatusAgendamento.Ativo);
+
+        var agendamentos = consulta.OrderBy(a => a.Inicio).ToList();
+
+        var clienteIds = agendamentos.Where(a => a.ClienteId.HasValue).Select(a => a.ClienteId!.Value).Distinct().ToList();
+        var clientes = _context.Clientes.Where(c => clienteIds.Contains(c.Id)).ToDictionary(c => c.Id);
+
+        return Ok(agendamentos.Select(a =>
+        {
+            clientes.TryGetValue(a.ClienteId ?? 0, out var cliente);
+            return new
             {
                 a.Id,
                 a.LocacaoId,
                 a.Inicio,
                 a.Fim,
-                Cliente = c.Nome,
-                c.Telefone,
-                c.Email,
+                Cancelado = a.Status == StatusAgendamento.Cancelado,
+                Origem = a.Origem == OrigemAgendamento.Google ? "google" : "sistema",
+                Cliente = cliente?.Nome ?? a.NomeExterno ?? "(sem nome)",
+                ClienteCadastrado = cliente != null,
+                Telefone = cliente?.Telefone ?? a.TelefoneExterno,
+                Email = cliente?.Email ?? a.EmailExterno,
                 NoGoogle = a.GoogleEventId != null,
                 a.ObservacaoSync
-            }
-        ).ToList();
+            };
+        }));
+    }
 
-        return Ok(lista);
+    // cancela só o agendamento (a locação, se existir, continua). Apaga o evento no Google.
+    [HttpPost("{id}/cancelar")]
+    public async Task<IActionResult> Cancelar(int id)
+    {
+        var agendamento = _context.Agendamentos.Find(id);
+        if (agendamento == null) return NotFound();
+
+        _agenda.Cancelar(id);
+        await _sync.PublicarAsync(id);
+        return Ok();
     }
 
     // força uma sincronização agora (botão "Atualizar agenda")

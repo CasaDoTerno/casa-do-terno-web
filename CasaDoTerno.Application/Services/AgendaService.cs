@@ -146,6 +146,49 @@ public class AgendaService
         agendamento.LocacaoId = locacaoId;
         _context.SaveChanges();
     }
+    // ---------------------------------------------------------------- reservas feitas pelo link do Google
+
+    // reservas dos clientes que ainda não viraram locação (alimenta a caixa "Reserva do cliente" da tela de locação)
+    public List<Agendamento> ReservasSemLocacao()
+    {
+        var hoje = FusoHorario.HojeBrasilia();
+        return _context.Agendamentos
+            .Where(a => a.Status == StatusAgendamento.Ativo &&
+                        a.Origem == OrigemAgendamento.Google &&
+                        a.LocacaoId == null &&
+                        a.Inicio >= hoje)
+            .OrderBy(a => a.Inicio)
+            .ToList();
+    }
+
+    // confere se a reserva ainda existe, ainda está livre e bate com a data de retirada digitada
+    public (bool ok, string mensagem, Agendamento? reserva) ValidarReservaParaVincular(int agendamentoId, DateTime dataRetirada)
+    {
+        var reserva = _context.Agendamentos.Find(agendamentoId);
+
+        if (reserva == null || reserva.Status != StatusAgendamento.Ativo)
+            return (false, "Essa reserva do cliente foi cancelada (ou removida) no Google Agenda. Escolha outra reserva ou marque o horário manualmente.", null);
+
+        if (reserva.LocacaoId != null)
+            return (false, "Essa reserva já está ligada a outra locação.", null);
+
+        if (reserva.Inicio.Date != dataRetirada.Date)
+            return (false,
+                $"O cliente reservou a retirada para {reserva.Inicio:dd/MM/yyyy} às {reserva.Inicio:HH\\:mm}. " +
+                "A data de retirada da locação precisa ser a mesma.", null);
+
+        return (true, "ok", reserva);
+    }
+
+    public void VincularReserva(int agendamentoId, int clienteId, int locacaoId)
+    {
+        var reserva = _context.Agendamentos.Find(agendamentoId);
+        if (reserva == null) return;
+        reserva.ClienteId = clienteId;
+        reserva.LocacaoId = locacaoId;
+        reserva.PrecisaSincronizar = true; // escreve os dados da locação na descrição do evento
+        _context.SaveChanges();
+    }
 
     public Agendamento? PorLocacao(int locacaoId) =>
         _context.Agendamentos

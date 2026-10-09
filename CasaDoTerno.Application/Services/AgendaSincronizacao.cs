@@ -1,6 +1,7 @@
 ﻿using CasaDoTerno.Application.Interfaces;
 using CasaDoTerno.Application.Utils;
 using CasaDoTerno.Domain.Entities;
+using System.Text.RegularExpressions;
 using Google;
 using Google.Apis.Calendar.v3.Data;
 
@@ -9,6 +10,8 @@ namespace CasaDoTerno.Application.Services;
 // Mantém o sistema e o Google Agenda iguais, nos dois sentidos:
 //  - sistema -> Google: cria, remarca e apaga eventos
 //  - Google -> sistema: arrastar um evento remarca a retirada; apagar um evento cancela o agendamento
+//  - reservas dos clientes (página de agendamento do Google) viram agendamentos no sistema;
+//    se o cliente remarcar ou cancelar pelo Google, o sistema acompanha
 public class AgendaSincronizacao
 {
     private static readonly SemaphoreSlim _emAndamento = new(1, 1);
@@ -18,19 +21,24 @@ public class AgendaSincronizacao
     private readonly GoogleAgendaClient _google;
     private readonly AgendaService _agenda;
     private readonly LocacaoService _locacoes;
+    private readonly AgendaOpcoes _opcoes;
+
+    private const string MarcaBloco = "— CASA DO TERNO (preenchido pelo sistema) —";
 
     public AgendaSincronizacao(
-        ICasaDoTernoContext context, GoogleAgendaClient google, AgendaService agenda, LocacaoService locacoes)
+        ICasaDoTernoContext context, GoogleAgendaClient google, AgendaService agenda,
+        LocacaoService locacoes, AgendaOpcoes opcoes)
     {
+        _opcoes = opcoes;
         _context = context;
         _google = google;
         _agenda = agenda;
         _locacoes = locacoes;
     }
 
-    public record ResultadoSync(int Enviados, int Cancelados, int Remarcados, int Recusados);
+    public record ResultadoSync(int Enviados, int Cancelados, int Remarcados, int Recusados, int Importados);
 
-    private static readonly ResultadoSync Vazio = new(0, 0, 0, 0);
+    private static readonly ResultadoSync Vazio = new(0, 0, 0, 0, 0);
 
     public async Task<ResultadoSync> SincronizarAsync(bool forcar = false)
     {
@@ -47,9 +55,9 @@ public class AgendaSincronizacao
 
             CancelarAgendamentosDeLocacoesCanceladas(desde);
             int enviados = await EnviarPendentesAsync(desde);
-            var (cancelados, remarcados, recusados) = await TrazerDoGoogleAsync(desde);
+            var (cancelados, remarcados, recusados, importados) = await TrazerDoGoogleAsync(desde);
 
-            return new ResultadoSync(enviados, cancelados, remarcados, recusados);
+            return new ResultadoSync(enviados, cancelados, remarcados, recusados, importados);
         }
         catch (Exception ex)
         {
@@ -130,6 +138,13 @@ public class AgendaSincronizacao
                 return;
             }
 
+            // reserva feita pelo cliente: NÃO reescreve o evento dele, só acrescenta os dados da locação
+            if (agendamento.Origem == OrigemAgendamento.Google && agendamento.GoogleEventId != null)
+            {
+                await AtualizarReservaDoClienteAsync(agendamento);
+                return;
+            }
+
             var evento = MontarEvento(agendamento, null);
 
             if (agendamento.GoogleEventId == null)
@@ -158,12 +173,68 @@ public class AgendaSincronizacao
         }
     }
 
+    // evento criado pela página de agendamento do Google: mantém o texto do Google e escreve, no fim,
+    // o bloco com os dados da locação (que o sistema reescreve sempre que algo muda)
+    private async Task AtualizarReservaDoClienteAsync(Agendamento agendamento)
+    {
+        var evento = await _google.ObterAsync(agendamento.GoogleEventId!);
+
+        if (evento == null || evento.Status == "cancelled")
+        {
+            agendamento.Status = StatusAgendamento.Cancelado;
+            agendamento.GoogleEventId = null;
+            agendamento.PrecisaSincronizar = false;
+            agendamento.ObservacaoSync = "Reserva cancelada no Google Agenda.";
+            return;
+        }
+
+        var texto = evento.Description ?? "";
+        var posicao = texto.IndexOf(MarcaBloco, StringComparison.Ordinal);
+        if (posicao >= 0) texto = texto[..posicao].TrimEnd();
+
+        var bloco = MontarBlocoDaLocacao(agendamento);
+        var novoTexto = bloco == null ? texto : (texto.Length == 0 ? bloco : texto + "\n\n" + bloco);
+
+        await _google.AtualizarAsync(agendamento.GoogleEventId!, new Event
+        {
+            Description = novoTexto,
+            Start = GoogleAgendaClient.ParaGoogle(agendamento.Inicio),
+            End = GoogleAgendaClient.ParaGoogle(agendamento.Fim)
+        });
+
+        agendamento.PrecisaSincronizar = false;
+        agendamento.ObservacaoSync = null;
+    }
+
+    private string? MontarBlocoDaLocacao(Agendamento agendamento)
+    {
+        if (!agendamento.LocacaoId.HasValue) return null;
+        var locacao = _context.Locacoes.Find(agendamento.LocacaoId.Value);
+        if (locacao == null) return null;
+
+        var cliente = _context.Clientes.Find(locacao.ClienteId);
+        int qtdPecas = _context.ItensLocacao.Count(i => i.LocacaoId == locacao.Id);
+
+        var linhas = new List<string>
+        {
+            MarcaBloco,
+            $"Cliente: {cliente?.Nome}",
+            $"Telefone: {cliente?.Telefone}",
+            $"E-mail: {cliente?.Email}",
+            $"Locação nº {locacao.Id} ({qtdPecas} peça(s))",
+            $"Data da locação (evento): {locacao.DataEvento:dd/MM/yyyy}",
+            $"Retirada: {agendamento.Inicio:dd/MM/yyyy} às {agendamento.Inicio:HH\\:mm}",
+            $"Devolução prevista: {locacao.DataDevolucaoPrevista:dd/MM/yyyy}"
+        };
+        return string.Join("\n", linhas);
+    }
+
     private Event MontarEvento(Agendamento agendamento, string? avisoNoTopo)
     {
         Locacao? locacao = agendamento.LocacaoId.HasValue ? _context.Locacoes.Find(agendamento.LocacaoId.Value) : null;
         if (locacao != null) agendamento.ClienteId = locacao.ClienteId;
 
-        var cliente = _context.Clientes.Find(agendamento.ClienteId);
+        var cliente = agendamento.ClienteId.HasValue ? _context.Clientes.Find(agendamento.ClienteId.Value) : null;
         int qtdPecas = locacao == null ? 0 : _context.ItensLocacao.Count(i => i.LocacaoId == locacao.Id);
 
         var linhas = new List<string>();
@@ -207,7 +278,7 @@ public class AgendaSincronizacao
 
     // ---------------------------------------------------------------- Google -> sistema
 
-    private async Task<(int cancelados, int remarcados, int recusados)> TrazerDoGoogleAsync(DateTime desde)
+    private async Task<(int cancelados, int remarcados, int recusados, int importados)> TrazerDoGoogleAsync(DateTime desde)
     {
         int cancelados = 0, remarcados = 0, recusados = 0;
 
@@ -238,6 +309,32 @@ public class AgendaSincronizacao
 
             var novoInicio = GoogleAgendaClient.ParaLocal(evento.Start);
             if (novoInicio == null) continue; // evento de dia inteiro: ignora
+
+            // reserva do cliente: o que ele escolheu na página do Google vale; o sistema só acompanha
+            if (agendamento.Origem == OrigemAgendamento.Google)
+            {
+                var novoFim = GoogleAgendaClient.ParaLocal(evento.End) ?? novoInicio.Value + _agenda.DuracaoDoAgendamento;
+                bool mudou = Math.Abs((novoInicio.Value - agendamento.Inicio).TotalMinutes) >= 1 ||
+                             Math.Abs((novoFim - agendamento.Fim).TotalMinutes) >= 1;
+                if (!mudou) continue;
+
+                string? aviso = null;
+                if (agendamento.LocacaoId.HasValue && novoInicio.Value.Date != agendamento.Inicio.Date)
+                {
+                    var (moveu, motivoMover) = _locacoes.MoverRetirada(agendamento.LocacaoId.Value, novoInicio.Value.Date);
+                    if (!moveu)
+                        aviso = $"O cliente remarcou para {novoInicio.Value:dd/MM HH\\:mm}, mas a locação não pôde acompanhar: {motivoMover}";
+                }
+
+                agendamento.Inicio = novoInicio.Value;
+                agendamento.Fim = novoFim;
+                agendamento.ObservacaoSync = aviso;
+                remarcados++;
+
+                if (agendamento.LocacaoId.HasValue) await PublicarInternoAsync(agendamento); // atualiza o bloco do evento
+                continue;
+            }
+
             if (Math.Abs((novoInicio.Value - agendamento.Inicio).TotalMinutes) < 1) continue;
 
             var (ok, motivo) = TentarRemarcar(agendamento, novoInicio.Value);
@@ -257,7 +354,95 @@ public class AgendaSincronizacao
         }
 
         _context.SaveChanges();
-        return (cancelados, remarcados, recusados);
+
+        int importados = ImportarReservasDosClientes(eventos, desde);
+        return (cancelados, remarcados, recusados, importados);
+    }
+
+    // ---------------------------------------------------------------- reservas dos clientes (página do Google)
+
+    // reserva do cliente = evento ativo, com horário, que NÃO foi criado pelo sistema e tem um convidado
+    private bool EhReservaDeCliente(Event e)
+    {
+        if (e.Status == "cancelled" || e.Start?.DateTimeDateTimeOffset == null) return false;
+        if (e.ExtendedProperties?.Private__ != null && e.ExtendedProperties.Private__.ContainsKey("origem")) return false;
+        if (ConvidadoDoEvento(e) == null) return false;
+
+        if (!string.IsNullOrWhiteSpace(_opcoes.TituloReserva) &&
+            !(e.Summary ?? "").Contains(_opcoes.TituloReserva, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        return true;
+    }
+
+    private static EventAttendee? ConvidadoDoEvento(Event e) =>
+        e.Attendees?.FirstOrDefault(a =>
+            a.Organizer != true && a.Self != true && a.Resource != true && !string.IsNullOrWhiteSpace(a.Email));
+
+    // procura um telefone no texto do evento (a pergunta "Telefone" da página de agendamento cai na descrição)
+    private static string? TelefoneNoTexto(string? texto)
+    {
+        if (string.IsNullOrWhiteSpace(texto)) return null;
+        foreach (Match m in Regex.Matches(texto, @"\+?\d[\d\s().\-]{8,}\d"))
+        {
+            var digitos = new string(m.Value.Where(char.IsDigit).ToArray());
+            if (digitos.Length >= 10 && digitos.Length <= 13) return m.Value.Trim();
+        }
+        return null;
+    }
+
+    private int ImportarReservasDosClientes(List<Event> eventos, DateTime desde)
+    {
+        if (!_opcoes.ImportarReservas) return 0;
+
+        var conhecidos = _context.Agendamentos
+            .Where(a => a.GoogleEventId != null)
+            .Select(a => a.GoogleEventId!)
+            .ToHashSet();
+
+        int importados = 0;
+
+        foreach (var e in eventos)
+        {
+            if (e.Id == null || conhecidos.Contains(e.Id) || !EhReservaDeCliente(e)) continue;
+
+            var inicio = GoogleAgendaClient.ParaLocal(e.Start);
+            if (inicio == null || inicio.Value < desde) continue;
+            var fim = GoogleAgendaClient.ParaLocal(e.End) ?? inicio.Value + _agenda.DuracaoDoAgendamento;
+
+            var convidado = ConvidadoDoEvento(e)!;
+            var email = convidado.Email.Trim();
+            var emailMinusculo = email.ToLower();
+
+            var nome = !string.IsNullOrWhiteSpace(convidado.DisplayName) ? convidado.DisplayName.Trim() : email.Split('@')[0];
+
+            // se o e-mail já é de um cliente cadastrado, liga direto
+            int? clienteId = _context.Clientes
+                .Where(c => c.Email != null && c.Email.ToLower() == emailMinusculo)
+                .Select(c => (int?)c.Id)
+                .FirstOrDefault();
+
+            _context.Agendamentos.Add(new Agendamento
+            {
+                Origem = OrigemAgendamento.Google,
+                ClienteId = clienteId,
+                NomeExterno = nome,
+                EmailExterno = email,
+                TelefoneExterno = TelefoneNoTexto(e.Description),
+                Inicio = inicio.Value,
+                Fim = fim,
+                Status = StatusAgendamento.Ativo,
+                GoogleEventId = e.Id,
+                PrecisaSincronizar = false,
+                CriadoEm = FusoHorario.AgoraBrasilia(),
+                CriadoPor = "Google Agenda"
+            });
+            conhecidos.Add(e.Id);
+            importados++;
+        }
+
+        if (importados > 0) _context.SaveChanges();
+        return importados;
     }
 
     private (bool ok, string motivo) TentarRemarcar(Agendamento agendamento, DateTime novoInicio)

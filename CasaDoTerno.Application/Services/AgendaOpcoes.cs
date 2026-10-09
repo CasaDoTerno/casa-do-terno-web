@@ -19,6 +19,12 @@ public class AgendaOpcoes
 
     public int[] DiasEfetivos => DiasFuncionamento.Length == 0 ? new[] { 1, 2, 3, 4, 5, 6 } : DiasFuncionamento;
 
+    // true = o sistema importa as reservas feitas pelos clientes na página de agendamento do Google
+    public bool ImportarReservas { get; set; } = true;
+
+    // opcional: só importa eventos cujo título contenha este texto (ex: "Retirada"). Vazio = qualquer evento com convidado.
+    public string TituloReserva { get; set; } = "";
+
     // sem CalendarId/credenciais o sistema continua controlando os horários, só não fala com o Google
     public bool GoogleAtivo =>
         !string.IsNullOrWhiteSpace(CalendarId) && !string.IsNullOrWhiteSpace(CredenciaisJson);

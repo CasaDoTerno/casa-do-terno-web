@@ -74,6 +74,8 @@ import { ConfiguracaoImpressora } from "./pages/ConfiguracaoImpressora";
 
 import { DespesasRecorrentes } from "./pages/DespesasRecorrentes";
 import { Rastreabilidade } from "./pages/Rastreabilidade";
+import { Agendamentos } from "./pages/Agendamentos";
+
 
 function App() {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -162,9 +164,10 @@ function App() {
                     <Route path="/funcionarios/:id/demonstrativo" element={<DemonstrativoPagamento />} />
                     <Route path="/vendas/pendentes" element={<VendasPendentes />} />
                     <Route path="/debitos-clientes" element={<DebitosClientes />} />
-<Route path="/configuracao-impressora" element={<ConfiguracaoImpressora />} />
-<Route path="/despesas-recorrentes" element={<DespesasRecorrentes />} />
-<Route path="/rastreabilidade" element={<Rastreabilidade />} />
+                    <Route path="/configuracao-impressora" element={<ConfiguracaoImpressora />} />
+                    <Route path="/despesas-recorrentes" element={<DespesasRecorrentes />} />
+                    <Route path="/rastreabilidade" element={<Rastreabilidade />} />
+                    <Route path="/agendamentos" element={<Agendamentos />} />
 
 
                   </Routes>

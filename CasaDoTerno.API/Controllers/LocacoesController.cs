@@ -67,6 +67,7 @@ public class LocacoesController : ControllerBase
         public DateTime DataEvento { get; set; }
         public DateTime DataRetirada { get; set; }
         public string? HoraRetirada { get; set; }   // "14:30". Vazio/nulo = não agenda.
+        public int? AgendamentoId { get; set; }     // reserva que o cliente fez pelo link do Google (já traz data e hora)
         public DateTime DataDevolucaoPrevista { get; set; }
         public string? Consultor { get; set; }
         public decimal Desconto { get; set; }
@@ -80,9 +81,21 @@ public class LocacoesController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Criar([FromBody] NovaLocacaoRequest request)
     {
-        Agendamento? agendamento = null;
+        Agendamento? agendamento = null;   // horário reservado agora (se a locação falhar, a vaga é devolvida)
+        int? reservaDoClienteId = null;    // reserva do link do Google (nunca é descartada por aqui)
 
-        if (!string.IsNullOrWhiteSpace(request.HoraRetirada))
+        if (request.AgendamentoId.HasValue)
+        {
+            // traz o que o cliente mexeu no Google antes de conferir
+            await _sync.SincronizarAsync();
+
+            var (okReserva, mensagemReserva, _) = _agenda.ValidarReservaParaVincular(request.AgendamentoId.Value, request.DataRetirada);
+            if (!okReserva)
+                return Conflict(mensagemReserva);
+
+            reservaDoClienteId = request.AgendamentoId.Value;
+        }
+        else if (!string.IsNullOrWhiteSpace(request.HoraRetirada))
         {
             if (!TimeSpan.TryParse(request.HoraRetirada, out var hora))
                 return BadRequest("Hora de retirada inválida.");
@@ -122,7 +135,12 @@ public class LocacoesController : ControllerBase
         locacao.CriadoPor = User.Identity?.Name;
         _context.SaveChanges();
 
-        if (agendamento != null)
+        if (reservaDoClienteId.HasValue)
+        {
+            _agenda.VincularReserva(reservaDoClienteId.Value, locacao.ClienteId, locacao.Id);
+            await _sync.PublicarAsync(reservaDoClienteId.Value); // escreve os dados da locação no evento do cliente
+        }
+        else if (agendamento != null)
         {
             _agenda.VincularLocacao(agendamento.Id, locacao.Id);
             await _sync.PublicarAsync(agendamento.Id); // cria o evento no Google; se falhar, a rotina tenta de novo

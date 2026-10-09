@@ -104,7 +104,8 @@ public class GoogleAgendaClient
         }
     }
 
-    // eventos criados pelo sistema a partir de "desde" (inclui os apagados)
+    // TODOS os eventos da agenda de "desde" até 120 dias à frente (inclui os apagados).
+    // Os criados pelo sistema têm origem=casadoterno; os outros podem ser reservas feitas pelos clientes.
     public async Task<List<Event>> ListarAsync(DateTime desde)
     {
         var resultado = new List<Event>();
@@ -118,7 +119,7 @@ public class GoogleAgendaClient
             pedido.ShowDeleted = true;
             pedido.SingleEvents = true;
             pedido.MaxResults = 250;
-            pedido.PrivateExtendedProperty = new Repeatable<string>(new[] { "origem=casadoterno" });
+            pedido.TimeMaxDateTimeOffset = new DateTimeOffset(semFuso.AddDays(120), _fuso.Value.GetUtcOffset(semFuso));
             pedido.PageToken = pagina;
 
             var resposta = await pedido.ExecuteAsync();
