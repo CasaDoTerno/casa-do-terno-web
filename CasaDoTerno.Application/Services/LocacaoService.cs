@@ -533,6 +533,58 @@ public class LocacaoService
     }
 
     // ---------------------------------------------------------------- EVENTO
+    // ---------------------------------------------------------------- MOVER RETIRADA (usado pela agenda)
+
+    // a retirada pode ir pra outro dia? Confere evento, devolução e as peças (mesma regra de conflito de sempre)
+    private (bool ok, string mensagem, Locacao? locacao) ValidarMoverRetirada(int locacaoId, DateTime novaRetirada)
+    {
+        var locacao = _context.Locacoes.Include(l => l.Itens).FirstOrDefault(l => l.Id == locacaoId);
+        if (locacao == null)
+            return (false, "Locação não encontrada.", null);
+
+        if (locacao.DataCancelamento != null)
+            return (false, "A locação está cancelada.", null);
+
+        if (locacao.DataRetiradaReal != null)
+            return (false, "A locação já foi retirada, não dá mais pra mudar o dia da retirada.", null);
+
+        if (novaRetirada.Date > locacao.DataEvento.Date)
+            return (false, $"O dia {novaRetirada:dd/MM/yyyy} é depois da data do evento ({locacao.DataEvento:dd/MM/yyyy}).", null);
+
+        if (novaRetirada.Date > locacao.DataDevolucaoPrevista.Date)
+            return (false, $"O dia {novaRetirada:dd/MM/yyyy} é depois da devolução prevista ({locacao.DataDevolucaoPrevista:dd/MM/yyyy}).", null);
+
+        foreach (var grupo in locacao.Itens.GroupBy(i => i.ProdutoId))
+        {
+            var produto = _context.Produtos.Find(grupo.Key);
+            if (produto == null) continue;
+
+            var conflitos = BuscarConflitos(grupo.Key, novaRetirada, locacao.DataDevolucaoPrevista, locacaoId);
+            if (conflitos.Count + grupo.Count() > produto.Quantidade)
+                return (false,
+                    $"'{produto.Modelo}' (Tam. {produto.Tamanho}) já está reservada a partir de {novaRetirada:dd/MM}. Reservado com: {DescreverConflitos(conflitos)}",
+                    null);
+        }
+
+        return (true, "Pode mover.", locacao);
+    }
+
+    public (bool ok, string mensagem) MoverRetirada(int locacaoId, DateTime novaRetirada)
+    {
+        lock (_travaReserva)
+        {
+            var (ok, mensagem, locacao) = ValidarMoverRetirada(locacaoId, novaRetirada);
+            if (!ok) return (false, mensagem);
+
+            locacao!.DataRetirada = novaRetirada.Date;
+            locacao.EditadoPor = "Google Agenda";
+            locacao.DataEdicao = DateTime.Now;
+            _context.SaveChanges();
+            return (true, "Retirada movida.");
+        }
+    }
+
+
 
     // marca uma locação como a "principal" de um evento — se já existia outra principal, ela é desmarcada
     private void DefinirLocacaoPrincipal(int eventoId, int novaLocacaoPrincipalId)
