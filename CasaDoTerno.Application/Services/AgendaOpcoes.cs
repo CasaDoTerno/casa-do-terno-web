@@ -10,7 +10,7 @@ public class AgendaOpcoes
     public string CredenciaisJson { get; set; } = "";
 
     public string HoraAbertura { get; set; } = "08:30";
-    public string HoraFechamento { get; set; } = "17:00";
+    public string HoraFechamento { get; set; } = "17:30";
     public int DuracaoMinutos { get; set; } = 30;
     public int VagasPorHorario { get; set; } = 2;
 

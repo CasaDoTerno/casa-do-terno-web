@@ -3,12 +3,20 @@
   "WorkspaceRootPath": "C:\\CasadoTernoVRB\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\agendaservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\agendaservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\agendaopcoes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\agendaopcoes.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|c:\\casadoternovrb\\casadoterno.domain\\entities\\diasematendimento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|solutionrelative:casadoterno.domain\\entities\\diasematendimento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|c:\\casadoternovrb\\casadoterno.domain\\entities\\agendamento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|solutionrelative:casadoterno.domain\\entities\\agendamento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\agendaservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\agendaservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\controllers\\diassematendimentocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -21,10 +29,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\interfaces\\icasadoternocontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\interfaces\\icasadoternocontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|c:\\casadoternovrb\\casadoterno.domain\\entities\\diasematendimento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|solutionrelative:casadoterno.domain\\entities\\diasematendimento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3A2518A2-C1C6-F79F-01BB-3DC8C72F9856}|CasaDoTerno.API\\CasaDoTerno.API.csproj|c:\\casadoternovrb\\casadoterno.api\\controllers\\locacoescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -41,10 +45,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|c:\\casadoternovrb\\casadoterno.application\\services\\googleagendaclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{627B46A6-D0A2-AF06-A17B-4D7131AE47E8}|CasaDoTerno.Application\\CasaDoTerno.Application.csproj|solutionrelative:casadoterno.application\\services\\googleagendaclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|c:\\casadoternovrb\\casadoterno.domain\\entities\\agendamento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|solutionrelative:casadoterno.domain\\entities\\agendamento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{9FBE5EDD-C657-2961-8345-A52419293A7C}|CasaDoTerno.Domain\\CasaDoTerno.Domain.csproj|c:\\casadoternovrb\\casadoterno.domain\\entities\\cliente.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -313,20 +313,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "DiasSemAtendimentoController.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\DiasSemAtendimentoController.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\DiasSemAtendimentoController.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\DiasSemAtendimentoController.cs",
-              "RelativeToolTip": "CasaDoTerno.API\\Controllers\\DiasSemAtendimentoController.cs",
-              "ViewState": "AgIAAC8AAAAAAAAAAAA3wGMAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-09T04:38:50.571Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 1,
               "Title": "DiaSemAtendimento.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\DiaSemAtendimento.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\DiaSemAtendimento.cs",
@@ -339,7 +326,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "GoogleAgendaClient.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\GoogleAgendaClient.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\GoogleAgendaClient.cs",
@@ -351,26 +338,26 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
               "Title": "AgendaService.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaService.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\AgendaService.cs",
               "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaService.cs",
               "RelativeToolTip": "CasaDoTerno.Application\\Services\\AgendaService.cs",
-              "ViewState": "AgIAAL8AAAAAAAAAAAAswOsAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAL8AAAAAAAAAAAAwwOsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-09T03:18:50.356Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "AgendaOpcoes.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaOpcoes.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\AgendaOpcoes.cs",
               "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaOpcoes.cs",
               "RelativeToolTip": "CasaDoTerno.Application\\Services\\AgendaOpcoes.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAA5AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-09T03:18:26.27Z",
               "EditorCaption": ""
@@ -389,7 +376,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "LocacoesController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\LocacoesController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\LocacoesController.cs",
@@ -397,8 +384,7 @@
               "RelativeToolTip": "CasaDoTerno.API\\Controllers\\LocacoesController.cs",
               "ViewState": "AgIAAG4BAAAAAAAAAAAswJoBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T16:24:24.717Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-30T16:24:24.717Z"
             },
             {
               "$type": "Document",
@@ -414,7 +400,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "ICasaDoTernoContext.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
@@ -422,12 +408,36 @@
               "RelativeToolTip": "CasaDoTerno.Application\\Interfaces\\ICasaDoTernoContext.cs",
               "ViewState": "AgIAAA4AAAAAAAAAAAAuwB0AAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T18:12:55.194Z",
+              "WhenOpened": "2026-07-30T18:12:55.194Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Agendamento.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Agendamento.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Agendamento.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Agendamento.cs",
+              "RelativeToolTip": "CasaDoTerno.Domain\\Entities\\Agendamento.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAC4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-09T03:16:08.149Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
+              "Title": "DiasSemAtendimentoController.cs",
+              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\DiasSemAtendimentoController.cs",
+              "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\DiasSemAtendimentoController.cs",
+              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\DiasSemAtendimentoController.cs",
+              "RelativeToolTip": "CasaDoTerno.API\\Controllers\\DiasSemAtendimentoController.cs",
+              "ViewState": "AgIAAC8AAAAAAAAAAAA3wGMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-09T04:38:50.571Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "DbContext.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
@@ -435,12 +445,11 @@
               "RelativeToolTip": "CasaDoTerno.Infrastructure\\Data\\DbContext.cs",
               "ViewState": "AgIAABUAAAAAAAAAAAAmwCYAAABNAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-07-30T09:37:21.776Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-07-30T09:37:21.776Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "AgendaSincronizacao.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Application\\Services\\AgendaSincronizacao.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.Application\\Services\\AgendaSincronizacao.cs",
@@ -452,7 +461,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "AgendamentosController.cs",
               "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.API\\Controllers\\AgendamentosController.cs",
               "RelativeDocumentMoniker": "CasaDoTerno.API\\Controllers\\AgendamentosController.cs",
@@ -461,18 +470,6 @@
               "ViewState": "AgIAAFoAAAAAAAAAAAAswIYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-09T03:21:43.025Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "Agendamento.cs",
-              "DocumentMoniker": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Agendamento.cs",
-              "RelativeDocumentMoniker": "CasaDoTerno.Domain\\Entities\\Agendamento.cs",
-              "ToolTip": "C:\\CasadoTernoVRB\\CasaDoTerno.Domain\\Entities\\Agendamento.cs",
-              "RelativeToolTip": "CasaDoTerno.Domain\\Entities\\Agendamento.cs",
-              "ViewState": "AgIAAAIAAAAAAAAAAAA7wC4AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-09T03:16:08.149Z"
             },
             {
               "$type": "Document",
