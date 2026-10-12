@@ -9,6 +9,11 @@ interface ComissaoConsultorDto {
   totalGeral: number;
 }
 
+interface UsuarioSimples {
+  id: string;
+  email: string;
+}
+
 type TipoFiltro = "ambos" | "venda" | "locacao";
 
 function primeiroDiaDoMes(): string {
@@ -27,6 +32,8 @@ export function ComissaoConsultor() {
   const [tipo, setTipo] = useState<TipoFiltro>("ambos");
   const [resultado, setResultado] = useState<ComissaoConsultorDto[]>([]);
   const [carregando, setCarregando] = useState(false);
+  const [usuarios, setUsuarios] = useState<UsuarioSimples[]>([]);
+  const [selecionados, setSelecionados] = useState<string[]>([]);
 
   function buscar() {
     setCarregando(true);
@@ -41,7 +48,24 @@ export function ComissaoConsultor() {
 
   useEffect(() => {
     buscar();
+    api
+      .get<UsuarioSimples[]>("/Usuarios/lista-simples")
+      .then((r) => {
+        setUsuarios(r.data);
+        setSelecionados(r.data.map((u) => u.email.toLowerCase()));
+      })
+      .catch((erro) => console.error(erro));
   }, []);
+
+  function alternarConsultor(email: string) {
+    const chave = email.toLowerCase();
+    setSelecionados((atual) =>
+      atual.includes(chave) ? atual.filter((e) => e !== chave) : [...atual, chave]
+    );
+  }
+
+  // só entram no relatório os consultores cadastrados e marcados
+  const visiveis = resultado.filter((c) => selecionados.includes(c.consultor.trim().toLowerCase()));
 
   // decide qual valor "conta" pra comissão, de acordo com o filtro escolhido
   function baseComissao(item: ComissaoConsultorDto): number {
@@ -51,7 +75,7 @@ export function ComissaoConsultor() {
   }
 
   function exportarExcel() {
-    const linhas = resultado.map((c) => ({
+    const linhas = visiveis.map((c) => ({
       Consultor: c.consultor,
       ...(tipo !== "locacao" && { "Total Vendas (R$)": c.totalVendas }),
       ...(tipo !== "venda" && { "Total Locações (R$)": c.totalLocacoes }),
@@ -68,7 +92,7 @@ export function ComissaoConsultor() {
     XLSX.writeFile(livro, nomeArquivo);
   }
 
-  const totalBaseComissaoPeriodo = resultado.reduce((soma, c) => soma + baseComissao(c), 0);
+  const totalBaseComissaoPeriodo = visiveis.reduce((soma, c) => soma + baseComissao(c), 0);
   const totalComissaoPeriodo = totalBaseComissaoPeriodo * (percentual / 100);
 
   const rotuloFiltro =
@@ -112,24 +136,59 @@ export function ComissaoConsultor() {
         </div>
         <div className="campo">
           <label style={{ visibility: "hidden" }}>.</label>
-          <button onClick={exportarExcel} disabled={resultado.length === 0} className="no-imprimir">
+          <button onClick={exportarExcel} disabled={visiveis.length === 0} className="no-imprimir">
             Exportar Excel
           </button>
         </div>
         <div className="campo">
           <label style={{ visibility: "hidden" }}>.</label>
-          <button onClick={() => window.print()} disabled={resultado.length === 0} className="no-imprimir">
+          <button onClick={() => window.print()} disabled={visiveis.length === 0} className="no-imprimir">
             Exportar PDF
           </button>
         </div>
       </div>
 
-      {resultado.length === 0 && !carregando && (
-        <p style={{ color: "var(--texto-suave)" }}>Nenhuma venda ou locação nesse período.</p>
+      <div className="card" style={{ marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+          <label style={{ margin: 0 }}>Consultores</label>
+          <div style={{ display: "flex", gap: 8 }} className="no-imprimir">
+            <button type="button" onClick={() => setSelecionados(usuarios.map((u) => u.email.toLowerCase()))}>
+              Todos
+            </button>
+            <button type="button" onClick={() => setSelecionados([])}>
+              Limpar
+            </button>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: "8px 20px", flexWrap: "wrap", marginTop: 10 }}>
+          {usuarios.length === 0 && <span style={{ color: "var(--texto-suave)" }}>Carregando consultores...</span>}
+          {usuarios.map((u) => (
+            <label
+              key={u.id}
+              style={{ display: "flex", alignItems: "center", gap: 6, margin: 0, cursor: "pointer", fontWeight: 400 }}
+            >
+              <input
+                type="checkbox"
+                checked={selecionados.includes(u.email.toLowerCase())}
+                onChange={() => alternarConsultor(u.email)}
+                style={{ width: "auto", margin: 0 }}
+              />
+              {u.email}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {visiveis.length === 0 && !carregando && (
+        <p style={{ color: "var(--texto-suave)" }}>
+          {selecionados.length === 0
+            ? "Selecione ao menos um consultor."
+            : "Nenhuma venda ou locação desses consultores nesse período."}
+        </p>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {resultado.map((c) => (
+        {visiveis.map((c) => (
           <div key={c.consultor} className="card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 17, fontWeight: 700 }}>{c.consultor}</div>
@@ -171,7 +230,7 @@ export function ComissaoConsultor() {
         ))}
       </div>
 
-      {resultado.length > 0 && (
+      {visiveis.length > 0 && (
         <div className="card" style={{ marginTop: 20 }}>
           <p style={{ margin: "4px 0" }}>
             Base da comissão ({rotuloFiltro}): <strong>R$ {totalBaseComissaoPeriodo.toFixed(2)}</strong>
