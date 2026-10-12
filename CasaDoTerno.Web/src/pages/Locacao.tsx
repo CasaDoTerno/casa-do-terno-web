@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
+import { useNavigate } from "react-router-dom";
+import { Plus } from "lucide-react";
 import { ModalAviso } from "../components/ModalAviso";
 import { ModalHorarios } from "../components/ModalHorarios";
 
@@ -19,7 +20,7 @@ interface Produto {
 interface Evento {
   id: number;
   nome: string;
-  locacaoPrincipalId: number | null;
+  data: string;
 }
 
 interface Cliente {
@@ -75,7 +76,11 @@ interface PecaCarrinho {
   valorLocacao: number;
 }
 
-const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Acessorio"];
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
+const nomesTipoEvento = ["Casamento", "Formatura", "Aniversário"];
+
+// No seu Cliente.cs as medidas são decimal? (número, opcionais) -> false.
+const MEDIDAS_SAO_TEXTO = false;
 
 interface HorarioAgenda {
   hora: string;
@@ -90,10 +95,7 @@ interface AvisoModal {
   dica?: string;
 }
 
-export function EditarLocacao() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-
+export function Locacao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [eventos, setEventos] = useState<Evento[]>([]);
@@ -103,31 +105,36 @@ export function EditarLocacao() {
   const [dataEvento, setDataEvento] = useState("");
   const [dataRetirada, setDataRetirada] = useState("");
   const [dataDevolucaoPrevista, setDataDevolucaoPrevista] = useState("");
-  const [consultor, setConsultor] = useState("");
+  const [consultor, setConsultor] = useState(localStorage.getItem("emailUsuario") ?? "");
   const [desconto, setDesconto] = useState(0);
   const [valorEntrada, setValorEntrada] = useState(0);
   const [formaPagamentoEntrada, setFormaPagamentoEntrada] = useState(0);
   const [eventoId, setEventoId] = useState(0);
   const [ehPrincipalDoEvento, setEhPrincipalDoEvento] = useState(false);
-
-  const [produtoSelecionado, setProdutoSelecionado] = useState(0);
-  const [ajustesPeca, setAjustesPeca] = useState("");
-  const [valorPeca, setValorPeca] = useState(0);
-  const [pecas, setPecas] = useState<PecaCarrinho[]>([]);
-
-  const [enviando, setEnviando] = useState(false);
-  const [mensagem, setMensagem] = useState("");
-  const [carregado, setCarregado] = useState(false);
-  const [jaRetirada, setJaRetirada] = useState(false);
-
-  // dados do cadastro do cliente (somente leitura) e observação já salva na locação
   const [clienteDetalhe, setClienteDetalhe] = useState<ClienteDetalhe | null>(null);
-  const [observacaoSalva, setObservacaoSalva] = useState("");
+
+  const [mostrarNovoEvento, setMostrarNovoEvento] = useState(false);
+  const [novoEventoTipo, setNovoEventoTipo] = useState(0);
+  const [novoEventoNome, setNovoEventoNome] = useState("");
+  const [novoEventoData, setNovoEventoData] = useState("");
+  const [salvandoEvento, setSalvandoEvento] = useState(false);
+
+  const [mostrarNovoCliente, setMostrarNovoCliente] = useState(false);
+  const [novoClienteNome, setNovoClienteNome] = useState("");
+  const [novoClienteTelefone, setNovoClienteTelefone] = useState("");
+  const [novoClienteCpf, setNovoClienteCpf] = useState("");
+  const [novoClienteEmail, setNovoClienteEmail] = useState("");
+  const [novoClienteEndereco, setNovoClienteEndereco] = useState("");
+  const [novoClienteAbdomen, setNovoClienteAbdomen] = useState("");
+  const [novoClienteBainha, setNovoClienteBainha] = useState("");
+  const [novoClienteCintura, setNovoClienteCintura] = useState("");
+  const [novoClienteManga, setNovoClienteManga] = useState("");
+  const [novoClienteOmbro, setNovoClienteOmbro] = useState("");
+  const [novoClientePanturrilha, setNovoClientePanturrilha] = useState("");
+  const [novoClienteCoxa, setNovoClienteCoxa] = useState("");
+  const [salvandoCliente, setSalvandoCliente] = useState(false);
 
   // Hora da retirada (agenda)
-  const [dataOriginal, setDataOriginal] = useState("");
-  const [agendamentoId, setAgendamentoId] = useState<number | null>(null);
-  const [horaOriginal, setHoraOriginal] = useState("");
   const [horaRetirada, setHoraRetirada] = useState("");
   const [horarios, setHorarios] = useState<HorarioAgenda[]>([]);
   const [agendaAberta, setAgendaAberta] = useState(true);
@@ -138,6 +145,17 @@ export function EditarLocacao() {
   // Caixa de aviso no meio da tela
   const [aviso, setAviso] = useState<AvisoModal | null>(null);
 
+  const [produtoSelecionado, setProdutoSelecionado] = useState(0);
+  const [ajustesPeca, setAjustesPeca] = useState("");
+  const [valorPeca, setValorPeca] = useState(0);
+  const [pecas, setPecas] = useState<PecaCarrinho[]>([]);
+
+  const [mensagem, setMensagem] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  const [locacaoCriadaId, setLocacaoCriadaId] = useState<number | null>(null);
+  const navigate = useNavigate();
+
   function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) => {
       const disponiveis = r.data
@@ -147,69 +165,20 @@ export function EditarLocacao() {
     });
   }
 
+  function buscarEventos() {
+    api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
+  }
+
+  function buscarClientes() {
+    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+  }
+
   useEffect(() => {
     buscarProdutos();
-    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-    api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
+    buscarClientes();
+    buscarEventos();
     api.get<Usuario[]>("/Usuarios/lista-simples").then((r) => setUsuarios(r.data));
-
-    api.get(`/Locacoes/${id}`).then((resposta) => {
-      const l = resposta.data;
-      setClienteId(l.clienteId);
-      setDataEvento(l.dataEvento.split("T")[0]);
-      setDataRetirada(l.dataRetirada.split("T")[0]);
-      setDataOriginal(l.dataRetirada.split("T")[0]);
-      setObservacaoSalva(l.observacao ?? "");
-      setDataDevolucaoPrevista(l.dataDevolucaoPrevista.split("T")[0]);
-      setConsultor(l.consultor ?? "");
-      setDesconto(l.desconto);
-      setValorEntrada(l.valorEntrada);
-      setFormaPagamentoEntrada(l.formaPagamentoEntrada);
-      setEventoId(l.eventoId ?? 0);
-      setJaRetirada(l.dataRetiradaReal !== null);
-      setPecas(
-        l.itens.map((item: any) => ({
-          produtoId: item.produtoId,
-          modelo: "Carregando...",
-          referencia: null,
-          cor: "",
-          tamanho: "",
-          ajustes: item.ajustes ?? "",
-          valorLocacao: item.valorItem,
-        }))
-      );
-
-      // hora de retirada já marcada na agenda (404 = locação sem horário marcado)
-      api
-        .get(`/Agendamentos/por-locacao/${l.id}`)
-        .then((agenda) => {
-          setAgendamentoId(agenda.data.id);
-          setHoraOriginal(agenda.data.hora);
-          setHoraRetirada(agenda.data.hora);
-        })
-        .catch(() => {});
-
-      if (l.eventoId) {
-        api.get(`/Eventos/${l.eventoId}`).then((eventoResposta) => {
-          setEhPrincipalDoEvento(eventoResposta.data.locacaoPrincipalId === l.id);
-        });
-      }
-
-      setCarregado(true);
-    });
-  }, [id]);
-
-  useEffect(() => {
-    if (!carregado || produtos.length === 0) return;
-    setPecas((atual) =>
-      atual.map((peca) => {
-        const produto = produtos.find((p) => p.id === peca.produtoId);
-        return produto
-          ? { ...peca, modelo: produto.modelo, referencia: produto.referencia, cor: produto.cor, tamanho: produto.tamanho }
-          : peca;
-      })
-    );
-  }, [produtos, carregado]);
+  }, []);
 
   // carrega o cadastro completo do cliente escolhido (somente leitura)
   useEffect(() => {
@@ -226,7 +195,7 @@ export function EditarLocacao() {
       });
   }, [clienteId]);
 
-  function buscarHorarios(data: string, ignorarAgendamentoId: number | null) {
+  function buscarHorarios(data: string) {
     if (!data) {
       setHorarios([]);
       setAgendaMensagem("");
@@ -235,9 +204,7 @@ export function EditarLocacao() {
     }
     setCarregandoHorarios(true);
     return api
-      .get("/Agendamentos/horarios", {
-        params: { data, agendamentoIdIgnorar: ignorarAgendamentoId ?? undefined },
-      })
+      .get("/Agendamentos/horarios", { params: { data } })
       .then((r) => {
         setHorarios(r.data.horarios ?? []);
         setAgendaAberta(r.data.aberto !== false);
@@ -252,19 +219,19 @@ export function EditarLocacao() {
       .finally(() => setCarregandoHorarios(false));
   }
 
-  // quando a data de retirada é trocada, mostra a grade de horários daquele dia
   useEffect(() => {
-    if (!carregado || !dataRetirada) return;
-    buscarHorarios(dataRetirada, agendamentoId);
+    setHoraRetirada("");
+    buscarHorarios(dataRetirada);
 
+    // abre a grade de horários assim que a data de retirada é preenchida
+    // (espera um pouco pra não abrir enquanto a data ainda está sendo digitada)
     const agora = new Date();
     const hoje = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
-    if (dataRetirada === dataOriginal || dataRetirada < hoje) return;
+    if (!dataRetirada || dataRetirada < hoje) return;
 
     const espera = setTimeout(() => setMostrarModalHorarios(true), 400);
     return () => clearTimeout(espera);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataRetirada, carregado]);
+  }, [dataRetirada]);
 
   useEffect(() => {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
@@ -273,12 +240,116 @@ export function EditarLocacao() {
     }
   }, [produtoSelecionado, produtos]);
 
+  const hojeISO = new Date().toISOString().split("T")[0];
+  const eventosFuturos = eventos
+    .filter((ev) => ev.data.split("T")[0] >= hojeISO)
+    .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+
+  async function salvarNovoEvento() {
+    if (!novoEventoNome || !novoEventoData) {
+      setAviso({ titulo: "Dados do evento incompletos", mensagem: "Preencha nome e data do evento antes de salvar." });
+      return;
+    }
+
+    setSalvandoEvento(true);
+    try {
+      const resposta = await api.post("/Eventos", {
+        tipo: novoEventoTipo,
+        nome: novoEventoNome,
+        data: novoEventoData,
+        observacao: "",
+      });
+
+      const eventoCriado: Evento = resposta.data;
+      setEventos((atual) => [...atual, eventoCriado]);
+      setEventoId(eventoCriado.id);
+
+      setNovoEventoNome("");
+      setNovoEventoData("");
+      setNovoEventoTipo(0);
+      setMostrarNovoEvento(false);
+      setMensagem("Evento criado e já selecionado!");
+    } catch (erro: any) {
+      console.error(erro);
+      setAviso({
+        titulo: "Não foi possível criar o evento",
+        mensagem: typeof erro.response?.data === "string" ? erro.response.data : "Erro ao criar evento.",
+      });
+    } finally {
+      setSalvandoEvento(false);
+    }
+  }
+
+  function medida(valor: string) {
+    if (MEDIDAS_SAO_TEXTO) return valor;
+    const n = Number(valor.replace(",", "."));
+    return valor.trim() === "" || Number.isNaN(n) ? null : n;
+  }
+
+  async function salvarNovoCliente() {
+    if (!novoClienteNome || !novoClienteTelefone || !novoClienteCpf) {
+      setAviso({
+        titulo: "Dados do cliente incompletos",
+        mensagem: "Preencha nome, telefone e CPF antes de salvar o cliente.",
+      });
+      return;
+    }
+
+    setSalvandoCliente(true);
+    try {
+      const resposta = await api.post("/Clientes", {
+        nome: novoClienteNome,
+        telefone: novoClienteTelefone,
+        cpf: novoClienteCpf,
+        email: novoClienteEmail,
+        endereco: novoClienteEndereco,
+        abdomen: medida(novoClienteAbdomen),
+        bainha: medida(novoClienteBainha),
+        cintura: medida(novoClienteCintura),
+        manga: medida(novoClienteManga),
+        ombro: medida(novoClienteOmbro),
+        panturrilha: medida(novoClientePanturrilha),
+        coxa: medida(novoClienteCoxa),
+      });
+
+      const clienteCriado: Cliente = resposta.data;
+      setClientes((atual) => [...atual, clienteCriado]);
+      setClienteId(clienteCriado.id);
+
+      setNovoClienteNome("");
+      setNovoClienteTelefone("");
+      setNovoClienteCpf("");
+      setNovoClienteEmail("");
+      setNovoClienteEndereco("");
+      setNovoClienteAbdomen("");
+      setNovoClienteBainha("");
+      setNovoClienteCintura("");
+      setNovoClienteManga("");
+      setNovoClienteOmbro("");
+      setNovoClientePanturrilha("");
+      setNovoClienteCoxa("");
+      setMostrarNovoCliente(false);
+      setMensagem("Cliente cadastrado e já selecionado!");
+    } catch (erro: any) {
+      console.error(erro);
+      setAviso({
+        titulo: "Não foi possível cadastrar o cliente",
+        mensagem: typeof erro.response?.data === "string" ? erro.response.data : "Erro ao cadastrar cliente.",
+      });
+    } finally {
+      setSalvandoCliente(false);
+    }
+  }
+
   async function adicionarPeca() {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
     if (!produto) return;
 
     if (!dataRetirada || !dataDevolucaoPrevista) {
-      setMensagem("Preencha as datas de retirada e devolução antes de adicionar peças.");
+      setAviso({
+        titulo: "Faltam as datas",
+        mensagem: "Preencha as datas de retirada e devolução antes de adicionar peças.",
+      });
       return;
     }
 
@@ -290,18 +361,24 @@ export function EditarLocacao() {
           produtoId: produto.id,
           dataRetirada,
           dataDevolucaoPrevista,
-          locacaoIdExcluir: id,
           unidadesJaNoCarrinho,
         },
       });
 
       if (!resposta.data.disponivel) {
-        setMensagem(resposta.data.mensagem);
+        setAviso({
+          titulo: "Peça indisponível",
+          mensagem: resposta.data.mensagem,
+          dica: "Ajuste a data de retirada ou de devolução, ou escolha outra peça.",
+        });
         return;
       }
     } catch (erro) {
       console.error(erro);
-      setMensagem("Erro ao verificar disponibilidade dessa peça.");
+      setAviso({
+        titulo: "Erro ao verificar a peça",
+        mensagem: "Não foi possível verificar a disponibilidade dessa peça. Tente novamente.",
+      });
       return;
     }
 
@@ -340,25 +417,34 @@ export function EditarLocacao() {
     if (enviando) return;
 
     if (pecas.length === 0) {
-      setMensagem("A locação precisa ter pelo menos uma peça.");
+      setAviso({ titulo: "Faltam as peças", mensagem: "Adicione pelo menos uma peça antes de confirmar." });
+      return;
+    }
+
+    if (dataRetirada > dataEvento) {
+      setAviso({ titulo: "Data inválida", mensagem: "A data de retirada não pode ser depois da data do evento." });
+      return;
+    }
+
+    if (dataDevolucaoPrevista < dataRetirada) {
+      setAviso({ titulo: "Data inválida", mensagem: "A data de devolução não pode ser antes da data de retirada." });
       return;
     }
 
     const confirmar = window.confirm(
-      "Confirmar as alterações dessa locação?" + (horaRetirada ? `\n\nRetirada às ${horaRetirada}` : "")
+      `Confirmar a criação dessa locação?\n\nTotal: R$ ${valorTotal.toFixed(2)}\nPeças: ${pecas.length}` +
+        (horaRetirada ? `\nRetirada às ${horaRetirada}` : "")
     );
     if (!confirmar) return;
 
     setEnviando(true);
     try {
-      await api.put(`/Locacoes/${id}`, {
+      const resposta = await api.post("/Locacoes", {
         clienteId,
         dataEvento,
         dataRetirada,
-        // null = não mexe na agenda; "" = tira da agenda; "HH:mm" = marca/remarca
-        horaRetirada: dataRetirada === dataOriginal && horaRetirada === horaOriginal ? null : horaRetirada,
-        // se o cadastro não carregou, mantém a observação que já estava salva
-        observacao: clienteDetalhe ? observacao || null : observacaoSalva || null,
+        horaRetirada: horaRetirada || null,
+        observacao: observacao.trim() || null,
         dataDevolucaoPrevista,
         consultor,
         desconto,
@@ -372,54 +458,157 @@ export function EditarLocacao() {
           valorItem: p.valorLocacao,
         })),
       });
-      setMensagem("Locação atualizada com sucesso!");
-      navigate("/retiradas");
+      setLocacaoCriadaId(resposta.data.id);
+      setMensagem(
+        horaRetirada
+          ? `Locação criada com sucesso! Retirada agendada às ${horaRetirada}.`
+          : "Locação criada com sucesso!"
+      );
+      setHoraRetirada("");
+      buscarHorarios(dataRetirada);
+      setPecas([]);
+      setDesconto(0);
+      setValorEntrada(0);
+      setEventoId(0);
+      setEhPrincipalDoEvento(false);
     } catch (erro: any) {
       console.error(erro);
-      const texto = typeof erro.response?.data === "string" ? erro.response.data : "Erro ao atualizar locação.";
+      const texto = typeof erro.response?.data === "string" ? erro.response.data : "Erro ao criar locação.";
       if (erro.response?.status === 409) {
         setAviso({
           titulo: "Horário indisponível",
           mensagem: texto,
-          dica: "Escolha outro horário de retirada. As alterações NÃO foram salvas.",
+          dica: "Escolha outro horário de retirada. A locação NÃO foi criada.",
         });
-        setHoraRetirada(dataRetirada === dataOriginal ? horaOriginal : "");
-        buscarHorarios(dataRetirada, agendamentoId);
+        setHoraRetirada("");
+        buscarHorarios(dataRetirada);
       } else {
-        setMensagem(texto);
+        setAviso({ titulo: "Não foi possível criar a locação", mensagem: texto });
       }
     } finally {
       setEnviando(false);
     }
   }
 
-  if (jaRetirada) {
-    return (
-      <div>
-        <h1>Editar Locação #{id}</h1>
-        <p style={{ color: "#f87171" }}>
-          Essa locação já foi retirada e não pode mais ser editada por aqui.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div>
-      <h1>Editar Locação #{id}</h1>
+      <h1>Nova Locação</h1>
       <form onSubmit={handleSubmit} style={{ maxWidth: 640 }}>
 
         <h2>Dados gerais</h2>
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
             <label>Cliente</label>
-            <BuscaSelect
-              opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
-              valorSelecionado={clienteId}
-              onSelecionar={setClienteId}
-              placeholder="Buscar cliente..."
-            />
+            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
+              <div style={{ flex: 1 }}>
+                <BuscaSelect
+                  opcoes={clientes.map((c) => ({ id: c.id, label: c.nome }))}
+                  valorSelecionado={clienteId}
+                  onSelecionar={setClienteId}
+                  onAbrir={buscarClientes}
+                  placeholder="Buscar cliente..."
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setMostrarNovoCliente(!mostrarNovoCliente)}
+                style={{ display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", flexShrink: 0 }}
+              >
+              <Plus size={16} /> Novo
+              </button>
+            </div>
           </div>
+
+          {mostrarNovoCliente && (
+            <div className="card" style={{ marginTop: 12, background: "var(--chumbo-input)" }}>
+              <strong style={{ fontSize: 13 }}>Cadastro rápido de cliente</strong>
+              <div className="grid-3" style={{ marginTop: 8 }}>
+                <div>
+                  <label>Nome</label>
+                  <input
+                    value={novoClienteNome}
+                    onChange={(e) => setNovoClienteNome(e.target.value)}
+                    placeholder="Nome completo"
+                  />
+                </div>
+                <div>
+                  <label>Telefone</label>
+                  <input
+                    value={novoClienteTelefone}
+                    onChange={(e) => setNovoClienteTelefone(e.target.value)}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
+                <div>
+                  <label>CPF</label>
+                  <input
+                    value={novoClienteCpf}
+                    onChange={(e) => setNovoClienteCpf(e.target.value)}
+                    placeholder="000.000.000-00"
+                  />
+                </div>
+              </div>
+              <div className="grid-2" style={{ marginTop: 8 }}>
+                <div>
+                  <label>E-mail</label>
+                  <input
+                    type="email"
+                    value={novoClienteEmail}
+                    onChange={(e) => setNovoClienteEmail(e.target.value)}
+                    placeholder="cliente@email.com"
+                  />
+                </div>
+                <div>
+                  <label>Endereço</label>
+                  <input
+                    value={novoClienteEndereco}
+                    onChange={(e) => setNovoClienteEndereco(e.target.value)}
+                    placeholder="Rua, número, bairro"
+                  />
+                </div>
+              </div>
+              <strong style={{ fontSize: 13, display: "block", marginTop: 12 }}>Medidas (opcional)</strong>
+              <div className="grid-3" style={{ marginTop: 8 }}>
+                <div>
+                  <label>Abdômen</label>
+                  <input value={novoClienteAbdomen} onChange={(e) => setNovoClienteAbdomen(e.target.value)} />
+                </div>
+                <div>
+                  <label>Bainha</label>
+                  <input value={novoClienteBainha} onChange={(e) => setNovoClienteBainha(e.target.value)} />
+                </div>
+                <div>
+                  <label>Cintura</label>
+                  <input value={novoClienteCintura} onChange={(e) => setNovoClienteCintura(e.target.value)} />
+                </div>
+                <div>
+                  <label>Manga</label>
+                  <input value={novoClienteManga} onChange={(e) => setNovoClienteManga(e.target.value)} />
+                </div>
+                <div>
+                  <label>Ombro</label>
+                  <input value={novoClienteOmbro} onChange={(e) => setNovoClienteOmbro(e.target.value)} />
+                </div>
+                <div>
+                  <label>Panturrilha</label>
+                  <input value={novoClientePanturrilha} onChange={(e) => setNovoClientePanturrilha(e.target.value)} />
+                </div>
+                <div>
+                  <label>Coxa</label>
+                  <input value={novoClienteCoxa} onChange={(e) => setNovoClienteCoxa(e.target.value)} />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={salvarNovoCliente}
+                disabled={salvandoCliente}
+                style={{ marginTop: 8 }}
+              >
+                {salvandoCliente ? "Salvando..." : "Salvar cliente e selecionar"}
+              </button>
+            </div>
+          )}
+
           <div>
             <label>Consultor</label>
             <select value={consultor} onChange={(e) => setConsultor(e.target.value)}>
@@ -432,16 +621,72 @@ export function EditarLocacao() {
 
           <div>
             <label>Evento (opcional)</label>
-            <select value={eventoId} onChange={(e) => setEventoId(Number(e.target.value))}>
-              <option value={0}>Nenhum</option>
-              {eventos.map((ev) => (
-                <option key={ev.id} value={ev.id}>{ev.nome}</option>
-              ))}
-            </select>
+            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
+              <div style={{ flex: 1 }}>
+                <BuscaSelect
+                  opcoes={eventosFuturos.map((ev) => ({
+                    id: ev.id,
+                    label: `${ev.nome} — ${new Date(ev.data).toLocaleDateString("pt-BR")}`,
+                  }))}
+                  valorSelecionado={eventoId}
+                  onSelecionar={setEventoId}
+                  onAbrir={buscarEventos}
+                  placeholder="Buscar evento (opcional)..."
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setMostrarNovoEvento(!mostrarNovoEvento)}
+                style={{ display: "flex", alignItems: "center", gap: 4, whiteSpace: "nowrap", flexShrink: 0 }}
+              >
+                <Plus size={16} /> Novo
+              </button>
+            </div>
           </div>
 
+          {mostrarNovoEvento && (
+            <div className="card" style={{ marginTop: 12, background: "var(--chumbo-input)" }}>
+              <strong style={{ fontSize: 13 }}>Cadastro rápido de evento</strong>
+              <div className="grid-3" style={{ marginTop: 8 }}>
+                <div>
+                  <label>Tipo</label>
+                  <select value={novoEventoTipo} onChange={(e) => setNovoEventoTipo(Number(e.target.value))}>
+                    {nomesTipoEvento.map((nome, index) => (
+                      <option key={index} value={index}>{nome}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label>Nome</label>
+                  <input
+                    value={novoEventoNome}
+                    onChange={(e) => setNovoEventoNome(e.target.value)}
+                    placeholder="ex: Casamento João e Maria"
+                  />
+                </div>
+                <div>
+                  <label>Data</label>
+                  <input
+                    type="date"
+                    value={novoEventoData}
+                    onChange={(e) => setNovoEventoData(e.target.value)}
+                    min={hojeISO}
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={salvarNovoEvento}
+                disabled={salvandoEvento}
+                style={{ marginTop: 12 }}
+              >
+                {salvandoEvento ? "Salvando..." : "Salvar evento e selecionar"}
+              </button>
+            </div>
+          )}
+
           {eventoId !== 0 && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+            <div style={{ display: "flex", flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
               <input
                 type="checkbox"
                 checked={ehPrincipalDoEvento}
@@ -496,7 +741,7 @@ export function EditarLocacao() {
                 <button
                   type="button"
                   onClick={() => {
-                    buscarHorarios(dataRetirada, agendamentoId);
+                    buscarHorarios(dataRetirada);
                     setMostrarModalHorarios(true);
                   }}
                 >
@@ -514,9 +759,7 @@ export function EditarLocacao() {
               </div>
               {!horaRetirada && (
                 <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "4px 0 0 0" }}>
-                  {horaOriginal
-                    ? "Sem horário — ao salvar, a retirada sai da agenda."
-                    : "Sem horário marcado — a retirada não entra na agenda."}
+                  Sem horário marcado — a retirada não entra na agenda.
                 </p>
               )}
             </div>
@@ -526,7 +769,7 @@ export function EditarLocacao() {
         <h2>Peças</h2>
         <div className="card" style={{ marginBottom: 20 }}>
           <div>
-            <label>Adicionar peça</label>
+            <label>Produto</label>
             <BuscaSelect
               opcoes={produtos.map((p) => ({
                 id: p.id,
@@ -541,73 +784,54 @@ export function EditarLocacao() {
           <div className="grid-2">
             <div>
               <label>Ajustes (opcional)</label>
-              <input value={ajustesPeca} onChange={(e) => setAjustesPeca(e.target.value)} />
+              <input
+                value={ajustesPeca}
+                onChange={(e) => setAjustesPeca(e.target.value)}
+                placeholder="ex: Bainha -2cm, Manga -1cm"
+              />
             </div>
             <div>
               <label>Valor dessa peça</label>
-              <input type="number" value={valorPeca} onChange={(e) => setValorPeca(Number(e.target.value))} />
+              <input
+                type="number"
+                value={valorPeca}
+                onChange={(e) => setValorPeca(Number(e.target.value))}
+              />
             </div>
           </div>
           <button type="button" onClick={adicionarPeca} disabled={produtoSelecionado === 0}>
             + Adicionar peça
           </button>
 
-          <ul style={{ marginTop: 16 }}>
-            {pecas.map((peca, index) => (
-              <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>
-                  {peca.referencia ? `${peca.referencia} — ` : ""}{peca.modelo} · {peca.cor} · Tam. {peca.tamanho} — R$ {peca.valorLocacao}
-                  {peca.ajustes && ` — ${peca.ajustes}`}
-                </span>
-                <button type="button" onClick={() => removerPeca(index)}>Remover</button>
-              </li>
-            ))}
-          </ul>
+          {pecas.length > 0 && (
+            <ul style={{ marginTop: 16 }}>
+              {pecas.map((peca, index) => (
+                <li key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>
+                    {peca.referencia ? `${peca.referencia} — ` : ""}{peca.modelo} · {peca.cor} · Tam. {peca.tamanho} — R$ {peca.valorLocacao}
+                    {peca.ajustes && ` — ${peca.ajustes}`}
+                  </span>
+                  <button type="button" onClick={() => removerPeca(index)}>Remover</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {pecas.length === 0 && <p style={{ color: "var(--texto-suave)" }}>Nenhuma peça adicionada ainda.</p>}
 
-          <div style={{ marginTop: 16 }}>
-            <label>Dados e medidas do cliente (do cadastro)</label>
-            <div
-              style={{
-                background: "var(--chumbo-input)",
-                border: "1px solid var(--borda)",
-                borderRadius: 8,
-                padding: "10px 12px",
-                fontSize: 14,
-              }}
-            >
-              {!clienteDetalhe && (
-                <span style={{ color: "var(--texto-suave)" }}>Selecione um cliente para ver os dados do cadastro.</span>
-              )}
-              {clienteDetalhe && (
-                <>
-                  <div style={{ display: "flex", gap: "4px 24px", flexWrap: "wrap" }}>
-                    <span><span style={{ color: "var(--texto-suave)" }}>Telefone: </span>{clienteDetalhe.telefone || "—"}</span>
-                    <span><span style={{ color: "var(--texto-suave)" }}>CPF: </span>{clienteDetalhe.cpf || "—"}</span>
-                    <span><span style={{ color: "var(--texto-suave)" }}>E-mail: </span>{clienteDetalhe.email || "—"}</span>
-                  </div>
-                  <div style={{ marginTop: 4 }}>
-                    <span style={{ color: "var(--texto-suave)" }}>Endereço: </span>
-                    {clienteDetalhe.endereco || "—"}
-                  </div>
-                  <div style={{ marginTop: 8, color: "var(--texto-suave)", fontSize: 12 }}>MEDIDAS / AJUSTES</div>
-                  {medidasCliente.length === 0 ? (
-                    <div style={{ color: "var(--texto-suave)" }}>Nenhuma medida cadastrada para esse cliente.</div>
-                  ) : (
-                    <div style={{ display: "flex", gap: "4px 20px", flexWrap: "wrap", marginTop: 2 }}>
-                      {medidasCliente.map((m) => (
-                        <span key={m.nome}>
-                          <span style={{ color: "var(--texto-suave)" }}>{m.nome} = </span>
-                          <strong>{m.valor}</strong>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-            <p style={{ color: "var(--texto-suave)", fontSize: 12, margin: "4px 0 0 0" }}>
-              Para alterar, edite o cadastro do cliente. As medidas saem no recibo.
-            </p>
+          <div className="campo" style={{ marginTop: 16 }}>
+            <label>Observações gerais (ajustes do cliente)</label>
+            <input
+              type="text"
+              value={medidasCliente.map((m) => `${m.nome} = ${m.valor}`).join("  /  ")}
+              placeholder={
+                !clienteDetalhe
+                  ? "Selecione um cliente para carregar as medidas"
+                  : "Cliente sem medidas cadastradas"
+              }
+              disabled
+              readOnly
+              style={{ cursor: "not-allowed", opacity: 0.85 }}
+            />
           </div>
         </div>
 
@@ -615,7 +839,7 @@ export function EditarLocacao() {
         <div className="card" style={{ marginBottom: 20 }}>
           <div className="grid-2">
             <div>
-              <label>Desconto</label>
+              <label>Desconto (combo)</label>
               <input type="number" value={desconto} onChange={(e) => setDesconto(Number(e.target.value))} />
             </div>
             <div>
@@ -625,24 +849,28 @@ export function EditarLocacao() {
           </div>
           <div>
             <label>Forma de pagamento da entrada</label>
-            <select value={formaPagamentoEntrada} onChange={(e) => setFormaPagamentoEntrada(Number(e.target.value))}>
+            <select
+              value={formaPagamentoEntrada}
+              onChange={(e) => setFormaPagamentoEntrada(Number(e.target.value))}
+            >
               <option value={0}>Dinheiro</option>
               <option value={1}>Cartão</option>
               <option value={2}>Pix</option>
               <option value={3}>Boleto</option>
             </select>
           </div>
+
           <div style={{ borderTop: "1px solid var(--borda)", marginTop: 16, paddingTop: 16 }}>
             <p style={{ color: "var(--texto-suave)", margin: "4px 0" }}>Subtotal: R$ {subtotal.toFixed(2)}</p>
             <p style={{ fontSize: 18, fontWeight: 700, margin: "4px 0" }}>Total: R$ {valorTotal.toFixed(2)}</p>
             <p style={{ color: "var(--verde)", fontWeight: 600, margin: "4px 0" }}>
-              Restante: R$ {valorRestante.toFixed(2)}
+              Restante (na retirada): R$ {valorRestante.toFixed(2)}
             </p>
           </div>
         </div>
 
         <button type="submit" disabled={enviando}>
-          {enviando ? "Salvando..." : "Salvar alterações"}
+          {enviando ? "Salvando..." : "Confirmar locação"}
         </button>
       </form>
 
@@ -671,6 +899,25 @@ export function EditarLocacao() {
           dica={aviso.dica}
           onFechar={() => setAviso(null)}
         />
+      )}
+
+      {locacaoCriadaId && (
+        <div className="card" style={{ marginTop: 20, borderLeft: "3px solid var(--verde)" }}>
+          <p style={{ fontWeight: 700, marginBottom: 12 }}>
+            Locação #{locacaoCriadaId} criada! Imprima o contrato agora pra colher a assinatura do cliente:
+          </p>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button type="button" onClick={() => navigate(`/locacoes/contrato/${locacaoCriadaId}`)}>
+              Ver Contrato (assinar agora)
+            </button>
+            <button type="button" onClick={() => navigate(`/locacoes/imprimir/${locacaoCriadaId}`)}>
+              Ver Recibo
+            </button>
+            <button type="button" onClick={() => setLocacaoCriadaId(null)} style={{ background: "var(--chumbo-input)" }}>
+              Fazer nova locação
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

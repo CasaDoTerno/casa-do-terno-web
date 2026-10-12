@@ -27,6 +27,39 @@ interface Cliente {
   nome: string;
 }
 
+interface ClienteDetalhe {
+  id: number;
+  nome: string;
+  telefone: string | null;
+  cpf: string | null;
+  email: string | null;
+  endereco: string | null;
+  ombro: number | string | null;
+  manga: number | string | null;
+  abdomen: number | string | null;
+  cintura: number | string | null;
+  bainha: number | string | null;
+  coxa: number | string | null;
+  panturrilha: number | string | null;
+}
+
+// medidas do cadastro do cliente que estão preenchidas
+function medidasDoCliente(c: ClienteDetalhe | null): { nome: string; valor: string }[] {
+  if (!c) return [];
+  const todas: [string, number | string | null][] = [
+    ["Ombro", c.ombro],
+    ["Manga", c.manga],
+    ["Abdômen", c.abdomen],
+    ["Cintura", c.cintura],
+    ["Bainha", c.bainha],
+    ["Coxa", c.coxa],
+    ["Panturrilha", c.panturrilha],
+  ];
+  return todas
+    .filter(([, v]) => v !== null && v !== undefined && String(v).trim() !== "")
+    .map(([nome, v]) => ({ nome, valor: `${v} cm` }));
+}
+
 interface Usuario {
   id: string;
   email: string;
@@ -88,7 +121,8 @@ export function EditarLocacao() {
   const [jaRetirada, setJaRetirada] = useState(false);
 
   // observações gerais da locação (ex: manga = 57 cm / bainha = 90 cm)
-  const [observacao, setObservacao] = useState("");
+  const [clienteDetalhe, setClienteDetalhe] = useState<ClienteDetalhe | null>(null);
+  const [observacaoSalva, setObservacaoSalva] = useState("");
 
   // Hora da retirada (agenda)
   const [dataOriginal, setDataOriginal] = useState("");
@@ -125,7 +159,7 @@ export function EditarLocacao() {
       setDataEvento(l.dataEvento.split("T")[0]);
       setDataRetirada(l.dataRetirada.split("T")[0]);
       setDataOriginal(l.dataRetirada.split("T")[0]);
-      setObservacao(l.observacao ?? "");
+      setObservacaoSalva(l.observacao ?? "");
       setDataDevolucaoPrevista(l.dataDevolucaoPrevista.split("T")[0]);
       setConsultor(l.consultor ?? "");
       setDesconto(l.desconto);
@@ -176,6 +210,21 @@ export function EditarLocacao() {
       })
     );
   }, [produtos, carregado]);
+
+  // carrega o cadastro completo do cliente escolhido (somente leitura)
+  useEffect(() => {
+    if (!clienteId) {
+      setClienteDetalhe(null);
+      return;
+    }
+    api
+      .get<ClienteDetalhe>(`/Clientes/${clienteId}`)
+      .then((r) => setClienteDetalhe(r.data))
+      .catch((erro) => {
+        console.error(erro);
+        setClienteDetalhe(null);
+      });
+  }, [clienteId]);
 
   function buscarHorarios(data: string, ignorarAgendamentoId: number | null) {
     if (!data) {
@@ -282,6 +331,10 @@ export function EditarLocacao() {
   const valorTotal = subtotal - desconto;
   const valorRestante = valorTotal - valorEntrada;
 
+  // medidas do cadastro viram a observação da locação (fica salva e sai no recibo)
+  const medidasCliente = medidasDoCliente(clienteDetalhe);
+  const observacao = medidasCliente.map((m) => `${m.nome} = ${m.valor}`).join("\n");
+
   async function handleSubmit(evento: React.FormEvent) {
     evento.preventDefault();
     if (enviando) return;
@@ -304,7 +357,8 @@ export function EditarLocacao() {
         dataRetirada,
         // null = não mexe na agenda; "" = tira da agenda; "HH:mm" = marca/remarca
         horaRetirada: dataRetirada === dataOriginal && horaRetirada === horaOriginal ? null : horaRetirada,
-        observacao: observacao.trim() || null,
+        // se o cadastro não carregou, mantém a observação que já estava salva
+        observacao: clienteDetalhe ? observacao || null : observacaoSalva || null,
         dataDevolucaoPrevista,
         consultor,
         desconto,
@@ -510,14 +564,19 @@ export function EditarLocacao() {
             ))}
           </ul>
 
-          <div style={{ marginTop: 16 }}>
+          <div className="campo" style={{ marginTop: 16 }}>
             <label>Observações gerais (ajustes do cliente)</label>
-            <textarea
-              value={observacao}
-              onChange={(e) => setObservacao(e.target.value)}
-              rows={4}
-              placeholder={"manga = 57 cm\nbainha = 90 cm"}
-              style={{ width: "100%", resize: "vertical" }}
+            <input
+              type="text"
+              value={medidasCliente.map((m) => `${m.nome} = ${m.valor}`).join("  /  ")}
+              placeholder={
+                !clienteDetalhe
+                  ? "Selecione um cliente para carregar as medidas"
+                  : "Cliente sem medidas cadastradas"
+              }
+              disabled
+              readOnly
+              style={{ cursor: "not-allowed", opacity: 0.85 }}
             />
           </div>
         </div>
