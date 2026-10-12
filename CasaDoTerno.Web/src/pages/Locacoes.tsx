@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../Services/API";
-import { useNavigate } from "react-router-dom";
-import { ehAdmin } from "../Services/permissoes";
+
 
 interface ItemLocacao {
   produtoId: number;
@@ -71,8 +70,7 @@ export function Locacoes() {
   const [dataEventoDe, setDataEventoDe] = useState("");
   const [dataEventoAte, setDataEventoAte] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todas");
-  const admin = ehAdmin();
-const navigate = useNavigate();
+
 
   useEffect(() => {
     api.get<Locacao[]>("/Locacoes").then((r) =>
