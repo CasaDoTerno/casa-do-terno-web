@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../Services/API";
 import { BuscaSelect } from "../components/BuscaSelect";
+import { ModalAviso } from "../components/ModalAviso";
+import { ModalHorarios } from "../components/ModalHorarios";
 
 interface Produto {
   id: number;
@@ -42,6 +44,19 @@ interface PecaCarrinho {
 
 const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Acessorio"];
 
+interface HorarioAgenda {
+  hora: string;
+  vagasRestantes: number;
+  disponivel: boolean;
+  motivo: string | null;
+}
+
+interface AvisoModal {
+  titulo: string;
+  mensagem: string;
+  dica?: string;
+}
+
 export function EditarLocacao() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -72,6 +87,23 @@ export function EditarLocacao() {
   const [carregado, setCarregado] = useState(false);
   const [jaRetirada, setJaRetirada] = useState(false);
 
+  // observações gerais da locação (ex: manga = 57 cm / bainha = 90 cm)
+  const [observacao, setObservacao] = useState("");
+
+  // Hora da retirada (agenda)
+  const [dataOriginal, setDataOriginal] = useState("");
+  const [agendamentoId, setAgendamentoId] = useState<number | null>(null);
+  const [horaOriginal, setHoraOriginal] = useState("");
+  const [horaRetirada, setHoraRetirada] = useState("");
+  const [horarios, setHorarios] = useState<HorarioAgenda[]>([]);
+  const [agendaAberta, setAgendaAberta] = useState(true);
+  const [agendaMensagem, setAgendaMensagem] = useState("");
+  const [carregandoHorarios, setCarregandoHorarios] = useState(false);
+  const [mostrarModalHorarios, setMostrarModalHorarios] = useState(false);
+
+  // Caixa de aviso no meio da tela
+  const [aviso, setAviso] = useState<AvisoModal | null>(null);
+
   function buscarProdutos() {
     api.get<Produto[]>("/Produtos").then((r) => {
       const disponiveis = r.data
@@ -92,6 +124,8 @@ export function EditarLocacao() {
       setClienteId(l.clienteId);
       setDataEvento(l.dataEvento.split("T")[0]);
       setDataRetirada(l.dataRetirada.split("T")[0]);
+      setDataOriginal(l.dataRetirada.split("T")[0]);
+      setObservacao(l.observacao ?? "");
       setDataDevolucaoPrevista(l.dataDevolucaoPrevista.split("T")[0]);
       setConsultor(l.consultor ?? "");
       setDesconto(l.desconto);
@@ -110,6 +144,16 @@ export function EditarLocacao() {
           valorLocacao: item.valorItem,
         }))
       );
+
+      // hora de retirada já marcada na agenda (404 = locação sem horário marcado)
+      api
+        .get(`/Agendamentos/por-locacao/${l.id}`)
+        .then((agenda) => {
+          setAgendamentoId(agenda.data.id);
+          setHoraOriginal(agenda.data.hora);
+          setHoraRetirada(agenda.data.hora);
+        })
+        .catch(() => {});
 
       if (l.eventoId) {
         api.get(`/Eventos/${l.eventoId}`).then((eventoResposta) => {
@@ -132,6 +176,46 @@ export function EditarLocacao() {
       })
     );
   }, [produtos, carregado]);
+
+  function buscarHorarios(data: string, ignorarAgendamentoId: number | null) {
+    if (!data) {
+      setHorarios([]);
+      setAgendaMensagem("");
+      setAgendaAberta(true);
+      return Promise.resolve();
+    }
+    setCarregandoHorarios(true);
+    return api
+      .get("/Agendamentos/horarios", {
+        params: { data, agendamentoIdIgnorar: ignorarAgendamentoId ?? undefined },
+      })
+      .then((r) => {
+        setHorarios(r.data.horarios ?? []);
+        setAgendaAberta(r.data.aberto !== false);
+        setAgendaMensagem(r.data.mensagem ?? "");
+      })
+      .catch((erro) => {
+        console.error(erro);
+        setHorarios([]);
+        setAgendaAberta(true);
+        setAgendaMensagem("Não foi possível consultar a agenda agora.");
+      })
+      .finally(() => setCarregandoHorarios(false));
+  }
+
+  // quando a data de retirada é trocada, mostra a grade de horários daquele dia
+  useEffect(() => {
+    if (!carregado || !dataRetirada) return;
+    buscarHorarios(dataRetirada, agendamentoId);
+
+    const agora = new Date();
+    const hoje = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
+    if (dataRetirada === dataOriginal || dataRetirada < hoje) return;
+
+    const espera = setTimeout(() => setMostrarModalHorarios(true), 400);
+    return () => clearTimeout(espera);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataRetirada, carregado]);
 
   useEffect(() => {
     const produto = produtos.find((p) => p.id === produtoSelecionado);
@@ -207,7 +291,9 @@ export function EditarLocacao() {
       return;
     }
 
-    const confirmar = window.confirm("Confirmar as alterações dessa locação?");
+    const confirmar = window.confirm(
+      "Confirmar as alterações dessa locação?" + (horaRetirada ? `\n\nRetirada às ${horaRetirada}` : "")
+    );
     if (!confirmar) return;
 
     setEnviando(true);
@@ -216,6 +302,9 @@ export function EditarLocacao() {
         clienteId,
         dataEvento,
         dataRetirada,
+        // null = não mexe na agenda; "" = tira da agenda; "HH:mm" = marca/remarca
+        horaRetirada: dataRetirada === dataOriginal && horaRetirada === horaOriginal ? null : horaRetirada,
+        observacao: observacao.trim() || null,
         dataDevolucaoPrevista,
         consultor,
         desconto,
@@ -233,7 +322,18 @@ export function EditarLocacao() {
       navigate("/retiradas");
     } catch (erro: any) {
       console.error(erro);
-      setMensagem(erro.response?.data || "Erro ao atualizar locação.");
+      const texto = typeof erro.response?.data === "string" ? erro.response.data : "Erro ao atualizar locação.";
+      if (erro.response?.status === 409) {
+        setAviso({
+          titulo: "Horário indisponível",
+          mensagem: texto,
+          dica: "Escolha outro horário de retirada. As alterações NÃO foram salvas.",
+        });
+        setHoraRetirada(dataRetirada === dataOriginal ? horaOriginal : "");
+        buscarHorarios(dataRetirada, agendamentoId);
+      } else {
+        setMensagem(texto);
+      }
     } finally {
       setEnviando(false);
     }
@@ -315,7 +415,13 @@ export function EditarLocacao() {
             </div>
             <div>
               <label>Retirada</label>
-              <input type="date" value={dataRetirada} onChange={(e) => setDataRetirada(e.target.value)} required />
+              <input
+                type="date"
+                value={dataRetirada}
+                onChange={(e) => setDataRetirada(e.target.value)}
+                max={dataEvento || undefined}
+                required
+              />
             </div>
             <div>
               <label>Devolução prevista</label>
@@ -323,10 +429,44 @@ export function EditarLocacao() {
                 type="date"
                 value={dataDevolucaoPrevista}
                 onChange={(e) => setDataDevolucaoPrevista(e.target.value)}
+                min={dataRetirada || undefined}
                 required
               />
             </div>
           </div>
+
+          {dataRetirada && (
+            <div style={{ marginTop: 12 }}>
+              <label>Hora da retirada (agenda)</label>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    buscarHorarios(dataRetirada, agendamentoId);
+                    setMostrarModalHorarios(true);
+                  }}
+                >
+                  {horaRetirada ? `Retirada às ${horaRetirada} — alterar` : "Escolher horário"}
+                </button>
+                {horaRetirada && (
+                  <button
+                    type="button"
+                    onClick={() => setHoraRetirada("")}
+                    style={{ background: "var(--chumbo-input)" }}
+                  >
+                    Remover horário
+                  </button>
+                )}
+              </div>
+              {!horaRetirada && (
+                <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "4px 0 0 0" }}>
+                  {horaOriginal
+                    ? "Sem horário — ao salvar, a retirada sai da agenda."
+                    : "Sem horário marcado — a retirada não entra na agenda."}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <h2>Peças</h2>
@@ -369,6 +509,17 @@ export function EditarLocacao() {
               </li>
             ))}
           </ul>
+
+          <div style={{ marginTop: 16 }}>
+            <label>Observações gerais (ajustes do cliente)</label>
+            <textarea
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
+              rows={4}
+              placeholder={"manga = 57 cm\nbainha = 90 cm"}
+              style={{ width: "100%", resize: "vertical" }}
+            />
+          </div>
         </div>
 
         <h2>Pagamento</h2>
@@ -407,6 +558,31 @@ export function EditarLocacao() {
       </form>
 
       {mensagem && <p>{mensagem}</p>}
+
+      {mostrarModalHorarios && dataRetirada && (
+        <ModalHorarios
+          data={dataRetirada}
+          horarios={horarios}
+          carregando={carregandoHorarios}
+          agendaAberta={agendaAberta}
+          mensagem={agendaMensagem}
+          horaSelecionada={horaRetirada}
+          onEscolher={(hora) => {
+            setHoraRetirada(hora);
+            setMostrarModalHorarios(false);
+          }}
+          onFechar={() => setMostrarModalHorarios(false)}
+        />
+      )}
+
+      {aviso && (
+        <ModalAviso
+          titulo={aviso.titulo}
+          mensagem={aviso.mensagem}
+          dica={aviso.dica}
+          onFechar={() => setAviso(null)}
+        />
+      )}
     </div>
   );
 }

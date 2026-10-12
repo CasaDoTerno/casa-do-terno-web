@@ -78,6 +78,7 @@ export function Locacao() {
   const [formaPagamentoEntrada, setFormaPagamentoEntrada] = useState(0);
   const [eventoId, setEventoId] = useState(0);
   const [ehPrincipalDoEvento, setEhPrincipalDoEvento] = useState(false);
+  const [observacao, setObservacao] = useState("");
 
   const [mostrarNovoEvento, setMostrarNovoEvento] = useState(false);
   const [novoEventoTipo, setNovoEventoTipo] = useState(0);
@@ -391,6 +392,7 @@ export function Locacao() {
         dataEvento,
         dataRetirada,
         horaRetirada: horaRetirada || null,
+        observacao: observacao.trim() || null,
         dataDevolucaoPrevista,
         consultor,
         desconto,
@@ -413,6 +415,7 @@ export function Locacao() {
       setHoraRetirada("");
       buscarHorarios(dataRetirada);
       setPecas([]);
+      setObservacao("");
       setDesconto(0);
       setValorEntrada(0);
       setEventoId(0);
@@ -763,6 +766,17 @@ export function Locacao() {
             </ul>
           )}
           {pecas.length === 0 && <p style={{ color: "var(--texto-suave)" }}>Nenhuma peça adicionada ainda.</p>}
+
+          <div style={{ marginTop: 16 }}>
+            <label>Observações gerais (ajustes do cliente)</label>
+            <textarea
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
+              rows={4}
+              placeholder={"manga = 57 cm\nbainha = 90 cm"}
+              style={{ width: "100%", resize: "vertical" }}
+            />
+          </div>
         </div>
 
         <h2>Pagamento</h2>

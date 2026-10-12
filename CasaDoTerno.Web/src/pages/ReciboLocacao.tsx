@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/API";
-import { Logo } from "../components/Logo";
-import { imprimirNaRede, montarBytesImpressao, type LinhaImpressao } from "../Services/impressaoRede";
 
 interface ItemLocacao {
   produtoId: number;
@@ -13,190 +11,323 @@ interface ItemLocacao {
 interface Locacao {
   id: number;
   clienteId: number;
+  eventoId: number | null;
+  dataReserva: string | null;
   dataEvento: string;
   dataRetirada: string;
+  dataRetiradaReal: string | null;
   dataDevolucaoPrevista: string;
+  dataDevolucaoReal: string | null;
   consultor: string | null;
-  desconto: number;
   valorTotal: number;
   valorEntrada: number;
   formaPagamentoEntrada: number;
+  dataPagamentoEntrada: string | null;
+  formaPagamentoRestante: number | null;
+  dataPagamentoRestante: string | null;
+  multaAtraso: number | null;
+  formaPagamentoMulta: number | null;
+  dataPagamentoMulta: string | null;
+  observacao?: string | null;
   itens: ItemLocacao[];
 }
 
 interface Cliente {
   id: number;
   nome: string;
-  telefone: string;
+  cpf: string | null;
+  telefone: string | null;
+  email: string | null;
+  endereco: string | null;
+  ombro: number | string | null;
+  manga: number | string | null;
+  abdomen: number | string | null;
+  cintura: number | string | null;
+  bainha: number | string | null;
+  coxa: number | string | null;
+  panturrilha: number | string | null;
 }
 
 interface Produto {
   id: number;
   modelo: string;
+  categoria: number;
+  referencia: string | null;
+  cor: string;
+  tamanho: string;
 }
 
+const nomesCategoria = ["Terno", "Calça", "Camisa", "Sapato", "Cinto", "Meia", "Relógio", "Gravata"];
 const nomesFormaPagamento = ["Dinheiro", "Cartão", "Pix", "Boleto"];
+
+// "2026-10-14T00:00:00" -> "14/10/2026" (sem passar por Date, pra não mudar o dia por fuso)
+function dataBR(valor: string | null | undefined) {
+  if (!valor) return "—";
+  const [ano, mes, dia] = valor.split("T")[0].split("-");
+  return `${dia}/${mes}/${ano}`;
+}
+
+function dinheiro(valor: number) {
+  return `R$ ${valor.toFixed(2).replace(".", ",")}`;
+}
+
+function forma(codigo: number | null | undefined) {
+  if (codigo === null || codigo === undefined) return "—";
+  return nomesFormaPagamento[codigo] ?? "—";
+}
+
+const ESTILO = `
+  .rc-folha {
+    background: #fff;
+    color: #000;
+    width: 194mm;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 6mm 7mm;
+    box-sizing: border-box;
+    border: 1px solid #000;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .rc-folha * { color: #000; box-sizing: border-box; }
+  .rc-topo { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 6px; }
+  .rc-loja { font-size: 17px; font-weight: 800; letter-spacing: 1px; }
+  .rc-sub { font-size: 10px; }
+  .rc-titulo { text-align: right; font-weight: 800; font-size: 13px; }
+  .rc-titulo div { font-weight: 400; font-size: 11px; }
+  .rc-secao { font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #000; margin: 7px 0 3px 0; }
+  .rc-grade { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px 14px; }
+  .rc-grade2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 14px; }
+  .rc-campo b { font-weight: 700; }
+  .rc-tabela { width: 100%; border-collapse: collapse; }
+  .rc-tabela th { text-align: left; font-size: 10px; border-bottom: 1px solid #000; padding: 2px 4px; }
+  .rc-tabela td { padding: 2px 4px; border-bottom: 1px solid #bbb; vertical-align: top; }
+  .rc-dir { text-align: right !important; white-space: nowrap; }
+  .rc-obs { border: 1px solid #000; padding: 3px 5px; white-space: pre-line; }
+  .rc-totais { margin-left: auto; width: 62mm; margin-top: 4px; }
+  .rc-totais div { display: flex; justify-content: space-between; padding: 1px 0; }
+  .rc-totais .rc-forte { font-weight: 800; font-size: 13px; border-top: 1px solid #000; margin-top: 2px; padding-top: 2px; }
+  .rc-assinaturas { display: flex; justify-content: space-around; margin-top: 16px; }
+  .rc-assinaturas div { width: 70mm; text-align: center; border-top: 1px solid #000; padding-top: 2px; font-size: 10px; }
+
+  @page { size: A4 portrait; margin: 8mm; }
+
+  @media print {
+    html, body { background: #fff !important; }
+    body * { visibility: hidden !important; }
+    .rc-folha, .rc-folha * { visibility: visible !important; }
+    .rc-folha { position: fixed; top: 0; left: 0; width: 194mm; margin: 0; }
+  }
+`;
 
 export function ReciboLocacao() {
   const { id } = useParams();
   const [locacao, setLocacao] = useState<Locacao | null>(null);
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [statusImpressao, setStatusImpressao] = useState("");
+  const [nomeEvento, setNomeEvento] = useState("");
+  const [horaRetirada, setHoraRetirada] = useState("");
 
   useEffect(() => {
     api.get(`/Locacoes/${id}`).then((r) => setLocacao(r.data));
     api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+    // hora marcada na agenda (404 = sem horário marcado)
+    api
+      .get(`/Agendamentos/por-locacao/${id}`)
+      .then((r) => setHoraRetirada(r.data.hora ?? ""))
+      .catch(() => {});
   }, [id]);
 
   useEffect(() => {
-    if (locacao) {
-      api.get(`/Clientes/${locacao.clienteId}`).then((r) => setCliente(r.data));
+    if (!locacao) return;
+    api.get(`/Clientes/${locacao.clienteId}`).then((r) => setCliente(r.data));
+    if (locacao.eventoId) {
+      api
+        .get(`/Eventos/${locacao.eventoId}`)
+        .then((r) => setNomeEvento(r.data.nome ?? ""))
+        .catch(() => {});
     }
   }, [locacao]);
 
-  function nomeProduto(produtoId: number) {
-    return produtos.find((p) => p.id === produtoId)?.modelo ?? `Produto #${produtoId}`;
-  }
-
-  async function imprimirNaTermicaDeRede() {
-    if (!locacao || !cliente) return;
-
-    const restanteCalc = locacao.valorTotal - locacao.valorEntrada;
-
-    const linhas: LinhaImpressao[] = [
-      { texto: "CASA DO TERNO", negrito: true, centralizado: true },
-      { texto: "Locacao & Venda de Ternos", centralizado: true },
-      { texto: "------------------------------" },
-      { texto: `RECIBO DE LOCACAO #${locacao.id}`, negrito: true },
-      { texto: "" },
-      { texto: `Cliente: ${cliente.nome}` },
-      { texto: `Telefone: ${cliente.telefone}` },
-      { texto: `Data do evento: ${new Date(locacao.dataEvento).toLocaleDateString("pt-BR")}` },
-      { texto: `Retirada: ${new Date(locacao.dataRetirada).toLocaleDateString("pt-BR")}` },
-      { texto: `Devolucao prevista: ${new Date(locacao.dataDevolucaoPrevista).toLocaleDateString("pt-BR")}` },
-    ];
-
-    if (locacao.consultor) {
-      linhas.push({ texto: `Consultor: ${locacao.consultor}` });
-    }
-
-    linhas.push({ texto: "" }, { texto: "PECAS", negrito: true });
-
-    locacao.itens.forEach((item) => {
-      linhas.push({ texto: `${nomeProduto(item.produtoId)} - R$ ${item.valorItem.toFixed(2)}` });
-      if (item.ajustes) linhas.push({ texto: `  Ajustes: ${item.ajustes}` });
-    });
-
-    linhas.push(
-      { texto: "" },
-      { texto: `Desconto: R$ ${locacao.desconto.toFixed(2)}` },
-      { texto: `TOTAL: R$ ${locacao.valorTotal.toFixed(2)}`, negrito: true },
-      { texto: `Entrada (${nomesFormaPagamento[locacao.formaPagamentoEntrada]}): R$ ${locacao.valorEntrada.toFixed(2)}` },
-      { texto: `RESTANTE (na retirada): R$ ${restanteCalc.toFixed(2)}`, negrito: true },
-      { texto: "" },
-      { texto: "O cliente declara estar ciente de que a(s) peca(s) deve(m) ser devolvida(s) ate a data prevista, em bom estado, sendo responsavel por qualquer dano, extravio ou atraso na devolucao." },
-      { texto: "" },
-      { texto: "" },
-      { texto: "_________________________", centralizado: true },
-      { texto: "Assinatura do Cliente", centralizado: true }
-    );
-
-    setStatusImpressao("Enviando...");
-    const bytes = await montarBytesImpressao(linhas);
-    const resultado = await imprimirNaRede(bytes);
-    setStatusImpressao(resultado.mensagem);
-  }
-
   if (!locacao || !cliente) return <p>Carregando...</p>;
 
-  const restante = locacao.valorTotal - locacao.valorEntrada;
+  function produto(produtoId: number) {
+    return produtos.find((p) => p.id === produtoId);
+  }
+
+  const subtotal = locacao.itens.reduce((soma, item) => soma + item.valorItem, 0);
+  const desconto = Math.max(0, subtotal - locacao.valorTotal);
+  const restantePago = locacao.dataPagamentoRestante !== null;
+  const restante = Math.max(0, locacao.valorTotal - locacao.valorEntrada);
+  const multa = locacao.multaAtraso ?? 0;
+  const multaPaga = multa > 0 && locacao.dataPagamentoMulta !== null;
+
+  const totalPago = locacao.valorEntrada + (restantePago ? restante : 0) + (multaPaga ? multa : 0);
+  const saldoAPagar = (restantePago ? 0 : restante) + (multa > 0 && !multaPaga ? multa : 0);
+
+  const medidas: [string, number | string | null][] = [
+    ["Ombro", cliente.ombro],
+    ["Manga", cliente.manga],
+    ["Abdômen", cliente.abdomen],
+    ["Cintura", cliente.cintura],
+    ["Bainha", cliente.bainha],
+    ["Coxa", cliente.coxa],
+    ["Panturrilha", cliente.panturrilha],
+  ];
+  const medidasPreenchidas = medidas.filter(([, v]) => v !== null && v !== "" && v !== undefined);
 
   return (
-    <div className="conteudo" style={{ maxWidth: 700, margin: "0 auto" }}>
-      <div className="no-imprimir" style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-        <button onClick={() => window.print()}>Imprimir (driver local)</button>
-        <button onClick={imprimirNaTermicaDeRede}>Imprimir na Térmica (rede)</button>
+    <div className="conteudo" style={{ maxWidth: 760, margin: "0 auto" }}>
+      <style>{ESTILO}</style>
+
+      <div className="no-imprimir" style={{ marginBottom: 16, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+        <button onClick={() => window.print()}>Imprimir</button>
+        <span style={{ color: "var(--texto-suave)", fontSize: 13 }}>
+          Sai na metade de cima de uma folha A4 (papel A4, escala 100%).
+        </span>
       </div>
-      {statusImpressao && <p className="no-imprimir">{statusImpressao}</p>}
 
-      <div className="recibo-card card">
-        <div style={{ marginBottom: 16 }}>
-          <Logo tamanho="grande" />
+      <div className="rc-folha">
+        <div className="rc-topo">
+          <div>
+            <div className="rc-loja">CASA DO TERNO</div>
+            <div className="rc-sub">Locação e venda de ternos — Visconde do Rio Branco/MG</div>
+          </div>
+          <div className="rc-titulo">
+            RECIBO DE LOCAÇÃO Nº {locacao.id}
+            <div>Data da locação: <b>{dataBR(locacao.dataReserva ?? locacao.dataPagamentoEntrada)}</b></div>
+          </div>
         </div>
-        <div className="recibo-titulo">Casa do Terno</div>
-        <div className="recibo-subtitulo">Recibo de Locação #{locacao.id}</div>
 
-        <div className="recibo-linha">
-          <span>Cliente</span>
-          <strong>{cliente.nome}</strong>
+        <div className="rc-secao" style={{ marginTop: 0 }}>Cliente</div>
+        <div className="rc-grade">
+          <div className="rc-campo">Nome: <b>{cliente.nome}</b></div>
+          <div className="rc-campo">CPF: <b>{cliente.cpf || "—"}</b></div>
+          <div className="rc-campo">Telefone: <b>{cliente.telefone || "—"}</b></div>
         </div>
-        <div className="recibo-linha">
-          <span>Telefone</span>
-          <span>{cliente.telefone}</span>
+        <div className="rc-grade2">
+          <div className="rc-campo">E-mail: <b>{cliente.email || "—"}</b></div>
+          <div className="rc-campo">Endereço: <b>{cliente.endereco || "—"}</b></div>
         </div>
-        <div className="recibo-linha">
-          <span>Data do evento</span>
-          <span>{new Date(locacao.dataEvento).toLocaleDateString("pt-BR")}</span>
-        </div>
-        <div className="recibo-linha">
-          <span>Retirada</span>
-          <span>{new Date(locacao.dataRetirada).toLocaleDateString("pt-BR")}</span>
-        </div>
-        <div className="recibo-linha">
-          <span>Devolução prevista</span>
-          <span>{new Date(locacao.dataDevolucaoPrevista).toLocaleDateString("pt-BR")}</span>
-        </div>
-        {locacao.consultor && (
-          <div className="recibo-linha">
-            <span>Consultor</span>
-            <span>{locacao.consultor}</span>
+        {medidasPreenchidas.length > 0 && (
+          <div className="rc-campo" style={{ marginTop: 1 }}>
+            Medidas:{" "}
+            {medidasPreenchidas.map(([nome, valor], i) => (
+              <span key={nome}>
+                {i > 0 && " · "}
+                {nome} <b>{valor}</b>
+              </span>
+            ))}
           </div>
         )}
 
-        <h2 style={{ marginTop: 24 }}>Peças</h2>
-        <table className="recibo-tabela" style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className="rc-secao">Datas</div>
+        <div className="rc-grade">
+          <div className="rc-campo">
+            Evento: <b>{dataBR(locacao.dataEvento)}</b>
+            {nomeEvento && <> ({nomeEvento})</>}
+          </div>
+          <div className="rc-campo">
+            Retirada: <b>{dataBR(locacao.dataRetirada)}{horaRetirada && ` às ${horaRetirada}`}</b>
+          </div>
+          <div className="rc-campo">
+            Devolução prevista: <b>{dataBR(locacao.dataDevolucaoPrevista)}</b>
+          </div>
+          {locacao.dataRetiradaReal && (
+            <div className="rc-campo">Retirada realizada: <b>{dataBR(locacao.dataRetiradaReal)}</b></div>
+          )}
+          {locacao.dataDevolucaoReal && (
+            <div className="rc-campo">Devolvido em: <b>{dataBR(locacao.dataDevolucaoReal)}</b></div>
+          )}
+          {locacao.consultor && <div className="rc-campo">Consultor: <b>{locacao.consultor}</b></div>}
+        </div>
+
+        <div className="rc-secao">Peças e ajustes</div>
+        <table className="rc-tabela">
           <thead>
             <tr>
-              <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid var(--borda)" }}>Peça</th>
-              <th style={{ textAlign: "left", padding: 8, borderBottom: "1px solid var(--borda)" }}>Ajustes</th>
-              <th style={{ textAlign: "right", padding: 8, borderBottom: "1px solid var(--borda)" }}>Valor</th>
+              <th>Peça</th>
+              <th>Ajustes</th>
+              <th className="rc-dir">Valor</th>
             </tr>
           </thead>
           <tbody>
-            {locacao.itens.map((item, index) => (
-              <tr key={index}>
-                <td style={{ padding: 8, borderBottom: "1px solid var(--borda)" }}>{nomeProduto(item.produtoId)}</td>
-                <td style={{ padding: 8, borderBottom: "1px solid var(--borda)" }}>{item.ajustes || "—"}</td>
-                <td style={{ padding: 8, textAlign: "right", borderBottom: "1px solid var(--borda)" }}>
-                  R$ {item.valorItem.toFixed(2)}
-                </td>
-              </tr>
-            ))}
+            {locacao.itens.map((item, index) => {
+              const p = produto(item.produtoId);
+              return (
+                <tr key={index}>
+                  <td>
+                    {p ? (
+                      <>
+                        {p.referencia ? `${p.referencia} — ` : ""}
+                        {nomesCategoria[p.categoria] ?? ""} {p.modelo} · {p.cor} · Tam. {p.tamanho}
+                      </>
+                    ) : (
+                      `Produto #${item.produtoId}`
+                    )}
+                  </td>
+                  <td>{item.ajustes || "—"}</td>
+                  <td className="rc-dir">{dinheiro(item.valorItem)}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
-        <div className="recibo-linha" style={{ marginTop: 16 }}>
-          <span>Desconto</span>
-          <span>R$ {locacao.desconto.toFixed(2)}</span>
+
+        {locacao.observacao && (
+          <>
+            <div className="rc-secao">Observações / ajustes gerais</div>
+            <div className="rc-obs">{locacao.observacao}</div>
+          </>
+        )}
+
+        <div className="rc-secao">Pagamentos</div>
+        <table className="rc-tabela">
+          <thead>
+            <tr>
+              <th>Descrição</th>
+              <th>Forma</th>
+              <th>Data</th>
+              <th className="rc-dir">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Entrada</td>
+              <td>{forma(locacao.formaPagamentoEntrada)}</td>
+              <td>{dataBR(locacao.dataPagamentoEntrada)}</td>
+              <td className="rc-dir">{dinheiro(locacao.valorEntrada)}</td>
+            </tr>
+            <tr>
+              <td>Restante (na retirada)</td>
+              <td>{restantePago ? forma(locacao.formaPagamentoRestante) : "—"}</td>
+              <td>{restantePago ? dataBR(locacao.dataPagamentoRestante) : "Pendente"}</td>
+              <td className="rc-dir">{dinheiro(restante)}</td>
+            </tr>
+            {multa > 0 && (
+              <tr>
+                <td>Multa por atraso</td>
+                <td>{multaPaga ? forma(locacao.formaPagamentoMulta) : "—"}</td>
+                <td>{multaPaga ? dataBR(locacao.dataPagamentoMulta) : "Pendente"}</td>
+                <td className="rc-dir">{dinheiro(multa)}</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        <div className="rc-totais">
+          <div><span>Subtotal</span><span>{dinheiro(subtotal)}</span></div>
+          {desconto > 0.005 && <div><span>Desconto</span><span>- {dinheiro(desconto)}</span></div>}
+          <div className="rc-forte"><span>Total</span><span>{dinheiro(locacao.valorTotal)}</span></div>
+          {multa > 0 && <div><span>Multa por atraso</span><span>{dinheiro(multa)}</span></div>}
+          <div><span>Total pago</span><span>{dinheiro(totalPago)}</span></div>
+          <div><span>Saldo a pagar</span><span><b>{dinheiro(saldoAPagar)}</b></span></div>
         </div>
-        <div className="recibo-linha" style={{ fontWeight: 800, fontSize: 18 }}>
-          <span>Total</span>
-          <span>R$ {locacao.valorTotal.toFixed(2)}</span>
-        </div>
-        <div className="recibo-linha">
-          <span>Entrada ({nomesFormaPagamento[locacao.formaPagamentoEntrada]})</span>
-          <span>R$ {locacao.valorEntrada.toFixed(2)}</span>
-        </div>
-        <div className="recibo-linha" style={{ border: "none", fontWeight: 700, color: "var(--verde)" }}>
-          <span>Restante (na retirada)</span>
-          <span>R$ {restante.toFixed(2)}</span>
-        </div>
-        <p style={{ fontSize: 11, color: "var(--texto-suave)", marginTop: 24 }}>
-          O cliente declara estar ciente de que a(s) peça(s) deve(m) ser devolvida(s) até a data prevista,
-          em bom estado, sendo responsável por qualquer dano, extravio ou atraso na devolução.
-        </p>
-        <div className="assinatura-linha" style={{ marginTop: 40, paddingTop: 8, textAlign: "center", borderTop: "1px solid var(--borda)", maxWidth: 320, marginLeft: "auto", marginRight: "auto" }}>
-          Assinatura do Cliente
+
+        <div className="rc-assinaturas">
+          <div>Assinatura do cliente</div>
+          <div>Casa do Terno</div>
         </div>
       </div>
     </div>

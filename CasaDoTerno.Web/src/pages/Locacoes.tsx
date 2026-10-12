@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../Services/API";
+import { useNavigate } from "react-router-dom";
 import { ehAdmin } from "../Services/permissoes";
 
 interface ItemLocacao {
   produtoId: number;
   ajustes: string | null;
+}
+
+interface Evento {
+  id: number;
+  nome: string;
 }
 
 interface Locacao {
@@ -19,6 +25,8 @@ interface Locacao {
   valorTotal: number;
   itens: ItemLocacao[];
   dataCancelamento: string | null;
+  eventoId: number | null;
+  observacao?: string | null;
 }
 
 interface Cliente {
@@ -32,6 +40,11 @@ interface Produto {
   referencia: string | null;
   cor: string;
   tamanho: string;
+}
+
+// tira acento e maiúsculas pra a busca achar "calca" em "Calça"
+function normalizar(texto: string) {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 }
 
 function statusDaLocacao(locacao: Locacao): { texto: string; cor: string } {
@@ -51,47 +64,29 @@ export function Locacoes() {
   const [locacoes, setLocacoes] = useState<Locacao[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [eventos, setEventos] = useState<Evento[]>([]);
   const [busca, setBusca] = useState("");
+  const [buscaEvento, setBuscaEvento] = useState("");
+  const [buscaPeca, setBuscaPeca] = useState("");
+  const [dataEventoDe, setDataEventoDe] = useState("");
+  const [dataEventoAte, setDataEventoAte] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todas");
   const admin = ehAdmin();
+const navigate = useNavigate();
 
+  useEffect(() => {
+    api.get<Locacao[]>("/Locacoes").then((r) =>
+      setLocacoes(r.data.sort((a, b) => new Date(b.dataEvento).getTime() - new Date(a.dataEvento).getTime()))
+    );
+    api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
+    api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+    api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
+  }, []);
 
-function carregarLocacoes() {
-  api.get<Locacao[]>("/Locacoes").then((r) =>
-    setLocacoes(r.data.sort((a, b) => new Date(b.dataEvento).getTime() - new Date(a.dataEvento).getTime()))
-  );
-}
-
-useEffect(() => {
-  carregarLocacoes();
-  api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
-  api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
-}, []);
-async function desfazerDevolucao(id: number) {
-  const confirmar = window.confirm(
-    "Tem certeza que quer DESFAZER a devolução dessa locação?\n\nEla volta a aparecer como pendente de devolução."
-  );
-  if (!confirmar) return;
-  try {
-    await api.put(`/Locacoes/${id}/desfazer-devolucao`);
-    carregarLocacoes();
-  } catch (erro: any) {
-    alert(erro.response?.data || "Erro ao desfazer devolução.");
+  function nomeEvento(eventoId: number | null) {
+    if (eventoId === null) return "";
+    return eventos.find((e) => e.id === eventoId)?.nome ?? "";
   }
-}
-
-async function desfazerRetirada(id: number) {
-  const confirmar = window.confirm(
-    "Tem certeza que quer DESFAZER a retirada dessa locação?\n\nEla volta a aparecer como pendente de retirada."
-  );
-  if (!confirmar) return;
-  try {
-    await api.put(`/Locacoes/${id}/desfazer-retirada`);
-    carregarLocacoes();
-  } catch (erro: any) {
-    alert(erro.response?.data || "Erro ao desfazer retirada.");
-  }
-}
 
   function nomeCliente(clienteId: number) {
     return clientes.find((c) => c.id === clienteId)?.nome ?? `Cliente #${clienteId}`;
@@ -105,7 +100,21 @@ async function desfazerRetirada(id: number) {
   }
 
   const locacoesFiltradas = locacoes.filter((locacao) => {
-    const bateBusca = nomeCliente(locacao.clienteId).toLowerCase().includes(busca.toLowerCase());
+    const bateBusca = normalizar(nomeCliente(locacao.clienteId)).includes(normalizar(busca));
+
+    const bateEvento =
+      normalizar(buscaEvento) === "" || normalizar(nomeEvento(locacao.eventoId)).includes(normalizar(buscaEvento));
+
+    // busca em todas as peças da locação: referência, modelo, cor, tamanho e ajustes
+    const bateTerno =
+      normalizar(buscaPeca) === "" ||
+      locacao.itens.some((item) =>
+        normalizar(`${descricaoProduto(item.produtoId)} ${item.ajustes ?? ""}`).includes(normalizar(buscaPeca))
+      );
+
+    const diaDoEvento = locacao.dataEvento.split("T")[0];
+    const bateData =
+      (dataEventoDe === "" || diaDoEvento >= dataEventoDe) && (dataEventoAte === "" || diaDoEvento <= dataEventoAte);
 
     const status = statusDaLocacao(locacao);
     const bateStatus =
@@ -114,8 +123,20 @@ async function desfazerRetirada(id: number) {
       (filtroStatus === "aguardando-devolucao" && status.texto.startsWith("Retirada")) ||
       (filtroStatus === "devolvidas" && status.texto === "Devolvida");
 
-    return bateBusca && bateStatus;
+    return bateBusca && bateEvento && bateTerno && bateData && bateStatus;
   });
+
+  const temFiltro =
+    busca !== "" || buscaEvento !== "" || buscaPeca !== "" || dataEventoDe !== "" || dataEventoAte !== "" || filtroStatus !== "todas";
+
+  function limparFiltros() {
+    setBusca("");
+    setBuscaEvento("");
+    setBuscaPeca("");
+    setDataEventoDe("");
+    setDataEventoAte("");
+    setFiltroStatus("todas");
+  }
 
   return (
     <div>
@@ -132,6 +153,37 @@ async function desfazerRetirada(id: number) {
           />
         </div>
         <div className="campo">
+          <label>Buscar por evento</label>
+          <input
+            type="text"
+            placeholder="Nome do evento..."
+            value={buscaEvento}
+            onChange={(e) => setBuscaEvento(e.target.value)}
+          />
+        </div>
+        <div className="campo">
+          <label>Buscar por terno / peça</label>
+          <input
+            type="text"
+            placeholder="Referência, modelo, cor, tamanho..."
+            value={buscaPeca}
+            onChange={(e) => setBuscaPeca(e.target.value)}
+          />
+        </div>
+        <div className="campo">
+          <label>Data do evento — de</label>
+          <input type="date" value={dataEventoDe} onChange={(e) => setDataEventoDe(e.target.value)} />
+        </div>
+        <div className="campo">
+          <label>Data do evento — até</label>
+          <input
+            type="date"
+            value={dataEventoAte}
+            min={dataEventoDe || undefined}
+            onChange={(e) => setDataEventoAte(e.target.value)}
+          />
+        </div>
+        <div className="campo">
           <label>Status</label>
           <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
             <option value="todas">Todas</option>
@@ -140,7 +192,16 @@ async function desfazerRetirada(id: number) {
             <option value="devolvidas">Devolvidas</option>
           </select>
         </div>
+        {temFiltro && (
+          <div className="campo" style={{ alignSelf: "flex-end" }}>
+            <button type="button" onClick={limparFiltros}>Limpar filtros</button>
+          </div>
+        )}
       </div>
+
+      <p style={{ color: "var(--texto-suave)", fontSize: 13, margin: "0 0 12px 0" }}>
+        {locacoesFiltradas.length} de {locacoes.length} locação(ões)
+      </p>
 
       {locacoesFiltradas.length === 0 && (
         <p style={{ color: "var(--texto-suave)" }}>Nenhuma locação encontrada.</p>
@@ -155,7 +216,8 @@ async function desfazerRetirada(id: number) {
                 <div>
                   <div style={{ fontSize: 17, fontWeight: 700 }}>{nomeCliente(locacao.clienteId)}</div>
                   <div style={{ color: "var(--texto-suave)", fontSize: 13, marginTop: 2 }}>
-                    Locação #{locacao.id} — evento em {locacao.dataEvento.split("T")[0]}
+                    Locação #{locacao.id} — evento em {locacao.dataEvento.split("T")[0].split("-").reverse().join("/")}
+                    {nomeEvento(locacao.eventoId) && ` — ${nomeEvento(locacao.eventoId)}`}
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
@@ -173,33 +235,16 @@ async function desfazerRetirada(id: number) {
                 ))}
               </div>
 
-<div style={{ display: "flex", gap: 12, marginTop: 12 }}>
-  <Link to={`/locacoes/editar/${locacao.id}`}>Editar</Link>
-  <Link to={`/locacoes/imprimir/${locacao.id}`}>Imprimir</Link>
-</div>
+              {locacao.observacao && (
+                <div style={{ marginTop: 8, fontSize: 13, color: "var(--texto-suave)", whiteSpace: "pre-line" }}>
+                  <strong>Obs.:</strong> {locacao.observacao}
+                </div>
+              )}
 
-{admin && (
-  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-    {locacao.dataDevolucaoReal !== null && (
-      <button
-        type="button"
-        onClick={() => desfazerDevolucao(locacao.id)}
-        style={{ fontSize: 12, background: "#7f1d1d", color: "#fecaca" }}
-      >
-        Desfazer devolução
-      </button>
-    )}
-    {locacao.dataRetiradaReal !== null && locacao.dataDevolucaoReal === null && (
-      <button
-        type="button"
-        onClick={() => desfazerRetirada(locacao.id)}
-        style={{ fontSize: 12, background: "#7f1d1d", color: "#fecaca" }}
-      >
-        Desfazer retirada
-      </button>
-    )}
-  </div>
-)}
+              <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+                <Link to={`/locacoes/editar/${locacao.id}`}>Editar</Link>
+                <Link to={`/locacoes/imprimir/${locacao.id}`}>Imprimir</Link>
+              </div>
             </div>
           );
         })}

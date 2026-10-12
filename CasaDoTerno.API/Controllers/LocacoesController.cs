@@ -57,6 +57,7 @@ public class LocacoesController : ControllerBase
             l.CriadoPor,
             l.EditadoPor,
             l.DataEdicao,
+            l.Observacao,
             Itens = l.Itens
         }).ToList());
     }
@@ -76,6 +77,7 @@ public class LocacoesController : ControllerBase
         public List<LocacaoService.ItemLocacaoEntrada> Itens { get; set; } = new();
         public int? EventoId { get; set; }
         public bool EhLocacaoPrincipalDoEvento { get; set; }
+        public string? Observacao { get; set; }
     }
 
     [HttpPost]
@@ -130,9 +132,9 @@ public class LocacoesController : ControllerBase
             if (agendamento != null) _agenda.Descartar(agendamento.Id); // devolve a vaga
             return BadRequest(resultado.mensagem);
         }
-
         var locacao = resultado.locacao!;
         locacao.CriadoPor = User.Identity?.Name;
+        locacao.Observacao = string.IsNullOrWhiteSpace(request.Observacao) ? null : request.Observacao.Trim();
         _context.SaveChanges();
 
         if (reservaDoClienteId.HasValue)
@@ -236,6 +238,7 @@ public class LocacoesController : ControllerBase
         public List<LocacaoService.ItemLocacaoEntrada> Itens { get; set; } = new();
         public int? EventoId { get; set; }
         public bool EhLocacaoPrincipalDoEvento { get; set; }
+        public string? Observacao { get; set; }
     }
 
     [HttpPut("{id}")]
@@ -277,11 +280,10 @@ public class LocacoesController : ControllerBase
 
         if (!sucesso)
             return BadRequest(mensagem);
-
         locacao!.EditadoPor = User.Identity?.Name;
         locacao.DataEdicao = DateTime.Now;
+        locacao.Observacao = string.IsNullOrWhiteSpace(request.Observacao) ? null : request.Observacao.Trim();
         _context.SaveChanges();
-
         // agenda acompanha a locação
         int? agendamentoId = atual?.Id;
 

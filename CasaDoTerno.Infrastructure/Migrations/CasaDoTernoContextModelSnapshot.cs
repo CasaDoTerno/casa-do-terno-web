@@ -566,6 +566,9 @@ namespace CasaDoTerno.Infrastructure.Migrations
                     b.Property<decimal>("MultaAtraso")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("Observacao")
+                        .HasColumnType("text");
+
                     b.Property<bool>("Pronta")
                         .HasColumnType("boolean");
 

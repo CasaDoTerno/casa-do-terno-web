@@ -37,6 +37,7 @@ public class Locacao
     public FormaPagamento? FormaPagamentoMulta { get; set; }
     public DateTime? DataPagamentoMulta { get; set; }
     public DateTime? DataCancelamento { get; set; }
+    public string? Observacao { get; set; }
 
     public bool EstaAtrasada()
     {
