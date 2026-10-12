@@ -81,9 +81,10 @@ export function Locacoes() {
     api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
   }, []);
 
+  // nome do evento; "" = locação sem evento
   function nomeEvento(eventoId: number | null) {
     if (eventoId === null) return "";
-    return eventos.find((e) => e.id === eventoId)?.nome ?? "";
+    return eventos.find((e) => e.id === eventoId)?.nome ?? `Evento #${eventoId}`;
   }
 
   function nomeCliente(clienteId: number) {
@@ -215,7 +216,14 @@ export function Locacoes() {
                   <div style={{ fontSize: 17, fontWeight: 700 }}>{nomeCliente(locacao.clienteId)}</div>
                   <div style={{ color: "var(--texto-suave)", fontSize: 13, marginTop: 2 }}>
                     Locação #{locacao.id} — evento em {locacao.dataEvento.split("T")[0].split("-").reverse().join("/")}
-                    {nomeEvento(locacao.eventoId) && ` — ${nomeEvento(locacao.eventoId)}`}
+                  </div>
+                  <div style={{ fontSize: 13, marginTop: 2 }}>
+                    <span style={{ color: "var(--texto-suave)" }}>Evento: </span>
+                    {locacao.eventoId !== null ? (
+                      <strong>{nomeEvento(locacao.eventoId)}</strong>
+                    ) : (
+                      <span style={{ color: "var(--texto-suave)" }}>sem evento vinculado</span>
+                    )}
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
