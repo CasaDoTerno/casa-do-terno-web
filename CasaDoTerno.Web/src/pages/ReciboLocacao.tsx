@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../Services/API";
+import logoImagem from "../assets/logo.png";
+import { imprimirNaRede, montarBytesImpressao, type LinhaImpressao } from "../Services/impressaoRede";
 
 interface ItemLocacao {
   produtoId: number;
@@ -66,7 +68,10 @@ function dataBR(valor: string | null | undefined) {
   const [ano, mes, dia] = valor.split("T")[0].split("-");
   return `${dia}/${mes}/${ano}`;
 }
-
+// a térmica não imprime acento direito: tira acentos e cedilha
+function semAcento(texto: string) {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
 function dinheiro(valor: number) {
   return `R$ ${valor.toFixed(2).replace(".", ",")}`;
 }
@@ -128,6 +133,7 @@ export function ReciboLocacao() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [nomeEvento, setNomeEvento] = useState("");
   const [horaRetirada, setHoraRetirada] = useState("");
+  const [statusImpressao, setStatusImpressao] = useState("");
 
   useEffect(() => {
     api.get(`/Locacoes/${id}`).then((r) => setLocacao(r.data));
@@ -176,18 +182,80 @@ export function ReciboLocacao() {
     ["Panturrilha", cliente.panturrilha],
   ];
   const medidasPreenchidas = medidas.filter(([, v]) => v !== null && v !== "" && v !== undefined);
+  // recibo compacto pra térmica de rede (comprovante de pagamento pro cliente)
+async function imprimirNaTermicaDeRede() {
+  if (!locacao || !cliente) return;
+
+  const linhas: LinhaImpressao[] = [
+    { texto: "CASA DO TERNO", negrito: true, centralizado: true },
+    { texto: "Locacao & Venda de Ternos", centralizado: true },
+    { texto: "------------------------------" },
+    { texto: "RECIBO DE PAGAMENTO", negrito: true, centralizado: true },
+    { texto: "" },
+    { texto: `Locacao no: ${locacao.id}` },
+    { texto: `Data: ${dataBR(locacao.dataReserva ?? locacao.dataPagamentoEntrada)}` },
+    { texto: `Cliente: ${semAcento(cliente.nome)}` },
+    { texto: `Retirada: ${dataBR(locacao.dataRetirada)}${horaRetirada ? " " + horaRetirada : ""}` },
+    { texto: `Devolucao: ${dataBR(locacao.dataDevolucaoPrevista)}` },
+    { texto: "------------------------------" },
+    { texto: "PECAS", negrito: true },
+  ];
+
+  locacao.itens.forEach((item) => {
+    const p = produto(item.produtoId);
+    const nome = p ? `${p.referencia ? p.referencia + " - " : ""}${p.modelo}` : `Produto ${item.produtoId}`;
+    linhas.push({ texto: semAcento(nome) });
+  });
+
+  linhas.push(
+    { texto: "------------------------------" },
+    { texto: "PAGAMENTOS", negrito: true },
+    { texto: `Entrada ${dataBR(locacao.dataPagamentoEntrada)}` },
+    { texto: `  ${semAcento(forma(locacao.formaPagamentoEntrada))}: ${dinheiro(locacao.valorEntrada)}` }
+  );
+
+  if (restantePago) {
+    linhas.push(
+      { texto: `Restante ${dataBR(locacao.dataPagamentoRestante)}` },
+      { texto: `  ${semAcento(forma(locacao.formaPagamentoRestante))}: ${dinheiro(restante)}` }
+    );
+  }
+
+  if (multaPaga) {
+    linhas.push(
+      { texto: `Multa ${dataBR(locacao.dataPagamentoMulta)}` },
+      { texto: `  ${semAcento(forma(locacao.formaPagamentoMulta))}: ${dinheiro(multa)}` }
+    );
+  }
+
+  linhas.push(
+    { texto: "------------------------------" },
+    { texto: `Total: ${dinheiro(locacao.valorTotal)}` },
+    { texto: `Total pago: ${dinheiro(totalPago)}`, negrito: true },
+    { texto: `Saldo a pagar: ${dinheiro(saldoAPagar)}`, negrito: true },
+    { texto: "" },
+    { texto: "Obrigado pela preferencia!", centralizado: true },
+    { texto: "" }
+  );
+
+  setStatusImpressao("Enviando...");
+  const bytes = await montarBytesImpressao(linhas, logoImagem);
+  const resultado = await imprimirNaRede(bytes);
+  setStatusImpressao(resultado.mensagem);
+}
 
   return (
     <div className="conteudo" style={{ maxWidth: 760, margin: "0 auto" }}>
       <style>{ESTILO}</style>
 
       <div className="no-imprimir" style={{ marginBottom: 16, display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-        <button onClick={() => window.print()}>Imprimir</button>
+        <button onClick={() => window.print()}>Imprimir (A4 — meia folha)</button>
+        <button onClick={imprimirNaTermicaDeRede}>Imprimir na Térmica (rede)</button>
         <span style={{ color: "var(--texto-suave)", fontSize: 13 }}>
           Sai na metade de cima de uma folha A4 (papel A4, escala 100%).
         </span>
       </div>
-
+      {statusImpressao && <p className="no-imprimir">{statusImpressao}</p>}
       <div className="rc-folha">
         <div className="rc-topo">
           <div>

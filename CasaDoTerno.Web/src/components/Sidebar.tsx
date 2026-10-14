@@ -102,6 +102,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
             { to: "/eventos", label: "Listar Eventos" },
             { to: "/rastreabilidade", label: "Rastreabilidade" },
             { to: "/agendamentos", label: "Agendamentos" },
+            { to: "/devolvidos", label: "Devolvidos" },
           ]}
           onFechar={onFechar}
         />
