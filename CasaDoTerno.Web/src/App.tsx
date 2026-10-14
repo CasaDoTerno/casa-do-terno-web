@@ -76,6 +76,7 @@ import { DespesasRecorrentes } from "./pages/DespesasRecorrentes";
 import { Rastreabilidade } from "./pages/Rastreabilidade";
 import { Agendamentos } from "./pages/Agendamentos";
 import { DevolvidosSemana } from "./pages/DevolvidosSemana";
+import { ListaCompras } from "./pages/ListaCompras";
 
 
 function App() {
@@ -170,6 +171,7 @@ function App() {
                     <Route path="/rastreabilidade" element={<Rastreabilidade />} />
                     <Route path="/agendamentos" element={<Agendamentos />} />
                     <Route path="/devolvidos" element={<DevolvidosSemana />} />
+                    <Route path="/lista-compras" element={<ListaCompras />} />
 
 
                   </Routes>

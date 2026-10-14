@@ -37,5 +37,7 @@ public class CasaDoTernoContext : IdentityDbContext<IdentityUser>, ICasaDoTernoC
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; } = null!;
     public DbSet<Agendamento> Agendamentos { get; set; } = null!;
     public DbSet<DiaSemAtendimento> DiasSemAtendimento { get; set; } = null!;
+    public DbSet<CategoriaListaCompra> CategoriasListaCompra { get; set; }
+    public DbSet<ItemListaCompra> ItensListaCompra { get; set; }
 
 }

@@ -77,6 +77,23 @@ namespace CasaDoTerno.Infrastructure.Migrations
                     b.ToTable("Agendamentos");
                 });
 
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.CategoriaListaCompra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CategoriasListaCompra");
+                });
+
             modelBuilder.Entity("CasaDoTerno.Domain.Entities.Cliente", b =>
                 {
                     b.Property<int>("Id")
@@ -405,6 +422,57 @@ namespace CasaDoTerno.Infrastructure.Migrations
                     b.HasIndex("CompraId");
 
                     b.ToTable("ItensCompra");
+                });
+
+            modelBuilder.Entity("CasaDoTerno.Domain.Entities.ItemListaCompra", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoriaCompraId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("Comprado")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Cor")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CriadoEm")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("CriadoPor")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("DataCompra")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Descricao")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Mes")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ProdutoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantidade")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Tamanho")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("ValorEstimado")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ItensListaCompra");
                 });
 
             modelBuilder.Entity("CasaDoTerno.Domain.Entities.ItemLocacao", b =>
