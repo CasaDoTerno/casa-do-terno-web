@@ -80,6 +80,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
             { to: "/compra", label: "Compras" },
             { to: "/compras/listagem", label: "Listar Compras" },
             { to: "/estoque-baixo", label: "Estoque Baixo" },
+            { to: "/lista-compras", label: "Lista de Compras" },
             { to: "/importar-produtos", label: "Importar Produtos" },
             { to: "/cadastro-variacoes", label: "Cadastro com Variações" },
             { to: "/produtos-mais-movimentados", label: "Mais Alugados/Vendidos" },
