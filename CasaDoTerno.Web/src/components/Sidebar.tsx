@@ -77,6 +77,7 @@ export function Sidebar({ aberta, onFechar }: SidebarProps) {
             { to: "/produtos", label: "Produtos" },
             { to: "/cadastro-produto", label: "Cadastrar Produto" },
             { to: "/disponibilidade", label: "Disponibilidade" },
+            { to: "/conferencia-estoque", label: "Conferência de Estoque" },
             { to: "/compra", label: "Compras" },
             { to: "/compras/listagem", label: "Listar Compras" },
             { to: "/estoque-baixo", label: "Estoque Baixo" },

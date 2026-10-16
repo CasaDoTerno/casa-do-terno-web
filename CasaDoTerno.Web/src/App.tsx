@@ -77,6 +77,7 @@ import { Rastreabilidade } from "./pages/Rastreabilidade";
 import { Agendamentos } from "./pages/Agendamentos";
 import { DevolvidosSemana } from "./pages/DevolvidosSemana";
 import { ListaCompras } from "./pages/ListaCompras";
+import { ConferenciaEstoque } from "./pages/ConferenciaEstoque";
 
 
 function App() {
@@ -172,6 +173,7 @@ function App() {
                     <Route path="/agendamentos" element={<Agendamentos />} />
                     <Route path="/devolvidos" element={<DevolvidosSemana />} />
                     <Route path="/lista-compras" element={<ListaCompras />} />
+                    <Route path="/conferencia-estoque" element={<ConferenciaEstoque />} />
 
 
                   </Routes>
