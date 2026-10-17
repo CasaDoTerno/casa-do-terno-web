@@ -10,6 +10,7 @@ interface ItemLocacao {
 interface Locacao {
   id: number;
   clienteId: number;
+  eventoId: number | null;
   dataReserva: string | null;
   dataEvento: string;
   dataRetirada: string;
@@ -21,6 +22,18 @@ interface Cliente {
   id: number;
   nome: string;
   telefone: string;
+  ombro?: number | string | null;
+  manga?: number | string | null;
+  abdomen?: number | string | null;
+  cintura?: number | string | null;
+  bainha?: number | string | null;
+  coxa?: number | string | null;
+  panturrilha?: number | string | null;
+}
+
+interface Evento {
+  id: number;
+  nome: string;
 }
 
 interface Produto {
@@ -63,6 +76,7 @@ export function ImprimirRetiradasSemana() {
   const [locacoes, setLocacoes] = useState<Locacao[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [eventos, setEventos] = useState<Evento[]>([]);
   const [dataReferencia, setDataReferencia] = useState(hojeISO);
   const [modo, setModo] = useState<Modo>("semana");
   const [novasDesde, setNovasDesde] = useState(hojeISO);
@@ -71,6 +85,7 @@ export function ImprimirRetiradasSemana() {
     api.get<Locacao[]>("/Locacoes").then((r) => setLocacoes(r.data));
     api.get<Cliente[]>("/Clientes").then((r) => setClientes(r.data));
     api.get<Produto[]>("/Produtos").then((r) => setProdutos(r.data));
+    api.get<Evento[]>("/Eventos").then((r) => setEventos(r.data));
   }, []);
 
   function nomeCliente(clienteId: number) {
@@ -79,6 +94,31 @@ export function ImprimirRetiradasSemana() {
 
   function telefoneCliente(clienteId: number) {
     return clientes.find((c) => c.id === clienteId)?.telefone ?? "";
+  }
+
+  // nome do evento; "" = locação sem evento
+  function nomeEvento(eventoId: number | null) {
+    if (eventoId === null) return "";
+    return eventos.find((e) => e.id === eventoId)?.nome ?? "";
+  }
+
+  // "Manga = 57 cm · Bainha = 90 cm" (só as medidas preenchidas no cadastro)
+  function medidasDoCliente(clienteId: number) {
+    const c = clientes.find((x) => x.id === clienteId);
+    if (!c) return "";
+    const todas: [string, number | string | null | undefined][] = [
+      ["Ombro", c.ombro],
+      ["Manga", c.manga],
+      ["Abdômen", c.abdomen],
+      ["Cintura", c.cintura],
+      ["Bainha", c.bainha],
+      ["Coxa", c.coxa],
+      ["Panturrilha", c.panturrilha],
+    ];
+    return todas
+      .filter(([, v]) => v !== null && v !== undefined && String(v).trim() !== "")
+      .map(([nome, v]) => `${nome} = ${v} cm`)
+      .join(" · ");
   }
 
   function descricaoProduto(produtoId: number) {
@@ -176,9 +216,13 @@ export function ImprimirRetiradasSemana() {
             <strong style={{ fontSize: 16 }}>{nomeCliente(locacao.clienteId)}</strong>
             <span>{telefoneCliente(locacao.clienteId)}</span>
           </div>
+          {medidasDoCliente(locacao.clienteId) && (
+            <div style={{ fontSize: 13, marginTop: 2 }}>Medidas: {medidasDoCliente(locacao.clienteId)}</div>
+          )}
           <div style={{ marginTop: 4 }}>
             Retirada: <strong>{new Date(locacao.dataRetirada).toLocaleDateString("pt-BR")}</strong>
             {" — "}Evento: {new Date(locacao.dataEvento).toLocaleDateString("pt-BR")}
+            {nomeEvento(locacao.eventoId) && <strong> ({nomeEvento(locacao.eventoId)})</strong>}
             {" — "}
             <strong style={{ color: locacao.dataRetiradaReal !== null ? "#166534" : "#b91c1c" }}>
               {locacao.dataRetiradaReal !== null ? "✓ RETIRADO" : "○ PENDENTE"}
